@@ -98,6 +98,8 @@ export default function WargaPage() {
     statusPerkawinan: 'BELUM KAWIN',
     pekerjaan: '',
     nomorHP: '',
+    blok: 'A',
+    nomorRumah: '',
     role: 'warga'
   });
 
@@ -183,7 +185,7 @@ export default function WargaPage() {
         nama: '', nik: '', rt_id: '', jenisKelamin: 'Laki-laki', 
         tanggalLahir: '', tempatLahir: '', agama: 'ISLAM', 
         statusPerkawinan: 'BELUM KAWIN', pekerjaan: '', 
-        nomorHP: '', role: 'warga' 
+        nomorHP: '', blok: 'A', nomorRumah: '', role: 'warga' 
       });
       setShowSuccessModal(true);
 
@@ -194,12 +196,16 @@ export default function WargaPage() {
         
         // Hanya kirim WA jika ini adalah warga BARU (bukan edit)
         if (!editingId && finalData.nomorHP) {
-          const [y, m, d] = (finalData.tanggalLahir || '2000-01-01').split('-');
-          const defaultPass = `${y}-${d}-${m}`;
-          const waMsg = `Halo ${finalData.nama}, data Anda telah ditambahkan ke sistem Ruang Warga VSJ. Silakan lakukan verifikasi melalui aplikasi dengan NIK Anda sebagai username dan password default: ${defaultPass}. Anda wajib menyelesaikan registrasi data lengkap setelah login.`;
-          
-          const { sendWhatsAppMessage } = await import('../services/notificationService');
-          await sendWhatsAppMessage(finalData.nomorHP, waMsg);
+          // Normalisasi tanggalLahir untuk password (input: DD/MM/YYYY -> target: YYYY-DD-MM)
+          const parts = finalData.tanggalLahir.split('/');
+          if (parts.length === 3) {
+            const [d, m, y] = parts;
+            const defaultPass = `${y}-${d}-${m}`;
+            const waMsg = `Halo ${finalData.nama}, data Anda telah ditambahkan ke sistem Ruang Warga VSJ. Silakan lakukan verifikasi melalui aplikasi dengan NIK Anda sebagai username dan password default: ${defaultPass}. Anda wajib menyelesaikan registrasi data lengkap setelah login.`;
+            
+            const { sendWhatsAppMessage } = await import('../services/notificationService');
+            await sendWhatsAppMessage(finalData.nomorHP, waMsg);
+          }
         }
 
       } catch (userErr) {
@@ -226,6 +232,8 @@ export default function WargaPage() {
       statusPerkawinan: res.statusPerkawinan || 'BELUM KAWIN',
       pekerjaan: res.pekerjaan || '',
       nomorHP: res.nomorHP || '',
+      blok: res.blok || 'A',
+      nomorRumah: res.nomorRumah || '',
       role: res.role || 'warga'
     });
     setShowAddModal(true);
@@ -276,10 +284,10 @@ export default function WargaPage() {
             <button className="btn btn-primary btn-sm" onClick={() => { 
               setEditingId(null); 
               setFormData({ 
-                nama: '', nik: '', rt_id: '', jenisKelamin: 'Laki-laki', 
+                nama: '', nik: '', rt_id: user?.role === 'rt' ? user.rt_id || '' : '', jenisKelamin: 'Laki-laki', 
                 tanggalLahir: '', tempatLahir: '', agama: 'ISLAM', 
                 statusPerkawinan: 'BELUM KAWIN', pekerjaan: '', 
-                nomorHP: '', role: 'warga' 
+                nomorHP: '', blok: 'A', nomorRumah: '', role: 'warga' 
               }); 
               setShowAddModal(true); 
             }}>
@@ -472,8 +480,33 @@ export default function WargaPage() {
                 </div>
 
                 <div className="form-group">
+                  <label>Tanggal Lahir (DD/MM/YYYY)</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    required
+                    placeholder="Contoh: 31/12/1990"
+                    value={formData.tanggalLahir} 
+                    onChange={e => {
+                      let val = e.target.value.replace(/[^0-9/]/g, '');
+                      if (val.length === 2 && !val.includes('/')) val += '/';
+                      if (val.length === 5 && val.split('/').length === 2) val += '/';
+                      if (val.length > 10) val = val.slice(0, 10);
+                      setFormData({ ...formData, tanggalLahir: val });
+                    }}
+                  />
+                </div>
+
+                {/* Always show RT selection so data is correctly categorized, but auto-fill for RT Admins */}
+                <div className="form-group">
                   <label>Nomor RT</label>
-                  <select className="form-input" required value={formData.rt_id} onChange={e => setFormData({ ...formData, rt_id: e.target.value })}>
+                  <select 
+                    className="form-input" 
+                    required 
+                    value={formData.rt_id} 
+                    onChange={e => setFormData({ ...formData, rt_id: e.target.value })}
+                    disabled={user?.role === 'rt'}
+                  >
                     <option value="">Pilih RT</option>
                     <option value="001">RT 001</option>
                     <option value="002">RT 002</option>
@@ -481,72 +514,6 @@ export default function WargaPage() {
                     <option value="004">RT 004</option>
                     <option value="005">RT 005</option>
                   </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Tanggal Lahir</label>
-                  <input 
-                    type="date" 
-                    className="form-input" 
-                    required
-                    value={formData.tanggalLahir} 
-                    onChange={e => setFormData({ ...formData, tanggalLahir: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Jenis Kelamin</label>
-                  <select className="form-input" value={formData.jenisKelamin} onChange={e => setFormData({ ...formData, jenisKelamin: e.target.value })}>
-                    <option value="Laki-laki">Laki-laki</option>
-                    <option value="Perempuan">Perempuan</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Tempat Lahir</label>
-                  <input
-                    className="form-input"
-                    placeholder="Contoh: JAKARTA"
-                    value={formData.tempatLahir}
-                    onChange={e => setFormData({ ...formData, tempatLahir: e.target.value.toUpperCase() })}
-                    list="warga-cities-list"
-                  />
-                  <datalist id="warga-cities-list">
-                    {['JAKARTA', 'SURABAYA', 'BANDUNG', 'MEDAN', 'BEKASI', 'TANGERANG', 'DEPOK', 'SEMARANG', 'PALEMBANG', 'MAKASSAR', 'TANGERANG SELATAN', 'BOGOR', 'BATAM', 'PEKANBARU', 'BANDAR LAMPUNG', 'MALANG', 'PADANG', 'DENPASAR', 'SAMARINDA', 'TASIKMALAYA', 'BANJARMASIN', 'BALIKPAPAN', 'PONTIANAK', 'CIMAHI', 'JAMBI', 'SURAKARTA', 'MANADO', 'MATARAM', 'CILEGON', 'PALU', 'KUPANG', 'SUKABUMI', 'BENGKULU', 'CIREBON', 'PEKALONGAN', 'AMBON', 'TEGAL', 'BINJAI', 'PURWOKERTO', 'LUBUKLINGGAU', 'PEMATANGSIANTAR', 'LOA JANAN', 'BANDA ACEH', 'TARAKAN', 'SINGKAWANG', 'PROBOLINGGO', 'BITUNG', 'BANJARBARU', 'TEBING TINGGI', 'PANGKALPINANG', 'LHOKSEUMAWE', 'SORONG', 'MADIUN', 'SALATIGA', 'KEDIRI', 'PAGAR ALAM', 'SINGARAJA', 'GORONTALO', 'BUKITTINGGI', 'KENDARI', 'PADANG SIDEMPUAN', 'TUAL', 'PAREPARE', 'BONTANG', 'TANJUNGPINANG', 'TERNATE', 'PALOPO', 'SOLOK'].map(city => <option key={city} value={city} />)}
-                  </datalist>
-                </div>
-
-                <div className="form-group">
-                  <label>Agama</label>
-                  <select className="form-input" value={formData.agama} onChange={e => setFormData({ ...formData, agama: e.target.value })}>
-                    <option value="ISLAM">ISLAM</option>
-                    <option value="KRISTEN">KRISTEN</option>
-                    <option value="KATOLIK">KATOLIK</option>
-                    <option value="HINDU">HINDU</option>
-                    <option value="BUDHA">BUDHA</option>
-                    <option value="KONGHUCU">KONGHUCU</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Status Perkawinan</label>
-                  <select className="form-input" value={formData.statusPerkawinan} onChange={e => setFormData({ ...formData, statusPerkawinan: e.target.value })}>
-                    <option value="BELUM KAWIN">BELUM KAWIN</option>
-                    <option value="KAWIN">KAWIN</option>
-                    <option value="CERAI HIDUP">CERAI HIDUP</option>
-                    <option value="CERAI MATI">CERAI MATI</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Pekerjaan</label>
-                  <input
-                    className="form-input"
-                    placeholder="Contoh: KARYAWAN SWASTA"
-                    style={{ textTransform: 'uppercase' }}
-                    value={formData.pekerjaan}
-                    onChange={e => setFormData({ ...formData, pekerjaan: e.target.value.toUpperCase() })}
-                  />
                 </div>
 
                 <div className="form-group">
@@ -559,28 +526,98 @@ export default function WargaPage() {
                   />
                 </div>
 
-                <div className="form-group full">
-                  <label>Hak Akses / Role User</label>
-                  <select
-                    className="form-input"
-                    value={formData.role}
-                    onChange={e => setFormData({ ...formData, role: e.target.value })}
-                    style={{ background: 'var(--blue-50)', borderColor: 'var(--blue-200)', fontWeight: 600 }}
-                  >
-                    <option value="warga">Warga (Default)</option>
-                    <option value="KETUA RW">Ketua RW</option>
-                    <option value="developer">Developer</option>
-                    <option disabled>──────────</option>
-                    <option value="KETUA RT 01">Ketua RT 01</option>
-                    <option value="KETUA RT 02">Ketua RT 02</option>
-                    <option value="KETUA RT 03">Ketua RT 03</option>
-                    <option value="KETUA RT 04">Ketua RT 04</option>
-                    <option value="KETUA RT 05">Ketua RT 05</option>
-                  </select>
-                  <p style={{ fontSize: 11, color: 'var(--gray-500)', marginTop: 4 }}>
-                    *Memilih role selain Warga akan otomatis membuat/memperbarui akun login untuk NIK ini.
-                  </p>
-                </div>
+                {/* Show other fields ONLY when editing */}
+                {editingId && (
+                  <>
+                    <div className="form-group">
+                      <label>Jenis Kelamin</label>
+                      <select className="form-input" value={formData.jenisKelamin} onChange={e => setFormData({ ...formData, jenisKelamin: e.target.value })}>
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Tempat Lahir</label>
+                      <input
+                        className="form-input"
+                        placeholder="Contoh: JAKARTA"
+                        value={formData.tempatLahir}
+                        onChange={e => setFormData({ ...formData, tempatLahir: e.target.value.toUpperCase() })}
+                        list="warga-cities-list"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Agama</label>
+                      <select className="form-input" value={formData.agama} onChange={e => setFormData({ ...formData, agama: e.target.value })}>
+                        <option value="ISLAM">ISLAM</option>
+                        <option value="KRISTEN">KRISTEN</option>
+                        <option value="KATOLIK">KATOLIK</option>
+                        <option value="HINDU">HINDU</option>
+                        <option value="BUDHA">BUDHA</option>
+                        <option value="KONGHUCU">KONGHUCU</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Status Perkawinan</label>
+                      <select className="form-input" value={formData.statusPerkawinan} onChange={e => setFormData({ ...formData, statusPerkawinan: e.target.value })}>
+                        <option value="BELUM KAWIN">BELUM KAWIN</option>
+                        <option value="KAWIN">KAWIN</option>
+                        <option value="CERAI HIDUP">CERAI HIDUP</option>
+                        <option value="CERAI MATI">CERAI MATI</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Pekerjaan</label>
+                      <input
+                        className="form-input"
+                        placeholder="Contoh: KARYAWAN SWASTA"
+                        style={{ textTransform: 'uppercase' }}
+                        value={formData.pekerjaan}
+                        onChange={e => setFormData({ ...formData, pekerjaan: e.target.value.toUpperCase() })}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Blok</label>
+                      <select className="form-input" value={formData.blok} onChange={e => setFormData({ ...formData, blok: e.target.value })}>
+                        {"ABCDEFGHIJKLMNOPQRST".split("").map(b => <option key={b} value={b}>Blok {b}</option>)}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Nomor Rumah</label>
+                      <select className="form-input" value={formData.nomorRumah} onChange={e => setFormData({ ...formData, nomorRumah: e.target.value })}>
+                        <option value="">Pilih No...</option>
+                        {Array.from({length: 100}, (_, i) => i + 1).map(n => <option key={n} value={n.toString()}>{n}</option>)}
+                      </select>
+                    </div>
+
+                    <div className="form-group full">
+                      <label>Hak Akses / Role User</label>
+                      <select
+                        className="form-input"
+                        value={formData.role}
+                        onChange={e => setFormData({ ...formData, role: e.target.value })}
+                        style={{ background: 'var(--blue-50)', borderColor: 'var(--blue-200)', fontWeight: 600 }}
+                      >
+                        <option value="warga">Warga (Default)</option>
+                        <option value="KETUA RW">Ketua RW</option>
+                        <option value="developer">Developer</option>
+                        <option disabled>──────────</option>
+                        <option value="KETUA RT 01">Ketua RT 01</option>
+                        <option value="KETUA RT 02">Ketua RT 02</option>
+                        <option value="KETUA RT 03">Ketua RT 03</option>
+                        <option value="KETUA RT 04">Ketua RT 04</option>
+                        <option value="KETUA RT 05">Ketua RT 05</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
                 <div style={{ gridColumn: 'span 2', display: 'flex', gap: 12, marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--gray-100)' }}>
                   <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowAddModal(false)}>Batal</button>
                   <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={isSubmitting}>
@@ -632,10 +669,13 @@ export default function WargaPage() {
                   onClick={() => {
                     const resident = residents.find(r => r.nik === successMessage.match(/\d{16}/)?.[0]) || residents[residents.length-1];
                     if (resident?.nomorHP) {
-                      const [y, m, d] = (resident.tanggalLahir || '2000-01-01').split('-');
-                      const defaultPass = `${y}-${d}-${m}`;
-                      const msg = `Halo ${resident.nama},\n\nSelamat! Data Anda telah terdaftar di sistem Ruang Warga VSJ VSJ. Silakan login untuk melakukan aktivasi akun menggunakan kredensial berikut:\n\n🌐 Link: https://ruangwarga011.com\n👤 Username: ${resident.nik}\n🔑 Password: ${defaultPass}\n\nMohon segera lengkapi data KTP & KK setelah login. Terima kasih!`;
-                      window.open(`https://wa.me/62${resident.nomorHP.replace(/^0/, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                      const parts = (resident.tanggalLahir || '01/01/2000').split('/');
+                      if (parts.length === 3) {
+                        const [d, m, y] = parts;
+                        const defaultPass = `${y}-${d}-${m}`;
+                        const msg = `Halo ${resident.nama},\n\nSelamat! Data Anda telah terdaftar di sistem Ruang Warga VSJ. Silakan login untuk melakukan aktivasi akun menggunakan kredensial berikut:\n\n🌐 Link: https://ruangwarga011.com\n👤 Username: ${resident.nik}\n🔑 Password: ${defaultPass}\n\nMohon segera lengkapi data KTP & KK setelah login. Terima kasih!`;
+                        window.open(`https://wa.me/62${resident.nomorHP.replace(/^0/, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                      }
                     }
                   }}
                 >

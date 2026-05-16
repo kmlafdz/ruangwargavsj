@@ -70,7 +70,8 @@ export default function ApprovalListPage() {
       // Update user account status to allow login
       await updateDoc(doc(db, 'users', req.nik), { 
         registrationStatus: 'verified',
-        accountStatus: 'active' 
+        accountStatus: 'active',
+        isFirstLogin: false
       });
 
       const msg = `Selamat ${req.nama}! Registrasi Anda di Ruang Warga VSJ telah DISETUJUI. Sekarang Anda dapat mengakses dashboard penuh.`;

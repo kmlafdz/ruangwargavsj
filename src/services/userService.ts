@@ -53,14 +53,38 @@ export async function deleteUser(nik: string): Promise<void> {
     await Promise.all(uPromises);
   } catch (err) { console.error("Err cleaning users:", err); }
 
-  // 3. Delete corresponding resident doc(s)
+  // 3. Delete corresponding resident doc(s) and cleanup empty families
   try {
     const q = query(collection(db, 'residents'), where('nik', '==', nik));
     const snap = await getDocs(q);
-    const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
-    await Promise.all(deletePromises);
+    
+    for (const d of snap.docs) {
+      const resData = d.data();
+      const noKK = resData.noKK || resData.nomorKK;
+      
+      // Delete the resident
+      await deleteDoc(d.ref);
+      
+      // Cleanup family if empty
+      if (noKK) {
+        const remainingQ = query(collection(db, 'residents'), where('noKK', '==', noKK));
+        const remainingSnap = await getDocs(remainingQ);
+        
+        const remainingQ2 = query(collection(db, 'residents'), where('nomorKK', '==', noKK));
+        const remainingSnap2 = await getDocs(remainingQ2);
+
+        if (remainingSnap.empty && remainingSnap2.empty) {
+          // No more members, delete family doc
+          const famQ = query(collection(db, 'families'), where('nomorKK', '==', noKK));
+          const famSnap = await getDocs(famQ);
+          for (const f of famSnap.docs) {
+            await deleteDoc(f.ref);
+          }
+        }
+      }
+    }
   } catch (err) {
-    console.error("Gagal menghapus data warga terkait:", err);
+    console.error("Gagal menghapus data warga/keluarga terkait:", err);
   }
 }
 
@@ -72,9 +96,18 @@ export async function createUserFromResident(resident: any, role: string): Promi
   const userRef = doc(db, 'users', resident.nik);
   
   // New Activation Flow fields
-  const dobRaw = resident.birthDate || resident.tanggalLahir || '2000-01-01';
-  const [y, m, d] = dobRaw.split('-');
-  const dobFormatted = `${y}-${d}-${m}`; // Format requested: yyyy-dd-mm
+  const dobRaw = resident.birthDate || resident.tanggalLahir || '01/01/2000';
+  let dobFormatted = '2000-01-01';
+
+  if (dobRaw.includes('/')) {
+    // Handle DD/MM/YYYY
+    const [d, m, y] = dobRaw.split('/');
+    dobFormatted = `${y}-${d}-${m}`; // Format: YYYY-DD-MM
+  } else if (dobRaw.includes('-')) {
+    // Handle YYYY-MM-DD (legacy)
+    const [y, m, d] = dobRaw.split('-');
+    dobFormatted = `${y}-${d}-${m}`; // Format: YYYY-DD-MM
+  }
 
   await setDoc(userRef, {
     name: resident.nama || resident.fullName || resident.namaLengkap,

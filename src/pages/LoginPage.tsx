@@ -3,12 +3,14 @@ import {
   User as UserIcon, Lock, ShieldCheck, 
   Loader2, Eye, EyeOff, ChevronRight, 
   ShieldAlert, LogIn,
-  RefreshCw, Smartphone, Fingerprint
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User } from '../types';
 import logo from '../assets/login/logo.png';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../firebase/config';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 // Images from public assets
 const housingImages = [
@@ -27,10 +29,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [show2FA, setShow2FA] = useState(false);
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [currentSlide, setCurrentSlide] = useState(0);
-  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,41 +44,37 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      if ((username === 'rw011' || username === 'kmlafdz' || username.startsWith('rt00')) && password === '1234') {
-        setShow2FA(true);
-        setLoading(false);
-      } else {
-        setError('Kredensial tidak valid atau akses ditolak.');
-        setLoading(false);
-      }
-    }, 1500);
-  };
+    // DEV BYPASS
+    if (username === 'kemaldev' && password === '1234') {
+      onLogin({
+        id: 'dev-admin',
+        username: 'kemaldev',
+        name: 'Developer Admin',
+        role: 'developer',
+        rt_id: 'RT 001',
+        accountStatus: 'active'
+      } as User);
+      return;
+    }
 
-  const handleVerify2FA = async () => {
-    setLoading(true);
-    setTimeout(async () => {
-      let userData: User;
-      if (username === 'kmlafdz') {
-        userData = { id: 'dev-001', name: 'MUHAMMAD KEMAL AFRILIDZI', username: 'kmlafdz', role: 'developer' };
-      } else if (username === 'rw011') {
-        userData = { id: 'rw-001', name: 'Ketua RW 011', username: 'rw011', role: 'KETUA RW' };
-      } else {
-        const rtNum = username.slice(-3);
-        userData = { id: `rt-${rtNum}`, name: `Ketua RT ${rtNum}`, username, role: 'rt', rt_id: rtNum };
+    try {
+      const q = query(collection(db, 'users'), where('username', '==', username));
+      const snap = await getDocs(q);
+      
+      if (snap.empty) {
+        throw new Error('Username tidak terdaftar.');
       }
+
+      const userData = { id: snap.docs[0].id, ...snap.docs[0].data() } as User;
+
+      if (userData.password !== password) {
+        throw new Error('Password salah.');
+      }
+
       onLogin(userData);
-    }, 2000);
-  };
-
-  const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    if (value && index < 5) {
-      const nextInput = document.getElementById(`otp-${index + 1}`);
-      nextInput?.focus();
+    } catch (err: any) {
+      setError(err.message || 'Login gagal.');
+      setLoading(false);
     }
   };
 
@@ -308,28 +303,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         />
       </div>
 
-      {/* 2FA Modal */}
-      <AnimatePresence>
-        {show2FA && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(2, 6, 23, 0.8)', backdropFilter: 'blur(16px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '32px', padding: '40px', maxWidth: '360px', width: '100%', textAlign: 'center', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: '#1e3a8a' }} />
-              <Smartphone size={32} style={{ color: '#1e3a8a', marginBottom: '24px' }} />
-              <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', marginBottom: '8px', fontStyle: 'italic' }}>Two-Step Verification</h3>
-              <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '32px' }}>Enter security code</p>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', justifyContent: 'center' }}>
-                {otp.map((d, i) => (
-                  <input key={i} id={`otp-${i}`} type="text" value={d} onChange={e => handleOtpChange(i, e.target.value)} style={{ width: '40px', height: '56px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', textAlign: 'center', fontSize: '20px', fontWeight: 900, color: '#0f172a', outline: 'none' }} />
-                ))}
-              </div>
-              <button onClick={handleVerify2FA} disabled={loading || otp.some(d => !d)} style={{ width: '100%', height: '56px', background: '#1e3a8a', color: '#fff', borderRadius: '16px', border: 'none', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase', cursor: 'pointer', marginBottom: '24px' }}>
-                {loading ? <Loader2 className="animate-spin" size={18} /> : "Verify & Authorize"}
-              </button>
-              <button onClick={() => setShow2FA(false)} style={{ border: 'none', background: 'none', color: '#ef4444', fontWeight: 900, fontSize: '9px', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -389,7 +362,30 @@ function AdminLoginForm({
         </button>
       </form>
 
-      <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #f3f4f6', textAlign: 'center' }}>
+      <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #f3f4f6', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <button 
+          onClick={async () => {
+            try {
+              const { setDoc, doc } = await import('firebase/firestore');
+              await setDoc(doc(db, 'users', 'kemaldev'), {
+                username: 'kemaldev',
+                password: '1234',
+                name: 'Kemal Developer',
+                role: 'developer',
+                rt_id: 'RT 001',
+                accountStatus: 'active',
+                createdAt: new Date()
+              });
+              alert('Kredensial kemaldev berhasil disimpan ke Database!');
+            } catch (e) {
+              alert('Gagal simpan ke DB: ' + e);
+            }
+          }}
+          style={{ border: 'none', background: 'none', color: '#1e3a8a', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', cursor: 'pointer', textDecoration: 'underline' }}
+        >
+          <ShieldCheck size={14} style={{ marginRight: 6 }} /> Sync dev to Database
+        </button>
+
         <button onClick={() => navigate('/warga-login')} style={{ border: 'none', background: 'none', color: '#64748b', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', margin: '0 auto' }}>
           <LogIn size={14} /> Back to Warga Login
         </button>

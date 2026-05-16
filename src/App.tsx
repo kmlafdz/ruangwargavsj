@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { db } from './firebase/config';
+import { doc, onSnapshot } from 'firebase/firestore';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import KeluargaPage from './pages/KeluargaPage';
 import WargaPage from './pages/WargaPage';
 import SuratPage from './pages/SuratPage';
 import KeuanganPage from './pages/KeuanganPage';
+import ResidentKeuangan from './pages/ResidentKeuangan';
 import DashboardPage from './pages/DashboardPage';
 import ResidentDashboard from './pages/ResidentDashboard';
 import LoginPage from './pages/LoginPage';
@@ -81,6 +84,37 @@ export default function App() {
     setUser(userData);
     localStorage.setItem('erw_user', JSON.stringify(userData));
   };
+
+  // Real-time user data sync from Firestore
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const userRef = doc(db, 'users', user.id);
+    const unsubscribe = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const latestData = { id: docSnap.id, ...docSnap.data() } as User;
+        
+        // Use functional update to always have the latest state for comparison
+        setUser(prev => {
+          if (!prev) return latestData;
+          
+          const hasChanged = 
+            latestData.accountStatus !== prev.accountStatus ||
+            latestData.isFirstLogin !== prev.isFirstLogin ||
+            latestData.role !== prev.role ||
+            latestData.name !== prev.name;
+
+          if (hasChanged) {
+            localStorage.setItem('erw_user', JSON.stringify(latestData));
+            return latestData;
+          }
+          return prev;
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user?.id]); // Only re-run if user ID changes
 
   const handleLogout = () => {
     setUser(null);
@@ -190,10 +224,11 @@ export default function App() {
                   subtitle={meta.subtitle} 
                   user={user} 
                   onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+                  onLogout={handleLogout}
                   hideToggle={user?.role === 'warga'}
                 />
                 <main className="page-content">
-                  <div className="fade-in">
+                  <div>
                     <Routes>
                       <Route path="/" element={<Navigate to="/warga/dashboard" replace />} />
                       
@@ -215,7 +250,7 @@ export default function App() {
                       <Route path="/warga/chat" element={<RoleGuard user={user} allowedRoles={['warga']}><ChatPage user={user!} /></RoleGuard>} />
                       <Route path="/warga/keluarga" element={<RoleGuard user={user} allowedRoles={['warga']}><ResidentFamilyPage user={user!} /></RoleGuard>} />
                       <Route path="/warga/surat" element={<RoleGuard user={user} allowedRoles={['warga']}><SuratPage /></RoleGuard>} />
-                      <Route path="/warga/keuangan" element={<RoleGuard user={user} allowedRoles={['warga']}><KeuanganPage /></RoleGuard>} />
+                      <Route path="/warga/keuangan" element={<RoleGuard user={user} allowedRoles={['warga']}><ResidentKeuangan user={user!} /></RoleGuard>} />
 
                       <Route path="*" element={<PlaceholderPage title={meta.title} />} />
                     </Routes>

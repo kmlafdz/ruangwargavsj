@@ -133,11 +133,17 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
         
         // Auto-fill address if family exists
         if (familyData.blok || familyData.nomorRumah || familyData.rt) {
+          // Normalize RT (ensure 001 format)
+          let normalizedRT = familyData.rt || '';
+          if (normalizedRT && normalizedRT.length < 3) {
+            normalizedRT = normalizedRT.padStart(3, '0');
+          }
+
           setExtractedData((prev: any) => ({
             ...prev,
             blok: familyData.blok || '',
             nomorRumah: familyData.nomorRumah || '',
-            rt: familyData.rt || '',
+            rt: normalizedRT,
             nomorKK: kkNumber
           }));
         }
@@ -576,12 +582,19 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
                     />
                   </div>
                   <div className="input-group">
-                    <label className="label">Tanggal Lahir</label>
+                    <label className="label">Tanggal Lahir (DD/MM/YYYY)</label>
                     <input 
                       className="input" 
-                      type="date" 
+                      type="text"
+                      placeholder="31/12/1990"
                       value={extractedData?.tanggalLahir || user.dob || ''} 
-                      onChange={(e) => setExtractedData({...(extractedData || {}), tanggalLahir: e.target.value})}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/[^0-9/]/g, '');
+                        if (val.length === 2 && !val.includes('/')) val += '/';
+                        if (val.length === 5 && val.split('/').length === 2) val += '/';
+                        if (val.length > 10) val = val.slice(0, 10);
+                        setExtractedData({...(extractedData || {}), tanggalLahir: val});
+                      }}
                     />
                   </div>
                   <div className="input-group">
@@ -709,7 +722,7 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
                         onChange={(e) => setExtractedData({...(extractedData || {}), rt: e.target.value})}
                       >
                         <option value="">RT...</option>
-                        {["01", "02", "03", "04", "05"].map(rt => <option key={rt} value={rt}>{rt}</option>)}
+                        {["001", "002", "003", "004", "005"].map(rt => <option key={rt} value={rt}>{rt}</option>)}
                       </select>
                     </div>
                   </div>

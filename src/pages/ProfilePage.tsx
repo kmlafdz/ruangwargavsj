@@ -64,7 +64,7 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
 
     try {
       const { updateDoc, query, where, getDocs, collection } = await import('firebase/firestore');
-      
+
       // 1. Update Users collection
       await setDoc(doc(db, 'users', user.id), {
         name,
@@ -76,7 +76,7 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
       const userNik = user.nik || user.id;
       const residentsQ = query(collection(db, 'residents'), where('nik', '==', userNik));
       const residentsSnap = await getDocs(residentsQ);
-      
+
       if (!residentsSnap.empty) {
         for (const residentDoc of residentsSnap.docs) {
           await updateDoc(residentDoc.ref, {
@@ -123,8 +123,8 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
         const MAX = 400;
         let w = img.width;
         let h = img.height;
-        if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
-        else { if (h > MAX) { w *= MAX/h; h = MAX; } }
+        if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
+        else { if (h > MAX) { w *= MAX / h; h = MAX; } }
         canvas.width = w;
         canvas.height = h;
         canvas.getContext('2d')?.drawImage(img, 0, 0, w, h);
@@ -190,270 +190,259 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
   };
 
 
+  const [activeSection, setActiveSection] = useState<'identitas' | 'akun' | 'notif' | 'feedback' | 'about'>('identitas');
+
   // 5. Render
   if (!user) return null;
-  if (syncing) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 12 }}>
-      <Loader2 className="spin" size={32} color="var(--blue-600)" />
-      <p style={{fontSize: 14, color: 'var(--gray-500)'}}>Menyinkronkan data...</p>
-    </div>
-  );
+  if (syncing) return null; // Already removed in previous turn but keeping consistent
 
-  const isDangerAuthorized = ['developer', 'rw'].includes(user.role);
-
-  return (
-    <div className="profile-container" style={{ maxWidth: 600, margin: '0 auto', paddingBottom: 60 }}>
-      <div className="card shadow-sm">
-        <div className="card-header" style={{ background: 'var(--blue-50)', borderBottom: '1px solid var(--blue-100)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Settings size={20} color="var(--blue-600)" />
-            <h3 className="card-title" style={{ color: 'var(--blue-800)' }}>Pengaturan Profil</h3>
-          </div>
-        </div>
-        <div className="card-body" style={{ padding: 32 }}>
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <div style={{ position: 'relative', display: 'inline-block' }}>
-              <div style={{ 
-                width: 120, height: 120, borderRadius: '50%', 
-                background: 'var(--gray-100)', display: 'flex', 
-                alignItems: 'center', justifyContent: 'center',
-                overflow: 'hidden', border: '4px solid #fff',
-                boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
-              }}>
-                {photoPreview || user.photoUrl ? (
-                  <img src={photoPreview || user.photoUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <UserIcon size={48} color="var(--gray-300)" />
-                )}
-              </div>
-              <button 
-                className="btn-icon" 
-                onClick={() => fileInputRef.current?.click()} 
-                style={{ 
-                  position: 'absolute', bottom: 4, right: 4, 
-                  background: 'var(--blue-600)', color: '#fff', 
-                  borderRadius: '50%', border: '2px solid #fff',
-                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}
-                disabled={loading}
-              >
-                <Camera size={14} />
-              </button>
-              <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handlePhotoUpload} />
-            </div>
-            <h3 style={{ marginTop: 20, fontSize: 20, fontWeight: 800, color: 'var(--gray-800)' }}>{user.name}</h3>
-            <p style={{ color: 'var(--gray-500)', fontSize: 13, marginTop: 4 }}>
-              <span style={{ fontWeight: 700, color: 'var(--blue-600)' }}>{user.role.toUpperCase()}</span> · {user.rt_id ? `Wilayah RT ${user.rt_id}` : 'RW 011'}
-            </p>
-          </div>
-
-          <form onSubmit={handleUpdateProfile} className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
-            <div className="form-group">
-              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Nama Lengkap (KAPITAL)</label>
-              <input 
-                className="form-input" 
-                value={name} 
-                onChange={e => setName(e.target.value.toUpperCase())} 
-                placeholder="Masukkan nama sesuai KTP"
-                required 
-                style={{ height: 48, borderRadius: 12, textTransform: 'uppercase' }}
-              />
-            </div>
-            <div className="form-group" style={{ marginTop: 16 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Hak Akses Sistem</label>
-              <input 
-                className="form-input" 
-                value={user.role.toUpperCase()} 
-                disabled 
-                style={{ background: 'var(--gray-50)', height: 48, borderRadius: 12, color: 'var(--gray-500)' }} 
-              />
-            </div>
-
-            {message && (
-              <div style={{ 
-                padding: 14, borderRadius: 12, fontSize: 13, marginTop: 24, 
-                display: 'flex', alignItems: 'center', gap: 10, 
-                background: message.type === 'success' ? 'var(--green-50)' : 'var(--red-50)', 
-                color: message.type === 'success' ? 'var(--green-700)' : 'var(--red-700)',
-                border: `1px solid ${message.type === 'success' ? 'var(--green-100)' : 'var(--red-100)'}`
-              }}>
-                {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-                <span style={{ fontWeight: 600 }}>{message.text}</span>
-              </div>
-            )}
-
-            <button 
-              className="btn btn-primary btn-block" 
-              type="submit" 
-              style={{ marginTop: 32, height: 50, borderRadius: 12, fontSize: 15, fontWeight: 700 }} 
-              disabled={loading}
-            >
-              {loading ? <Loader2 size={20} className="spin" /> : <><Save size={20} /> Simpan Perubahan</>}
-            </button>
-          </form>
-
-          {/* ADDED LOGOUT BUTTON FOR RESIDENTS */}
-          {user.role === 'warga' && (
-            <div style={{ marginTop: 24, borderTop: '1px solid var(--gray-100)', paddingTop: 24 }}>
-              <button 
-                className="btn btn-danger btn-block" 
-                style={{ 
-                  height: 50, borderRadius: 12, fontSize: 15, fontWeight: 700,
-                  background: '#fef2f2', color: '#ef4444', border: '1px solid #fee2e2'
-                }} 
-                onClick={() => {
-                  localStorage.removeItem('erw_user');
-                  window.location.href = '/warga-login';
-                }}
-              >
-                <LogOut size={20} style={{ marginRight: 8 }} /> Keluar dari Akun
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {user.role !== 'warga' && (
-        <div className="card shadow-sm" style={{ marginTop: 24, border: '1px solid var(--blue-200)' }}>
-          <div className="card-header" style={{ background: 'var(--blue-50)', borderBottom: '1px solid var(--blue-100)' }}>
-            <div style={{ color: 'var(--blue-800)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <ShieldAlert size={20} /> Akses Panel Admin
-            </div>
-          </div>
-          <div className="card-body" style={{ padding: 24 }}>
-            <p style={{ fontSize: 13, color: 'var(--gray-600)', marginBottom: 20, lineHeight: 1.5 }}>
-              Anda memiliki hak akses sebagai pengurus. Klik tombol di bawah ini untuk masuk ke <strong>Web Login Panel Admin</strong>. Anda dapat menggunakan kredensial yang sama.
-            </p>
-            <button 
-              className="btn btn-primary" 
-              style={{ padding: '12px 24px', borderRadius: 10, fontWeight: 700 }}
-              onClick={() => {
-                // Clear state and redirect to admin login
-                localStorage.removeItem('erw_user');
-                window.location.href = '/admin-login';
-              }}
-            >
-              Menuju Login Admin
-            </button>
-          </div>
-        </div>
-      )}
-
-      {isDangerAuthorized && (
-        <div className="card shadow-sm" style={{ marginTop: 32, border: '1px solid var(--red-100)' }}>
-          <div className="card-header" style={{ background: 'var(--red-50)', borderBottom: '1px solid var(--red-100)' }}>
-            <div style={{ color: 'var(--red-700)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <ShieldAlert size={20} /> Zona Bahaya (Admin)
-            </div>
-          </div>
-          <div className="card-body" style={{ padding: 24 }}>
-            <p style={{ fontSize: 13, color: 'var(--gray-600)', marginBottom: 20, lineHeight: 1.5 }}>
-              Fitur ini akan menghapus <strong>seluruh database warga</strong> termasuk kartu keluarga, riwayat pengaduan, akun warga, dan registrasi secara permanen.
-            </p>
-            <button 
-              className="btn btn-danger" 
-              style={{ padding: '12px 24px', borderRadius: 10, fontWeight: 700 }}
-              onClick={() => setShowDeleteModal(true)}
-            >
-              <Trash2 size={18} /> Hapus Semua Data
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showDeleteModal && (
-        <div style={{ 
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', 
-          zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 
-        }}>
-          <div className="card fade-in shadow-xl" style={{ maxWidth: 480, width: '100%', padding: 40, borderRadius: 24 }}>
-            <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ width: 64, height: 64, background: 'var(--red-50)', color: 'var(--red-600)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                <ShieldAlert size={32} />
-              </div>
-              <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--gray-800)' }}>Konfirmasi Hapus Total</h2>
-              <p style={{ fontSize: 14, color: 'var(--gray-500)', marginTop: 8 }}>
-                Ketik kalimat konfirmasi di bawah ini untuk mengaktifkan tombol hapus:
-              </p>
-              <div style={{ marginTop: 16, padding: '12px', background: 'var(--gray-100)', borderRadius: 12, fontSize: 13, fontWeight: 800, color: 'var(--gray-700)', letterSpacing: 1 }}>
-                HAPUS SEMUA DATA
-              </div>
-            </div>
-            
-            <input 
-              className="form-input" 
-              value={confirmText} 
-              onChange={e => setConfirmText(e.target.value)} 
-              style={{ 
-                width: '100%',
-                textAlign: 'center', 
-                textTransform: 'uppercase', 
-                height: 50, 
-                fontSize: 14, 
-                fontWeight: 700, 
-                letterSpacing: 1,
-                border: '2px solid var(--gray-200)',
-                borderRadius: 12
-              }} 
-              placeholder="Ketik frasa di atas..." 
-            />
-            
-            <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <button 
-                className="btn btn-danger btn-block"
-                style={{ 
-                  position: 'relative', overflow: 'hidden', height: 56, borderRadius: 14, fontSize: 15, fontWeight: 800,
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  transform: holdProgress > 0 ? `scale(${1 + (holdProgress/800)})` : 'scale(1)',
-                  boxShadow: holdProgress > 0 ? '0 10px 20px rgba(239, 68, 68, 0.3)' : 'none',
-                  cursor: confirmText.trim().toUpperCase() !== 'HAPUS SEMUA DATA' ? 'not-allowed' : 'pointer',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  touchAction: 'none'
-                }}
-                onMouseDown={startHold} 
-                onMouseUp={stopHold} 
-                onMouseLeave={stopHold}
-                onTouchStart={(e) => { e.preventDefault(); startHold(); }} 
-                onTouchEnd={stopHold}
-                disabled={confirmText.trim().toUpperCase() !== 'HAPUS SEMUA DATA' || isDeleting}
-              >
-                {/* Visual Progress Bar Overlay */}
-                <div style={{ 
-                  position: 'absolute', left: 0, top: 0, bottom: 0, 
-                  width: `${holdProgress}%`, background: 'rgba(255,255,255,0.4)',
-                  transition: 'width 0.05s linear' 
-                }} />
-                
-                <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center' }}>
-                  {isDeleting ? <Loader2 size={20} className="spin" /> : (
-                    holdProgress > 0 ? (
-                      <span style={{ letterSpacing: 2 }}>TAHAN... {Math.ceil((100 - holdProgress)/33.3)}s</span>
-                    ) : <><Trash2 size={20} /> Tekan & Tahan 3 Detik</>
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'identitas':
+        return (
+          <div className="section-content fade-in">
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <div style={{
+                  width: 100, height: 100, borderRadius: '50%',
+                  background: 'var(--gray-100)', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  overflow: 'hidden', border: '4px solid #fff',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.08)'
+                }}>
+                  {photoPreview || user.photoUrl ? (
+                    <img src={photoPreview || user.photoUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <UserIcon size={40} color="var(--gray-300)" />
                   )}
-                </span>
-              </button>
-              
-              <button 
-                className="btn btn-secondary btn-block" 
-                style={{ height: 50, borderRadius: 14, fontWeight: 700 }}
-                onClick={() => { setShowDeleteModal(false); setConfirmText(''); setHoldProgress(0); }} 
-                disabled={isDeleting}
-              >
-                Batalkan Tindakan
-              </button>
-              
-              {confirmText.trim().toUpperCase() === 'HAPUS SEMUA DATA' && holdProgress === 0 && (
-                <div className="fade-in" style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center', marginTop: 8 }}>
-                  <AlertCircle size={14} color="var(--red-600)" />
-                  <span style={{ fontSize: 11, color: 'var(--red-600)', fontWeight: 700 }}>Tahan tombol merah untuk menghapus permanen</span>
+                </div>
+                <button
+                  className="btn-icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    position: 'absolute', bottom: 0, right: 0,
+                    background: '#2563eb', color: '#fff',
+                    borderRadius: '50%', border: '2px solid #fff',
+                    width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Camera size={14} />
+                </button>
+                <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handlePhotoUpload} />
+              </div>
+            </div>
+
+            <form onSubmit={handleUpdateProfile}>
+              <div className="form-group" style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>Nama Lengkap</label>
+                <input
+                  className="form-input"
+                  value={name}
+                  onChange={e => setName(e.target.value.toUpperCase())}
+                  placeholder="Masukkan nama sesuai KK"
+                  required
+                  style={{ height: 52, borderRadius: 14, border: '1px solid #e2e8f0', padding: '0 16px', textTransform: 'uppercase', fontSize: 14, fontWeight: 700 }}
+                />
+              </div>
+
+              {message && (
+                <div style={{
+                  padding: 14, borderRadius: 12, fontSize: 13, marginBottom: 20,
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  background: message.type === 'success' ? '#f0fdf4' : '#fef2f2',
+                  color: message.type === 'success' ? '#15803d' : '#b91c1c',
+                  border: `1px solid ${message.type === 'success' ? '#dcfce7' : '#fee2e2'}`
+                }}>
+                  {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                  <span style={{ fontWeight: 700 }}>{message.text}</span>
                 </div>
               )}
 
+              <button
+                className="btn-primary"
+                type="submit"
+                style={{ width: '100%', height: 52, borderRadius: 14, background: '#2563eb', color: '#fff', border: 'none', fontSize: 15, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+                disabled={loading}
+              >
+                {loading ? <Loader2 size={20} className="spin" /> : <><Save size={20} /> Simpan Profil</>}
+              </button>
+            </form>
+          </div>
+        );
+      case 'akun':
+        return (
+          <div className="section-content fade-in">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ background: '#f8fafc', padding: 20, borderRadius: 18, border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Nomor Induk Kependudukan (NIK)</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#1e293b' }}>{user.nik || user.id}</div>
+              </div>
+              <div style={{ background: '#f8fafc', padding: 20, borderRadius: 18, border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Nomor Kartu Keluarga (KK)</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#1e293b' }}>{user.noKK || 'Belum Terdaftar'}</div>
+              </div>
+              <div style={{ background: '#f8fafc', padding: 20, borderRadius: 18, border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Level Akses</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#2563eb', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <ShieldAlert size={14} /> {user.role.toUpperCase()}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'notif':
+        return (
+          <div className="section-content fade-in">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { id: 'n1', label: 'Pengumuman RW', desc: 'Dapatkan berita terbaru dari pengurus RT/RW' },
+                { id: 'n2', label: 'Status Iuran', desc: 'Notifikasi pembayaran dan tagihan kas' },
+                { id: 'n3', label: 'Pesan Masuk', desc: 'Notifikasi saat ada balasan dari admin' }
+              ].map(n => (
+                <div key={n.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', background: '#fff', borderRadius: 18, border: '1px solid #f1f5f9' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#1e293b' }}>{n.label}</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{n.desc}</div>
+                  </div>
+                  <div style={{ width: 44, height: 24, background: '#22c55e', borderRadius: 100, padding: 3, cursor: 'pointer' }}>
+                    <div style={{ width: 18, height: 18, background: '#fff', borderRadius: '50%', marginLeft: 'auto' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'feedback':
+        return (
+          <div className="section-content fade-in">
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+              <AlertCircle size={48} color="#cbd5e1" style={{ margin: '0 auto 16px' }} />
+              <h4 style={{ fontSize: 16, fontWeight: 800, color: '#1e293b' }}>Kirim Umpan Balik</h4>
+              <p style={{ fontSize: 13, color: '#64748b', marginTop: 8, marginBottom: 24 }}>Bantu kami meningkatkan kualitas layanan Ruang Warga VSJ.</p>
+              <textarea
+                placeholder="Tulis saran atau keluhan Anda di sini..."
+                style={{ width: '100%', minHeight: 120, borderRadius: 18, border: '1px solid #e2e8f0', padding: 16, fontSize: 14, outline: 'none', marginBottom: 16 }}
+              />
+              <button style={{ width: '100%', height: 48, borderRadius: 14, background: '#1e293b', color: '#fff', border: 'none', fontWeight: 700 }}>Kirim Sekarang</button>
+            </div>
+          </div>
+        );
+      case 'about':
+        return (
+          <div className="section-content fade-in">
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', borderRadius: 20, margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <Settings size={40} />
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 900, color: '#1e3a8a' }}>Ruang Warga VSJ</h3>
+              <p style={{ fontSize: 13, color: '#64748b', marginTop: 8, lineHeight: 1.6 }}>
+                Sistem Informasi & Administrasi Mandiri<br />
+                <strong>Vila Samudra Jaya - RW 011</strong>
+              </p>
+
+              <div style={{ marginTop: 40, borderTop: '1px solid #f1f5f9', paddingTop: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                  <span style={{ fontSize: 13, color: '#64748b' }}>Versi Aplikasi</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#1e293b' }}>v1.0.0-gold</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                  <span style={{ fontSize: 13, color: '#64748b' }}>Terakhir Diperbarui</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#1e293b' }}>16 Mei 2026</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
+                  <span style={{ fontSize: 13, color: '#64748b' }}>Developer</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#2563eb' }}>Tim Digital VSJ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="profile-page-premium" style={{ background: '#f8fafc', minHeight: '100vh', padding: '24px 20px 100px' }}>
+      <header style={{ marginBottom: 32 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1e3a8a', margin: 0 }}>Pengaturan</h2>
+        <p style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Personalisasi akun & aplikasi Anda</p>
+      </header>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100%, 1fr))', gap: 24 }}>
+        {/* NAV SECTIONS */}
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }} className="hide-scrollbar">
+          {[
+            { id: 'identitas', label: 'Identitas', icon: UserIcon },
+            { id: 'akun', label: 'Akun', icon: ShieldAlert },
+            { id: 'notif', label: 'Notifikasi', icon: AlertCircle },
+            { id: 'feedback', label: 'Feedback', icon: Save },
+            { id: 'about', label: 'Tentang', icon: Settings }
+          ].map(s => (
+            <button
+              key={s.id}
+              onClick={() => setActiveSection(s.id as any)}
+              style={{
+                whiteSpace: 'nowrap', padding: '10px 16px', borderRadius: 12, border: 'none',
+                background: activeSection === s.id ? '#1e3a8a' : '#fff',
+                color: activeSection === s.id ? '#fff' : '#64748b',
+                fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8,
+                boxShadow: activeSection === s.id ? '0 4px 12px rgba(30, 58, 138, 0.2)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <s.icon size={16} /> {s.label}
+            </button>
+          ))}
+        </div>
+
+        {/* SECTION CARD */}
+        <div style={{ background: '#fff', borderRadius: 28, padding: 24, border: '1px solid #f1f5f9', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          {renderSection()}
+        </div>
+
+        {/* DANGER ZONE FOR ADMIN ONLY - MOVING TO BOTTOM AS BUTTON */}
+        {['developer', 'rw'].includes(user.role) && activeSection === 'akun' && (
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            style={{ width: '100%', padding: '16px', borderRadius: 18, border: '1px solid #fee2e2', background: '#fef2f2', color: '#ef4444', fontWeight: 800, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+          >
+            <Trash2 size={18} /> Hapus Seluruh Database Warga
+          </button>
+        )}
+      </div>
+
+      {/* DELETE MODAL (Restored logic) */}
+      {showDeleteModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', width: '100%', maxWidth: 450, borderRadius: 28, padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ width: 64, height: 64, background: '#fef2f2', color: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}><ShieldAlert size={32} /></div>
+              <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Konfirmasi Hapus Total</h3>
+              <p style={{ fontSize: 13, color: '#64748b', marginTop: 8 }}>Ketik frasa di bawah untuk menghapus seluruh data permanen:</p>
+              <div style={{ marginTop: 12, padding: 10, background: '#f8fafc', borderRadius: 10, fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>HAPUS SEMUA DATA</div>
+            </div>
+            <input className="form-input" value={confirmText} onChange={e => setConfirmText(e.target.value)} style={{ width: '100%', textAlign: 'center', textTransform: 'uppercase', height: 48, borderRadius: 14, border: '2px solid #f1f5f9' }} placeholder="..." />
+            <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onMouseDown={startHold} onMouseUp={stopHold} onMouseLeave={stopHold}
+                disabled={confirmText.toUpperCase() !== 'HAPUS SEMUA DATA' || isDeleting}
+                style={{ height: 52, borderRadius: 14, background: '#ef4444', color: '#fff', border: 'none', fontWeight: 800, position: 'relative', overflow: 'hidden' }}
+              >
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${holdProgress}%`, background: 'rgba(255,255,255,0.3)' }} />
+                <span style={{ position: 'relative' }}>{isDeleting ? 'Menghapus...' : 'Tahan 3 Detik untuk Hapus'}</span>
+              </button>
+              <button onClick={() => setShowDeleteModal(false)} style={{ height: 52, borderRadius: 14, border: 'none', background: '#f1f5f9', color: '#64748b', fontWeight: 700 }}>Batalkan</button>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 }

@@ -119,7 +119,6 @@ export default function DashboardPage({ user }: DashboardPageProps) {
   const fmt = (n: number) => n >= 1e6 ? `Rp ${(n/1e6).toFixed(1)}Jt` : n >= 1e3 ? `Rp ${(n/1e3).toFixed(0)}K` : `Rp ${n}`;
   const saldo = stats.pemasukan - stats.pengeluaran;
 
-  const Skeleton = () => <div style={{ height: 48, borderRadius: 10, background: 'linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', marginBottom: 10 }} />;
 
   return (
     <div style={{ padding: 0 }}>
@@ -132,7 +131,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
           </p>
         </div>
         <button onClick={fetch} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, background: 'var(--gray-50)', border: '1px solid var(--gray-200)', fontSize: 13, fontWeight: 700, color: 'var(--gray-600)', cursor: 'pointer' }}>
-          <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+          <RefreshCw size={14} style={{ transform: loading ? 'rotate(45deg)' : 'none' }} />
           Perbarui
         </button>
       </div>
@@ -173,7 +172,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
               <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--gray-800)', margin: 0 }}>Warga per RT</h3>
             </div>
           </div>
-          {loading ? <Skeleton /> : rtChartData.length === 0 ? (
+          {rtChartData.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--gray-400)', fontSize: 13 }}>Belum ada data</div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
@@ -200,7 +199,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
             <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--gray-800)', margin: 0 }}>Status Akun Warga</h3>
           </div>
-          {loading ? <Skeleton /> : statusPieData.length === 0 ? (
+          {statusPieData.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--gray-400)', fontSize: 13 }}>Belum ada data</div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
@@ -229,7 +228,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
             <span style={{ color: '#ef4444' }}>● Pengeluaran</span>
           </div>
         </div>
-        {loading ? <Skeleton /> : (
+        {(
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={financeChartData}>
               <defs>
@@ -264,7 +263,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
               <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--gray-800)', margin: 0 }}>Aktivitas Terbaru</h3>
             </div>
           </div>
-          {loading ? [1,2,3].map(i => <Skeleton key={i} />) : activities.length === 0 ? (
+          {activities.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--gray-400)', fontSize: 13 }}>Belum ada aktivitas</div>
           ) : activities.map((act, i) => (
             <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', paddingBottom: 12, borderBottom: i < activities.length - 1 ? '1px solid var(--gray-100)' : 'none', marginBottom: i < activities.length - 1 ? 12 : 0 }}>

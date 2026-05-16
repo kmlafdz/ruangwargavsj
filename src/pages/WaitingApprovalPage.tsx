@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Clock, ShieldCheck, UserCheck, 
   MessageCircle, ExternalLink, 
-  ChevronRight, ArrowLeft, Loader2
+  ChevronRight, ArrowLeft, Loader2,
+  CheckCircle2, AlertCircle, XCircle
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { User } from '../types';
 import logo from '../assets/login/logo.png';
+import { db } from '../firebase/config';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 interface WaitingApprovalPageProps {
   user: User;
@@ -16,10 +19,34 @@ interface WaitingApprovalPageProps {
 
 export default function WaitingApprovalPage({ user, onLogout }: WaitingApprovalPageProps) {
   const navigate = useNavigate();
+  const [showStatusPopup, setShowStatusPopup] = useState<'approved' | 'rejected' | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+
+  // Real-time listener for status change within this page
+  useEffect(() => {
+    if (!user?.id) return;
+    const userRef = doc(db, 'users', user.id);
+    const unsubscribe = onSnapshot(userRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.accountStatus === 'active') {
+          setShowStatusPopup('approved');
+          // Manual navigation fail-safe after 2 seconds
+          setTimeout(() => {
+            navigate('/warga/dashboard', { replace: true });
+          }, 2500);
+        } else if (data.accountStatus === 'rejected') {
+          setRejectionReason(data.rejectionReason || 'Data tidak sesuai atau kurang lengkap.');
+          setShowStatusPopup('rejected');
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [user?.id]);
 
   // Progress logic based on account status
   const steps = [
-    { id: 1, label: 'Registrasi Selesai', status: 'completed', date: user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString('id-ID') : 'Hari ini' },
+    { id: 1, label: 'Registrasi Selesai', status: 'completed', date: user.createdAt ? (user.createdAt.seconds ? new Date(user.createdAt.seconds * 1000).toLocaleDateString('id-ID') : 'Hari ini') : 'Hari ini' },
     { id: 2, label: 'Verifikasi Identitas & Keluarga', status: user.accountStatus === 'waiting_family_approval' ? 'processing' : 'completed' },
     { id: 3, label: 'Persetujuan Admin RW', status: user.accountStatus === 'waiting_admin_approval' ? 'processing' : 'pending' },
     { id: 4, label: 'Akses Dashboard Aktif', status: 'pending' },
@@ -118,6 +145,16 @@ export default function WaitingApprovalPage({ user, onLogout }: WaitingApprovalP
           70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
           100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
         }
+        .status-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(255,255,255,0.95);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px;
+        }
       `}} />
 
       <motion.div 
@@ -168,6 +205,54 @@ export default function WaitingApprovalPage({ user, onLogout }: WaitingApprovalP
         </button>
       </motion.div>
 
+      {/* Real-time Status Overlays */}
+      <AnimatePresence>
+        {showStatusPopup === 'approved' && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="status-overlay"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+              style={{ textAlign: 'center', maxWidth: 400 }}
+            >
+              <div style={{ width: 80, height: 80, background: '#dcfce7', color: '#22c55e', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                <CheckCircle2 size={48} />
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#14532d', marginBottom: '12px' }}>Akun Aktif!</h2>
+              <p style={{ color: '#166534', marginBottom: '32px' }}>Selamat, pendaftaran Anda telah disetujui. Membuka dashboard warga...</p>
+              <Loader2 className="spin" style={{ color: '#22c55e', margin: '0 auto' }} />
+            </motion.div>
+          </motion.div>
+        )}
+
+        {showStatusPopup === 'rejected' && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="status-overlay"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+              style={{ textAlign: 'center', maxWidth: 400, padding: 32, background: '#fff', borderRadius: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.2)', border: '1px solid #fee2e2' }}
+            >
+              <div style={{ width: 80, height: 80, background: '#fee2e2', color: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                <XCircle size={48} />
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#991b1b', marginBottom: '12px' }}>Verifikasi Ditolak</h2>
+              <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>Mohon maaf, pendaftaran Anda memerlukan revisi dengan alasan:</p>
+              <div style={{ background: '#fef2f2', padding: '16px', borderRadius: '16px', color: '#b91c1c', fontWeight: 700, fontSize: '14px', marginBottom: '32px', border: '1px solid #fecdd3' }}>
+                "{rejectionReason}"
+              </div>
+              <button 
+                onClick={() => navigate('/warga/revisi')}
+                style={{ width: '100%', height: '54px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: 800, fontSize: '14px', cursor: 'pointer' }}
+              >
+                Perbaiki Data Sekarang
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

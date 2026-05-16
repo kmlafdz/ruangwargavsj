@@ -22,18 +22,29 @@ const PEKERJAAN_LIST = [
 
 const EMPTY_FORM = {
   nik: '', namaLengkap: '', jenisKelamin: 'Laki-laki', tanggalLahir: '',
-  noTelepon: '', statusKeluarga: 'Anak', statusPerkawinan: 'Belum Kawin',
-  pekerjaan: 'Belum/Tidak Bekerja', alamat: ''
+  tempatLahir: '', agama: 'ISLAM',
+  noTelepon: '', hubungan: 'Anak', statusPerkawinan: 'Belum Kawin',
+  pekerjaan: 'Belum/Tidak Bekerja', blok: 'A', nomorRumah: '', rt: '01', rw: '051'
 };
 
 export default function MemberFormModal({ member, existingMembers, onSave, onClose }: MemberFormModalProps) {
   const isEdit = !!member?.id;
-  const [form, setForm] = useState<any>(member || EMPTY_FORM);
+  const [form, setForm] = useState<any>(() => {
+    if (!member) return EMPTY_FORM;
+    // Normalize data from different possible sources (Firestore/API)
+    return {
+      ...EMPTY_FORM,
+      ...member,
+      namaLengkap: member.namaLengkap || (member as any).nama || (member as any).fullName || '',
+      noTelepon: member.noTelepon || (member as any).nomorHP || ''
+    };
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const set = (field: string, val: string) => {
     setForm((f: any) => ({ ...f, [field]: val }));
     setErrors((e: any) => ({ ...e, [field]: '' }));
+    if (field === 'hubungan') setErrors((e: any) => ({ ...e, hubungan: '' }));
   };
 
   const validate = () => {
@@ -46,14 +57,15 @@ export default function MemberFormModal({ member, existingMembers, onSave, onClo
     }
     if (!form.namaLengkap.trim()) e.namaLengkap = 'Nama lengkap wajib diisi';
     if (!form.tanggalLahir) e.tanggalLahir = 'Tanggal lahir wajib diisi';
-    if (!form.alamat.trim()) e.alamat = 'Alamat wajib diisi';
+    if (!form.blok || !form.blok.trim()) e.blok = 'Blok wajib diisi';
+    if (!form.nomorRumah || !form.nomorRumah.trim()) e.nomorRumah = 'Nomor rumah wajib diisi';
 
     // Only one KK head
-    if (form.statusKeluarga === 'Kepala Keluarga') {
+    if (form.hubungan === 'Kepala Keluarga') {
       const existing = existingMembers.find(
-        m => m.statusKeluarga === 'Kepala Keluarga' && m.id !== form.id
+        m => (m.hubungan || m.statusKeluarga) === 'Kepala Keluarga' && m.id !== member?.id
       );
-      if (existing) e.statusKeluarga = `Kepala Keluarga sudah ada (${existing.namaLengkap})`;
+      if (existing) e.hubungan = `Kepala Keluarga sudah ada (${(existing as any).nama || existing.namaLengkap})`;
     }
     return e;
   };
@@ -61,7 +73,14 @@ export default function MemberFormModal({ member, existingMembers, onSave, onClo
   const handleSubmit = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    onSave({ ...form, id: form.id || `nik-${Date.now()}` });
+    
+    const fullAddress = `Blok ${form.blok} No. ${form.nomorRumah}, RT ${form.rt}/RW ${form.rw}`;
+    
+    onSave({ 
+      ...form, 
+      alamat: fullAddress,
+      id: form.id || `nik-${Date.now()}` 
+    });
   };
 
   const Field = ({ name, label, required, children }: { name: string; label: string; required?: boolean; children: React.ReactNode }) => (
@@ -80,9 +99,9 @@ export default function MemberFormModal({ member, existingMembers, onSave, onClo
           <button className="close-btn" onClick={onClose}><X size={16} /></button>
         </div>
         <div className="modal-body">
-          {errors.statusKeluarga && (
-            <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 'var(--radius-sm)', padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#92400e', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <AlertCircle size={15} /> {errors.statusKeluarga}
+          {errors.hubungan && (
+            <div style={{ background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '12px', padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#dc2626', display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700 }}>
+              <AlertCircle size={16} /> {errors.hubungan}
             </div>
           )}
           <div className="form-grid">
@@ -90,17 +109,21 @@ export default function MemberFormModal({ member, existingMembers, onSave, onClo
               <input 
                 className={`form-input${errors.nik ? ' error' : ''}`} 
                 value={form.nik}
-                onChange={e => set('nik', e.target.value)} 
+                onChange={e => !isEdit && set('nik', e.target.value)} 
                 placeholder="16 digit NIK" 
                 maxLength={16} 
+                readOnly={isEdit}
+                style={isEdit ? { background: '#f1f5f9', cursor: 'not-allowed' } : {}}
               />
             </Field>
             <Field name="namaLengkap" label="Nama Lengkap" required>
               <input 
                 className={`form-input${errors.namaLengkap ? ' error' : ''}`} 
                 value={form.namaLengkap}
-                onChange={e => set('namaLengkap', e.target.value)} 
+                onChange={e => !isEdit && set('namaLengkap', e.target.value)} 
                 placeholder="Nama sesuai KTP"
+                readOnly={isEdit}
+                style={isEdit ? { background: '#f1f5f9', cursor: 'not-allowed' } : {}}
               />
             </Field>
             <Field name="jenisKelamin" label="Jenis Kelamin" required>
@@ -109,17 +132,37 @@ export default function MemberFormModal({ member, existingMembers, onSave, onClo
                 <option>Perempuan</option>
               </select>
             </Field>
-            <Field name="tanggalLahir" label="Tanggal Lahir" required>
+            <Field name="tanggalLahir" label="Tanggal Lahir (DD/MM/YYYY)" required>
               <input 
-                type="date" 
+                type="text" 
                 className={`form-input${errors.tanggalLahir ? ' error' : ''}`}
                 value={form.tanggalLahir} 
-                onChange={e => set('tanggalLahir', e.target.value)} 
+                placeholder="Contoh: 31/12/1990"
+                onChange={e => {
+                  let val = e.target.value.replace(/[^0-9/]/g, '');
+                  if (val.length === 2 && !val.includes('/')) val += '/';
+                  if (val.length === 5 && val.split('/').length === 2) val += '/';
+                  if (val.length > 10) val = val.slice(0, 10);
+                  set('tanggalLahir', val);
+                }}
               />
             </Field>
-            <Field name="statusKeluarga" label="Status dalam Keluarga" required>
-              <select className="form-input" value={form.statusKeluarga} onChange={e => set('statusKeluarga', e.target.value)}>
-                {STATUS_KELUARGA.map(s => <option key={s}>{s}</option>)}
+            <Field name="hubungan" label="Status dalam Keluarga" required>
+              <select className="form-input" value={form.hubungan} onChange={e => set('hubungan', e.target.value)}>
+                {STATUS_KELUARGA.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Field>
+            <Field name="tempatLahir" label="Tempat Lahir">
+              <input 
+                className="form-input" 
+                value={form.tempatLahir}
+                onChange={e => set('tempatLahir', e.target.value.toUpperCase())} 
+                placeholder="Contoh: JAKARTA"
+              />
+            </Field>
+            <Field name="agama" label="Agama">
+              <select className="form-input" value={form.agama} onChange={e => set('agama', e.target.value)}>
+                {['ISLAM', 'KRISTEN', 'KATOLIK', 'HINDU', 'BUDHA', 'KONGHUCU'].map(a => <option key={a} value={a}>{a}</option>)}
               </select>
             </Field>
             <Field name="statusPerkawinan" label="Status Perkawinan" required>
@@ -140,15 +183,16 @@ export default function MemberFormModal({ member, existingMembers, onSave, onClo
                 placeholder="08xx-xxxx-xxxx"
               />
             </Field>
-            <Field name="alamat" label="Alamat Lengkap" required>
-              <textarea 
-                className={`form-input${errors.alamat ? ' error' : ''}`} 
-                rows={2}
-                value={form.alamat} 
-                onChange={e => set('alamat', e.target.value)}
-                placeholder="Jl. ..., RT/RW, Kelurahan, Kota" 
-                style={{ resize: 'vertical' }}
-              />
+            <Field name="blok" label="Blok" required>
+              <select className="form-input" value={form.blok} onChange={e => set('blok', e.target.value)}>
+                {"ABCDEFGHIJKLMNOPQRST".split("").map(b => <option key={b} value={b}>Blok {b}</option>)}
+              </select>
+            </Field>
+            <Field name="nomorRumah" label="Nomor Rumah" required>
+              <select className="form-input" value={form.nomorRumah} onChange={e => set('nomorRumah', e.target.value)}>
+                <option value="">Pilih No...</option>
+                {Array.from({length: 100}, (_, i) => i + 1).map(n => <option key={n} value={n.toString()}>{n}</option>)}
+              </select>
             </Field>
           </div>
         </div>

@@ -73,7 +73,8 @@ export default function AdminApprovalPage() {
         
         const updatePayload: any = { 
           registrationStatus: 'verified',
-          accountStatus: 'active' 
+          accountStatus: 'active',
+          isFirstLogin: false
         };
         
         if (userSnap.exists()) {

@@ -10,7 +10,6 @@ import logo from '../assets/login/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { authenticateBiometric, isBiometricAvailable } from '../services/biometricService';
 
 // Images from public assets
 const housingImages = [
@@ -30,15 +29,7 @@ export default function ResidentLoginPage({ onLogin }: LoginPageProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [verifyingBiometric, setVerifyingBiometric] = useState(false);
-  const [biometricSuccess, setBiometricSuccess] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [biometricAvailable, setBiometricAvailable] = useState(false);
-
-  useEffect(() => {
-    isBiometricAvailable().then(setBiometricAvailable);
-  }, []);
-  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,8 +48,22 @@ export default function ResidentLoginPage({ onLogin }: LoginPageProps) {
     setError('');
     setLoading(true);
 
+    // DEV BYPASS
+    if (nik === 'dev' && password === 'dev') {
+      onLogin({
+        id: 'dev-warga',
+        username: 'dev',
+        name: 'Developer Warga',
+        role: 'warga',
+        rt_id: 'RT 001',
+        nik: '1234567890123456',
+        accountStatus: 'active'
+      } as User);
+      return;
+    }
+
     try {
-      const q = query(collection(db, 'users'), where('username', '==', nik), where('role', '==', 'warga'));
+      const q = query(collection(db, 'users'), where('username', '==', nik));
       const snap = await getDocs(q);
       
       if (snap.empty) {
@@ -68,7 +73,6 @@ export default function ResidentLoginPage({ onLogin }: LoginPageProps) {
       const userData = { id: snap.docs[0].id, ...snap.docs[0].data() } as User;
 
       // 1. Password Verification
-      // Note: In a production app, use hashed passwords. For this demo, we compare direct strings.
       if (userData.password !== password) {
          throw new Error('Password yang Anda masukkan salah.');
       }
@@ -84,7 +88,6 @@ export default function ResidentLoginPage({ onLogin }: LoginPageProps) {
       }
 
       if (userData.accountStatus === 'rejected') {
-         // Redirecting to revision is handled by App.tsx, but we allow login here
          onLogin(userData);
          return;
       }
@@ -95,47 +98,6 @@ export default function ResidentLoginPage({ onLogin }: LoginPageProps) {
     } catch (err: any) {
       setError(err.message || 'Login gagal.');
       setLoading(false);
-    }
-  };
-
-  const handleFingerprintLogin = async () => {
-    if (!nik) {
-      setError('Masukkan NIK Anda terlebih dahulu.');
-      return;
-    }
-
-    setVerifyingBiometric(true);
-    setError('');
-    
-    try {
-      // 1. Get user data to find the biometric credential ID
-      const q = query(collection(db, 'users'), where('username', '==', nik), where('role', '==', 'warga'));
-      const snap = await getDocs(q);
-      
-      if (snap.empty) {
-        throw new Error('NIK tidak ditemukan.');
-      }
-
-      const userData = { id: snap.docs[0].id, ...snap.docs[0].data() } as User;
-
-      if (!userData.biometricEnabled || !userData.biometricCredentialId) {
-        throw new Error('Biometrik belum diaktifkan untuk akun ini.');
-      }
-
-      // 2. Trigger real hardware biometric authentication
-      const success = await authenticateBiometric(userData.biometricCredentialId);
-      
-      if (success) {
-        setBiometricSuccess(true);
-        setTimeout(() => {
-          onLogin(userData);
-        }, 1500);
-      } else {
-        throw new Error('Autentikasi biometrik dibatalkan atau gagal.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Login biometrik gagal.');
-      setVerifyingBiometric(false);
     }
   };
 
@@ -375,9 +337,7 @@ export default function ResidentLoginPage({ onLogin }: LoginPageProps) {
             rememberMe={rememberMe} setRememberMe={setRememberMe}
             loading={loading} error={error}
             handleLoginSubmit={handleLoginSubmit}
-            handleFingerprintLogin={handleFingerprintLogin}
             navigate={navigate}
-            biometricAvailable={biometricAvailable}
           />
         </div>
       </div>
@@ -392,36 +352,10 @@ export default function ResidentLoginPage({ onLogin }: LoginPageProps) {
           rememberMe={rememberMe} setRememberMe={setRememberMe}
           loading={loading} error={error}
           handleLoginSubmit={handleLoginSubmit}
-          handleFingerprintLogin={handleFingerprintLogin}
           navigate={navigate}
-          biometricAvailable={biometricAvailable}
         />
       </div>
 
-      {/* Biometric Overlay */}
-      <AnimatePresence>
-        {verifyingBiometric && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(12px)' }}
-          >
-            <motion.div 
-              initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
-              style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '40px', padding: '48px', maxWidth: '360px', width: '100%', textAlign: 'center' }}
-            >
-              <div style={{ width: '80px', height: '80px', margin: '0 auto 32px', position: 'relative' }}>
-                <div style={{ position: 'absolute', inset: 0, background: '#eff6ff', borderRadius: '50%' }}></div>
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: biometricSuccess ? '#22c55e' : '#3b82f6' }}>
-                  <Fingerprint size={48} className={biometricSuccess ? "" : "animate-pulse"} />
-                </div>
-              </div>
-              <h3 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', color: '#111827' }}>{biometricSuccess ? "Berhasil!" : "Verifikasi Sidik Jari"}</h3>
-              <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '32px' }}>Gunakan biometrik perangkat untuk akses aman.</p>
-              {!biometricSuccess && <button onClick={() => setVerifyingBiometric(false)} style={{ border: 'none', background: 'none', color: '#f87171', fontWeight: 700, textTransform: 'uppercase', fontSize: '12px', cursor: 'pointer' }}>Batal</button>}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -430,7 +364,7 @@ export default function ResidentLoginPage({ onLogin }: LoginPageProps) {
 function LoginForm({ 
   logo, nik, setNik, password, setPassword, 
   showPassword, setShowPassword, rememberMe, setRememberMe,
-  loading, error, handleLoginSubmit, handleFingerprintLogin, navigate, biometricAvailable
+  loading, error, handleLoginSubmit, navigate
 }: any) {
   return (
     <motion.div 
@@ -512,12 +446,6 @@ function LoginForm({
         <button type="submit" disabled={loading} className="btn-login">
           {loading ? <Loader2 className="animate-spin" size={20} /> : <>Masuk ke Akun Warga <ChevronRight size={18} /></>}
         </button>
-
-        {biometricAvailable && (
-          <button type="button" onClick={handleFingerprintLogin} className="btn-fingerprint" style={{ marginTop: '16px', border: '1.5px solid #3b82f6', color: '#1e3a8a' }}>
-            <Fingerprint size={20} /> Masuk dengan Sidik Jari
-          </button>
-        )}
       </form>
 
       <div style={{ marginTop: '20px', borderTop: '1px solid #f3f4f6', paddingTop: '16px', textAlign: 'center' }}>
