@@ -1,0 +1,47 @@
+[
+  {
+    "nik": "3216061201900001",
+    "nama": "ADITYA PRATAMA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok A1/12"
+  },
+  {
+    "nik": "3216064503920002",
+    "nama": "SITI AISYAH",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A1/12"
+  },
+  {
+    "nik": "3216062105880003",
+    "nama": "BUDI SANTOSO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok B2/05"
+  },
+  {
+    "nik": "3216066207950004",
+    "nama": "DEWI LESTARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B2/05"
+  },
+  {
+    "nik": "3216060811850005",
+    "nama": "EKO PRASETYO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok C3/18"
+  }
+]

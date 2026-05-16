@@ -1,0 +1,4002 @@
+[
+  {
+    "id": "res-001",
+    "nik": "3216061102740001",
+    "nama": "DIAN HIDAYAT",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A1/2"
+  },
+  {
+    "id": "res-002",
+    "nik": "3216062010780002",
+    "nama": "RATNA FITRIANI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A1/3"
+  },
+  {
+    "id": "res-003",
+    "nik": "3216060702770003",
+    "nama": "HENDRA HIDAYAT",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A1/4"
+  },
+  {
+    "id": "res-004",
+    "nik": "3216062610720004",
+    "nama": "HENDRA RAMADHAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok A1/5"
+  },
+  {
+    "id": "res-005",
+    "nik": "3216060701840005",
+    "nama": "EKO PRATAMA",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A1/6"
+  },
+  {
+    "id": "res-006",
+    "nik": "3216060404940006",
+    "nama": "RIZKY KURNIAWAN",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok A1/7"
+  },
+  {
+    "id": "res-007",
+    "nik": "3216061105890007",
+    "nama": "RINA PUSPITA",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok A1/8"
+  },
+  {
+    "id": "res-008",
+    "nik": "3216061512800008",
+    "nama": "RIZKY NUGROHO",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok A1/9"
+  },
+  {
+    "id": "res-009",
+    "nik": "3216061503940009",
+    "nama": "ANI PRATAMA",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok A1/10"
+  },
+  {
+    "id": "res-010",
+    "nik": "3216062409820010",
+    "nama": "RIZKY PRASETYO",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok A1/11"
+  },
+  {
+    "id": "res-011",
+    "nik": "3216060208960011",
+    "nama": "EKO WIJAYA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok A1/12"
+  },
+  {
+    "id": "res-012",
+    "nik": "3216062711700012",
+    "nama": "NINA AISYAH",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A1/13"
+  },
+  {
+    "id": "res-013",
+    "nik": "3216062610700013",
+    "nama": "BUDI PRASETYO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok A1/14"
+  },
+  {
+    "id": "res-014",
+    "nik": "3216061212790014",
+    "nama": "SITI HIDAYAT",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A1/15"
+  },
+  {
+    "id": "res-015",
+    "nik": "3216061212930015",
+    "nama": "HENDRA KURNIAWAN",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A1/16"
+  },
+  {
+    "id": "res-016",
+    "nik": "3216062611920016",
+    "nama": "RINA WULANDARI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok A1/17"
+  },
+  {
+    "id": "res-017",
+    "nik": "3216060106740017",
+    "nama": "ADITYA PRASETYO",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A1/18"
+  },
+  {
+    "id": "res-018",
+    "nik": "3216062505820018",
+    "nama": "RATNA KURNIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A1/19"
+  },
+  {
+    "id": "res-019",
+    "nik": "3216060612800019",
+    "nama": "DEWI RAMADHAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok A1/20"
+  },
+  {
+    "id": "res-020",
+    "nik": "3216061903990020",
+    "nama": "EKO SETIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok A1/21"
+  },
+  {
+    "id": "res-021",
+    "nik": "3216060206700021",
+    "nama": "BUDI AISYAH",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A1/22"
+  },
+  {
+    "id": "res-022",
+    "nik": "3216060604780022",
+    "nama": "HENDRA WULANDARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A1/23"
+  },
+  {
+    "id": "res-023",
+    "nik": "3216063012820023",
+    "nama": "NINA SETIAWAN",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A1/24"
+  },
+  {
+    "id": "res-024",
+    "nik": "3216061001820024",
+    "nama": "RIZKY LESTARI",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok A1/25"
+  },
+  {
+    "id": "res-025",
+    "nik": "3216060909730025",
+    "nama": "NINA NUGROHO",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok A1/26"
+  },
+  {
+    "id": "res-026",
+    "nik": "3216060612810026",
+    "nama": "AGUS PRATAMA",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok A1/27"
+  },
+  {
+    "id": "res-027",
+    "nik": "3216062303900027",
+    "nama": "HENDRA KURNIAWAN",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok A1/28"
+  },
+  {
+    "id": "res-028",
+    "nik": "3216062501910028",
+    "nama": "IWAN HIDAYAT",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok A1/29"
+  },
+  {
+    "id": "res-029",
+    "nik": "3216061308920029",
+    "nama": "IWAN INDRIANI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok A1/30"
+  },
+  {
+    "id": "res-030",
+    "nik": "3216061102740030",
+    "nama": "ANI LESTARI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A1/31"
+  },
+  {
+    "id": "res-031",
+    "nik": "3216060712840031",
+    "nama": "RIZKY AISYAH",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok A1/32"
+  },
+  {
+    "id": "res-032",
+    "nik": "3216062602960032",
+    "nama": "NINA FITRIANI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A1/33"
+  },
+  {
+    "id": "res-033",
+    "nik": "3216061603850033",
+    "nama": "HENDRA LESTARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A1/34"
+  },
+  {
+    "id": "res-034",
+    "nik": "3216061607890034",
+    "nama": "FAJAR UTAMI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A1/35"
+  },
+  {
+    "id": "res-035",
+    "nik": "3216060906880035",
+    "nama": "RINA FITRIANI",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A1/36"
+  },
+  {
+    "id": "res-036",
+    "nik": "3216060112720036",
+    "nama": "EKO PRASETYO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok A1/37"
+  },
+  {
+    "id": "res-037",
+    "nik": "3216062009750037",
+    "nama": "BUDI PRATAMA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A1/38"
+  },
+  {
+    "id": "res-038",
+    "nik": "3216063108730038",
+    "nama": "FAJAR KURNIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok A1/39"
+  },
+  {
+    "id": "res-039",
+    "nik": "3216062010940039",
+    "nama": "RINA NUGROHO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A1/40"
+  },
+  {
+    "id": "res-040",
+    "nik": "3216060209920040",
+    "nama": "BUDI RAHAYU",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A2/1"
+  },
+  {
+    "id": "res-041",
+    "nik": "3216062801840041",
+    "nama": "RIZKY WULANDARI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A2/2"
+  },
+  {
+    "id": "res-042",
+    "nik": "3216062304900042",
+    "nama": "LISA WIJAYA",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A2/3"
+  },
+  {
+    "id": "res-043",
+    "nik": "3216062107840043",
+    "nama": "FAJAR PUSPITA",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A2/4"
+  },
+  {
+    "id": "res-044",
+    "nik": "3216062902970044",
+    "nama": "BUDI SARI",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok A2/5"
+  },
+  {
+    "id": "res-045",
+    "nik": "3216061709810045",
+    "nama": "ADITYA AISYAH",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A2/6"
+  },
+  {
+    "id": "res-046",
+    "nik": "3216060309950046",
+    "nama": "ANI SAPUTRA",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A2/7"
+  },
+  {
+    "id": "res-047",
+    "nik": "3216062502760047",
+    "nama": "AGUS HIDAYAT",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A2/8"
+  },
+  {
+    "id": "res-048",
+    "nik": "3216061710960048",
+    "nama": "EKO PUSPITA",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok A2/9"
+  },
+  {
+    "id": "res-049",
+    "nik": "3216062501760049",
+    "nama": "RATNA PUSPITA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A2/10"
+  },
+  {
+    "id": "res-050",
+    "nik": "3216062206790050",
+    "nama": "BUDI SARI",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok A2/11"
+  },
+  {
+    "id": "res-051",
+    "nik": "3216060202730051",
+    "nama": "PUTRI Mulyani",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A2/12"
+  },
+  {
+    "id": "res-052",
+    "nik": "3216060407790052",
+    "nama": "MAYA AISYAH",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok A2/13"
+  },
+  {
+    "id": "res-053",
+    "nik": "3216060802750053",
+    "nama": "DEWI SANTOSO",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A2/14"
+  },
+  {
+    "id": "res-054",
+    "nik": "3216060807910054",
+    "nama": "BUDI SANTOSO",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok A2/15"
+  },
+  {
+    "id": "res-055",
+    "nik": "3216060611720055",
+    "nama": "IWAN RAMADHAN",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok A2/16"
+  },
+  {
+    "id": "res-056",
+    "nik": "3216061202760056",
+    "nama": "LISA PRATAMA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok A2/17"
+  },
+  {
+    "id": "res-057",
+    "nik": "3216062904850057",
+    "nama": "FAJAR HIDAYAT",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok A2/18"
+  },
+  {
+    "id": "res-058",
+    "nik": "3216061903720058",
+    "nama": "DEDI KURNIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A2/19"
+  },
+  {
+    "id": "res-059",
+    "nik": "3216062707840059",
+    "nama": "RIZKY INDRIANI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok A2/20"
+  },
+  {
+    "id": "res-060",
+    "nik": "3216061112860060",
+    "nama": "AGUS Mulyani",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A2/21"
+  },
+  {
+    "id": "res-061",
+    "nik": "3216061803770061",
+    "nama": "DEDI PRASETYO",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok A2/22"
+  },
+  {
+    "id": "res-062",
+    "nik": "3216061012990062",
+    "nama": "FAJAR HIDAYAT",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok A2/23"
+  },
+  {
+    "id": "res-063",
+    "nik": "3216062207730063",
+    "nama": "DEDI PRATAMA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A2/24"
+  },
+  {
+    "id": "res-064",
+    "nik": "3216061108800064",
+    "nama": "HENDRA SANTOSO",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok A2/25"
+  },
+  {
+    "id": "res-065",
+    "nik": "3216061712860065",
+    "nama": "DEDI SAPUTRA",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok A2/26"
+  },
+  {
+    "id": "res-066",
+    "nik": "3216061711930066",
+    "nama": "MAYA SARI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok A2/27"
+  },
+  {
+    "id": "res-067",
+    "nik": "3216061204710067",
+    "nama": "AGUS Mulyani",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok A2/28"
+  },
+  {
+    "id": "res-068",
+    "nik": "3216060911720068",
+    "nama": "DEDI SAPUTRA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok A2/29"
+  },
+  {
+    "id": "res-069",
+    "nik": "3216061811940069",
+    "nama": "ARIS SETIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok A2/30"
+  },
+  {
+    "id": "res-070",
+    "nik": "3216061111720070",
+    "nama": "SITI WULANDARI",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok A2/31"
+  },
+  {
+    "id": "res-071",
+    "nik": "3216062110760071",
+    "nama": "MAYA RAHAYU",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A2/32"
+  },
+  {
+    "id": "res-072",
+    "nik": "3216060606930072",
+    "nama": "FAJAR UTAMI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok A2/33"
+  },
+  {
+    "id": "res-073",
+    "nik": "3216060709750073",
+    "nama": "DEDI INDRIANI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A2/34"
+  },
+  {
+    "id": "res-074",
+    "nik": "3216060305860074",
+    "nama": "AGUS LESTARI",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok A2/35"
+  },
+  {
+    "id": "res-075",
+    "nik": "3216062912750075",
+    "nama": "IWAN NUGROHO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok A2/36"
+  },
+  {
+    "id": "res-076",
+    "nik": "3216062308970076",
+    "nama": "PUTRI SANTOSO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok A2/37"
+  },
+  {
+    "id": "res-077",
+    "nik": "3216061705980077",
+    "nama": "PUTRI PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok A2/38"
+  },
+  {
+    "id": "res-078",
+    "nik": "3216060804800078",
+    "nama": "AGUS NUGROHO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok A2/39"
+  },
+  {
+    "id": "res-079",
+    "nik": "3216060512780079",
+    "nama": "NINA WIJAYA",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok A2/40"
+  },
+  {
+    "id": "res-080",
+    "nik": "3216063009880080",
+    "nama": "RIZKY PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok B3/1"
+  },
+  {
+    "id": "res-081",
+    "nik": "3216060201830081",
+    "nama": "EKO AISYAH",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok B3/2"
+  },
+  {
+    "id": "res-082",
+    "nik": "3216060502840082",
+    "nama": "DEDI RAMADHAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/3"
+  },
+  {
+    "id": "res-083",
+    "nik": "3216062905820083",
+    "nama": "IWAN SETIAWAN",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B3/4"
+  },
+  {
+    "id": "res-084",
+    "nik": "3216062407710084",
+    "nama": "MAYA KURNIAWAN",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok B3/5"
+  },
+  {
+    "id": "res-085",
+    "nik": "3216063105870085",
+    "nama": "DIAN SANTOSO",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/6"
+  },
+  {
+    "id": "res-086",
+    "nik": "3216062907920086",
+    "nama": "DIAN SAPUTRA",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B3/7"
+  },
+  {
+    "id": "res-087",
+    "nik": "3216061903740087",
+    "nama": "DIAN SARI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok B3/8"
+  },
+  {
+    "id": "res-088",
+    "nik": "3216062310770088",
+    "nama": "DEWI RAMADHAN",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/9"
+  },
+  {
+    "id": "res-089",
+    "nik": "3216060708820089",
+    "nama": "DIAN WULANDARI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B3/10"
+  },
+  {
+    "id": "res-090",
+    "nik": "3216060203780090",
+    "nama": "RATNA UTAMI",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok B3/11"
+  },
+  {
+    "id": "res-091",
+    "nik": "3216063009720091",
+    "nama": "ANI INDRIANI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok B3/12"
+  },
+  {
+    "id": "res-092",
+    "nik": "3216061509850092",
+    "nama": "DIAN PRASETYO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok B3/13"
+  },
+  {
+    "id": "res-093",
+    "nik": "3216062108750093",
+    "nama": "AGUS SETIAWAN",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B3/14"
+  },
+  {
+    "id": "res-094",
+    "nik": "3216062510710094",
+    "nama": "ANI RAMADHAN",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok B3/15"
+  },
+  {
+    "id": "res-095",
+    "nik": "3216061206810095",
+    "nama": "BUDI RAHAYU",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok B3/16"
+  },
+  {
+    "id": "res-096",
+    "nik": "3216062901710096",
+    "nama": "ARIS UTAMI",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok B3/17"
+  },
+  {
+    "id": "res-097",
+    "nik": "3216060211940097",
+    "nama": "HENDRA NUGROHO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok B3/18"
+  },
+  {
+    "id": "res-098",
+    "nik": "3216061803710098",
+    "nama": "ADITYA NUGROHO",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/19"
+  },
+  {
+    "id": "res-099",
+    "nik": "3216061009900099",
+    "nama": "ADITYA SAPUTRA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok B3/20"
+  },
+  {
+    "id": "res-100",
+    "nik": "3216062811710100",
+    "nama": "BUDI NUGROHO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/21"
+  },
+  {
+    "id": "res-101",
+    "nik": "3216060606990101",
+    "nama": "HENDRA RAHAYU",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok B3/22"
+  },
+  {
+    "id": "res-102",
+    "nik": "3216061302710102",
+    "nama": "AGUS PUSPITA",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/23"
+  },
+  {
+    "id": "res-103",
+    "nik": "3216060501830103",
+    "nama": "DEWI AISYAH",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok B3/24"
+  },
+  {
+    "id": "res-104",
+    "nik": "3216062511730104",
+    "nama": "EKO INDRIANI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/25"
+  },
+  {
+    "id": "res-105",
+    "nik": "3216062411750105",
+    "nama": "AGUS WIJAYA",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/26"
+  },
+  {
+    "id": "res-106",
+    "nik": "3216063112840106",
+    "nama": "RINA RAMADHAN",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok B3/27"
+  },
+  {
+    "id": "res-107",
+    "nik": "3216062102950107",
+    "nama": "EKO RAHAYU",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B3/28"
+  },
+  {
+    "id": "res-108",
+    "nik": "3216062609960108",
+    "nama": "ARIS Mulyani",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/29"
+  },
+  {
+    "id": "res-109",
+    "nik": "3216061802960109",
+    "nama": "RINA LESTARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B3/30"
+  },
+  {
+    "id": "res-110",
+    "nik": "3216062403940110",
+    "nama": "RATNA SARI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/31"
+  },
+  {
+    "id": "res-111",
+    "nik": "3216060401980111",
+    "nama": "FAJAR RAMADHAN",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok B3/32"
+  },
+  {
+    "id": "res-112",
+    "nik": "3216062507830112",
+    "nama": "HENDRA RAMADHAN",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok B3/33"
+  },
+  {
+    "id": "res-113",
+    "nik": "3216060609990113",
+    "nama": "EKO SAPUTRA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok B3/34"
+  },
+  {
+    "id": "res-114",
+    "nik": "3216060209760114",
+    "nama": "RIZKY FITRIANI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B3/35"
+  },
+  {
+    "id": "res-115",
+    "nik": "3216060912700115",
+    "nama": "LISA UTAMI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok B3/36"
+  },
+  {
+    "id": "res-116",
+    "nik": "3216060501780116",
+    "nama": "DEWI LESTARI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok B3/37"
+  },
+  {
+    "id": "res-117",
+    "nik": "3216062010880117",
+    "nama": "LISA RAMADHAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok B3/38"
+  },
+  {
+    "id": "res-118",
+    "nik": "3216061011930118",
+    "nama": "EKO FITRIANI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B3/39"
+  },
+  {
+    "id": "res-119",
+    "nik": "3216061201810119",
+    "nama": "BUDI NUGROHO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok B3/40"
+  },
+  {
+    "id": "res-120",
+    "nik": "3216060204820120",
+    "nama": "ANI PRASETYO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok B4/1"
+  },
+  {
+    "id": "res-121",
+    "nik": "3216061603730121",
+    "nama": "SITI RAMADHAN",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok B4/2"
+  },
+  {
+    "id": "res-122",
+    "nik": "3216062307890122",
+    "nama": "SITI SETIAWAN",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B4/3"
+  },
+  {
+    "id": "res-123",
+    "nik": "3216062704740123",
+    "nama": "DEWI WULANDARI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok B4/4"
+  },
+  {
+    "id": "res-124",
+    "nik": "3216060610890124",
+    "nama": "ARIS UTAMI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B4/5"
+  },
+  {
+    "id": "res-125",
+    "nik": "3216060207970125",
+    "nama": "ANI HIDAYAT",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok B4/6"
+  },
+  {
+    "id": "res-126",
+    "nik": "3216062307780126",
+    "nama": "IWAN HIDAYAT",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok B4/7"
+  },
+  {
+    "id": "res-127",
+    "nik": "3216060612910127",
+    "nama": "DIAN LESTARI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok B4/8"
+  },
+  {
+    "id": "res-128",
+    "nik": "3216061511770128",
+    "nama": "BUDI UTAMI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok B4/9"
+  },
+  {
+    "id": "res-129",
+    "nik": "3216063001940129",
+    "nama": "SITI PRATAMA",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B4/10"
+  },
+  {
+    "id": "res-130",
+    "nik": "3216060204720130",
+    "nama": "EKO PUSPITA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok B4/11"
+  },
+  {
+    "id": "res-131",
+    "nik": "3216063002770131",
+    "nama": "IWAN KURNIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B4/12"
+  },
+  {
+    "id": "res-132",
+    "nik": "3216063104910132",
+    "nama": "ADITYA SANTOSO",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok B4/13"
+  },
+  {
+    "id": "res-133",
+    "nik": "3216061912810133",
+    "nama": "RATNA NUGROHO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok B4/14"
+  },
+  {
+    "id": "res-134",
+    "nik": "3216062001780134",
+    "nama": "BUDI SARI",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok B4/15"
+  },
+  {
+    "id": "res-135",
+    "nik": "3216061111760135",
+    "nama": "ANI WIJAYA",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok B4/16"
+  },
+  {
+    "id": "res-136",
+    "nik": "3216062602820136",
+    "nama": "ANI WULANDARI",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok B4/17"
+  },
+  {
+    "id": "res-137",
+    "nik": "3216062807940137",
+    "nama": "LISA PRASETYO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok B4/18"
+  },
+  {
+    "id": "res-138",
+    "nik": "3216062602950138",
+    "nama": "DIAN KURNIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok B4/19"
+  },
+  {
+    "id": "res-139",
+    "nik": "3216062801870139",
+    "nama": "DIAN NUGROHO",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok B4/20"
+  },
+  {
+    "id": "res-140",
+    "nik": "3216061804850140",
+    "nama": "RINA INDRIANI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok B4/21"
+  },
+  {
+    "id": "res-141",
+    "nik": "3216062604980141",
+    "nama": "MAYA Mulyani",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok B4/22"
+  },
+  {
+    "id": "res-142",
+    "nik": "3216061807720142",
+    "nama": "RIZKY LESTARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B4/23"
+  },
+  {
+    "id": "res-143",
+    "nik": "3216061702730143",
+    "nama": "NINA RAMADHAN",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok B4/24"
+  },
+  {
+    "id": "res-144",
+    "nik": "3216060108780144",
+    "nama": "ARIS UTAMI",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok B4/25"
+  },
+  {
+    "id": "res-145",
+    "nik": "3216060508720145",
+    "nama": "ARIS SANTOSO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B4/26"
+  },
+  {
+    "id": "res-146",
+    "nik": "3216060909880146",
+    "nama": "DEWI PUSPITA",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok B4/27"
+  },
+  {
+    "id": "res-147",
+    "nik": "3216063108780147",
+    "nama": "AGUS LESTARI",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B4/28"
+  },
+  {
+    "id": "res-148",
+    "nik": "3216061701750148",
+    "nama": "SITI RAMADHAN",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok B4/29"
+  },
+  {
+    "id": "res-149",
+    "nik": "3216060901990149",
+    "nama": "ANI Mulyani",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B4/30"
+  },
+  {
+    "id": "res-150",
+    "nik": "3216061907830150",
+    "nama": "ADITYA PRATAMA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B4/31"
+  },
+  {
+    "id": "res-151",
+    "nik": "3216060302910151",
+    "nama": "LISA RAHAYU",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok B4/32"
+  },
+  {
+    "id": "res-152",
+    "nik": "3216060110940152",
+    "nama": "DEDI FITRIANI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok B4/33"
+  },
+  {
+    "id": "res-153",
+    "nik": "3216062601880153",
+    "nama": "AGUS PRATAMA",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok B4/34"
+  },
+  {
+    "id": "res-154",
+    "nik": "3216062205840154",
+    "nama": "DEDI LESTARI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok B4/35"
+  },
+  {
+    "id": "res-155",
+    "nik": "3216062812760155",
+    "nama": "DEDI PRASETYO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B4/36"
+  },
+  {
+    "id": "res-156",
+    "nik": "3216060608830156",
+    "nama": "ADITYA SAPUTRA",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok B4/37"
+  },
+  {
+    "id": "res-157",
+    "nik": "3216060210920157",
+    "nama": "HENDRA PUSPITA",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok B4/38"
+  },
+  {
+    "id": "res-158",
+    "nik": "3216060304720158",
+    "nama": "HENDRA WULANDARI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok B4/39"
+  },
+  {
+    "id": "res-159",
+    "nik": "3216062308720159",
+    "nama": "SITI WIJAYA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok B4/40"
+  },
+  {
+    "id": "res-160",
+    "nik": "3216063001750160",
+    "nama": "AGUS SARI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C5/1"
+  },
+  {
+    "id": "res-161",
+    "nik": "3216062505750161",
+    "nama": "NINA UTAMI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok C5/2"
+  },
+  {
+    "id": "res-162",
+    "nik": "3216062707770162",
+    "nama": "DEWI WIJAYA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok C5/3"
+  },
+  {
+    "id": "res-163",
+    "nik": "3216061408800163",
+    "nama": "SITI HIDAYAT",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok C5/4"
+  },
+  {
+    "id": "res-164",
+    "nik": "3216061001790164",
+    "nama": "RINA WIJAYA",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C5/5"
+  },
+  {
+    "id": "res-165",
+    "nik": "3216060208860165",
+    "nama": "MAYA PRASETYO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C5/6"
+  },
+  {
+    "id": "res-166",
+    "nik": "3216061508970166",
+    "nama": "HENDRA PRATAMA",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok C5/7"
+  },
+  {
+    "id": "res-167",
+    "nik": "3216060501950167",
+    "nama": "RATNA WULANDARI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok C5/8"
+  },
+  {
+    "id": "res-168",
+    "nik": "3216062308800168",
+    "nama": "IWAN INDRIANI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C5/9"
+  },
+  {
+    "id": "res-169",
+    "nik": "3216062404830169",
+    "nama": "ADITYA KURNIAWAN",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok C5/10"
+  },
+  {
+    "id": "res-170",
+    "nik": "3216060209870170",
+    "nama": "MAYA SAPUTRA",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok C5/11"
+  },
+  {
+    "id": "res-171",
+    "nik": "3216060405850171",
+    "nama": "EKO KURNIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok C5/12"
+  },
+  {
+    "id": "res-172",
+    "nik": "3216061704920172",
+    "nama": "PUTRI SANTOSO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok C5/13"
+  },
+  {
+    "id": "res-173",
+    "nik": "3216061204750173",
+    "nama": "BUDI PRASETYO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C5/14"
+  },
+  {
+    "id": "res-174",
+    "nik": "3216062106970174",
+    "nama": "ARIS WULANDARI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C5/15"
+  },
+  {
+    "id": "res-175",
+    "nik": "3216060402730175",
+    "nama": "RIZKY RAMADHAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok C5/16"
+  },
+  {
+    "id": "res-176",
+    "nik": "3216060406770176",
+    "nama": "RATNA FITRIANI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok C5/17"
+  },
+  {
+    "id": "res-177",
+    "nik": "3216063007940177",
+    "nama": "LISA INDRIANI",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C5/18"
+  },
+  {
+    "id": "res-178",
+    "nik": "3216062008910178",
+    "nama": "SITI WIJAYA",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok C5/19"
+  },
+  {
+    "id": "res-179",
+    "nik": "3216060307780179",
+    "nama": "AGUS NUGROHO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C5/20"
+  },
+  {
+    "id": "res-180",
+    "nik": "3216062402750180",
+    "nama": "AGUS KURNIAWAN",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C5/21"
+  },
+  {
+    "id": "res-181",
+    "nik": "3216061711760181",
+    "nama": "HENDRA INDRIANI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C5/22"
+  },
+  {
+    "id": "res-182",
+    "nik": "3216062901990182",
+    "nama": "PUTRI SETIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok C5/23"
+  },
+  {
+    "id": "res-183",
+    "nik": "3216062401820183",
+    "nama": "SITI PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok C5/24"
+  },
+  {
+    "id": "res-184",
+    "nik": "3216062512890184",
+    "nama": "DEWI HIDAYAT",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C5/25"
+  },
+  {
+    "id": "res-185",
+    "nik": "3216060712810185",
+    "nama": "DEWI WIJAYA",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok C5/26"
+  },
+  {
+    "id": "res-186",
+    "nik": "3216061507990186",
+    "nama": "DIAN WULANDARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok C5/27"
+  },
+  {
+    "id": "res-187",
+    "nik": "3216060904840187",
+    "nama": "AGUS UTAMI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok C5/28"
+  },
+  {
+    "id": "res-188",
+    "nik": "3216062610890188",
+    "nama": "NINA SETIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok C5/29"
+  },
+  {
+    "id": "res-189",
+    "nik": "3216062010990189",
+    "nama": "ARIS PUSPITA",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C5/30"
+  },
+  {
+    "id": "res-190",
+    "nik": "3216062611860190",
+    "nama": "AGUS SETIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok C5/31"
+  },
+  {
+    "id": "res-191",
+    "nik": "3216062802770191",
+    "nama": "HENDRA PRATAMA",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok C5/32"
+  },
+  {
+    "id": "res-192",
+    "nik": "3216061703830192",
+    "nama": "SITI SARI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok C5/33"
+  },
+  {
+    "id": "res-193",
+    "nik": "3216062206920193",
+    "nama": "DEDI LESTARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok C5/34"
+  },
+  {
+    "id": "res-194",
+    "nik": "3216062007780194",
+    "nama": "ARIS Mulyani",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok C5/35"
+  },
+  {
+    "id": "res-195",
+    "nik": "3216061001890195",
+    "nama": "BUDI SARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok C5/36"
+  },
+  {
+    "id": "res-196",
+    "nik": "3216060303960196",
+    "nama": "IWAN PUSPITA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok C5/37"
+  },
+  {
+    "id": "res-197",
+    "nik": "3216061610760197",
+    "nama": "DEDI RAHAYU",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C5/38"
+  },
+  {
+    "id": "res-198",
+    "nik": "3216060206990198",
+    "nama": "LISA WIJAYA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C5/39"
+  },
+  {
+    "id": "res-199",
+    "nik": "3216061904730199",
+    "nama": "RIZKY KURNIAWAN",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C5/40"
+  },
+  {
+    "id": "res-200",
+    "nik": "3216061611960200",
+    "nama": "MAYA UTAMI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C6/1"
+  },
+  {
+    "id": "res-201",
+    "nik": "3216061903950201",
+    "nama": "EKO SETIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok C6/2"
+  },
+  {
+    "id": "res-202",
+    "nik": "3216062204960202",
+    "nama": "SITI SAPUTRA",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C6/3"
+  },
+  {
+    "id": "res-203",
+    "nik": "3216062310730203",
+    "nama": "RINA RAMADHAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/4"
+  },
+  {
+    "id": "res-204",
+    "nik": "3216060903910204",
+    "nama": "PUTRI SARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok C6/5"
+  },
+  {
+    "id": "res-205",
+    "nik": "3216060606960205",
+    "nama": "AGUS HIDAYAT",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok C6/6"
+  },
+  {
+    "id": "res-206",
+    "nik": "3216061902780206",
+    "nama": "ARIS WULANDARI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C6/7"
+  },
+  {
+    "id": "res-207",
+    "nik": "3216062004910207",
+    "nama": "LISA AISYAH",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok C6/8"
+  },
+  {
+    "id": "res-208",
+    "nik": "3216063111730208",
+    "nama": "AGUS RAMADHAN",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C6/9"
+  },
+  {
+    "id": "res-209",
+    "nik": "3216061511990209",
+    "nama": "HENDRA FITRIANI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C6/10"
+  },
+  {
+    "id": "res-210",
+    "nik": "3216062202790210",
+    "nama": "ARIS SETIAWAN",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C6/11"
+  },
+  {
+    "id": "res-211",
+    "nik": "3216062302940211",
+    "nama": "SITI LESTARI",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok C6/12"
+  },
+  {
+    "id": "res-212",
+    "nik": "3216061409900212",
+    "nama": "DEDI NUGROHO",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/13"
+  },
+  {
+    "id": "res-213",
+    "nik": "3216060509880213",
+    "nama": "IWAN KURNIAWAN",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok C6/14"
+  },
+  {
+    "id": "res-214",
+    "nik": "3216062709860214",
+    "nama": "DEWI RAMADHAN",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/15"
+  },
+  {
+    "id": "res-215",
+    "nik": "3216061006730215",
+    "nama": "ANI KURNIAWAN",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok C6/16"
+  },
+  {
+    "id": "res-216",
+    "nik": "3216062802700216",
+    "nama": "RINA WULANDARI",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C6/17"
+  },
+  {
+    "id": "res-217",
+    "nik": "3216062303820217",
+    "nama": "DEDI PRATAMA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok C6/18"
+  },
+  {
+    "id": "res-218",
+    "nik": "3216062909770218",
+    "nama": "RIZKY KURNIAWAN",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok C6/19"
+  },
+  {
+    "id": "res-219",
+    "nik": "3216062902770219",
+    "nama": "PUTRI INDRIANI",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok C6/20"
+  },
+  {
+    "id": "res-220",
+    "nik": "3216062005720220",
+    "nama": "NINA WIJAYA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C6/21"
+  },
+  {
+    "id": "res-221",
+    "nik": "3216060402870221",
+    "nama": "BUDI LESTARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C6/22"
+  },
+  {
+    "id": "res-222",
+    "nik": "3216061410760222",
+    "nama": "EKO RAHAYU",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/23"
+  },
+  {
+    "id": "res-223",
+    "nik": "3216062606960223",
+    "nama": "HENDRA PRATAMA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok C6/24"
+  },
+  {
+    "id": "res-224",
+    "nik": "3216060208980224",
+    "nama": "DEWI SANTOSO",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok C6/25"
+  },
+  {
+    "id": "res-225",
+    "nik": "3216061710950225",
+    "nama": "RATNA UTAMI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok C6/26"
+  },
+  {
+    "id": "res-226",
+    "nik": "3216060707840226",
+    "nama": "DEWI LESTARI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok C6/27"
+  },
+  {
+    "id": "res-227",
+    "nik": "3216061906700227",
+    "nama": "FAJAR PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/28"
+  },
+  {
+    "id": "res-228",
+    "nik": "3216061508910228",
+    "nama": "NINA RAHAYU",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/29"
+  },
+  {
+    "id": "res-229",
+    "nik": "3216060702810229",
+    "nama": "LISA PRASETYO",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C6/30"
+  },
+  {
+    "id": "res-230",
+    "nik": "3216063111840230",
+    "nama": "SITI SAPUTRA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok C6/31"
+  },
+  {
+    "id": "res-231",
+    "nik": "3216062410900231",
+    "nama": "EKO SETIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok C6/32"
+  },
+  {
+    "id": "res-232",
+    "nik": "3216061709790232",
+    "nama": "DIAN INDRIANI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok C6/33"
+  },
+  {
+    "id": "res-233",
+    "nik": "3216061208970233",
+    "nama": "DIAN NUGROHO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/34"
+  },
+  {
+    "id": "res-234",
+    "nik": "3216061402750234",
+    "nama": "RIZKY AISYAH",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/35"
+  },
+  {
+    "id": "res-235",
+    "nik": "3216062208810235",
+    "nama": "LISA SARI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/36"
+  },
+  {
+    "id": "res-236",
+    "nik": "3216062503960236",
+    "nama": "DIAN SAPUTRA",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok C6/37"
+  },
+  {
+    "id": "res-237",
+    "nik": "3216062505770237",
+    "nama": "RINA PRATAMA",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok C6/38"
+  },
+  {
+    "id": "res-238",
+    "nik": "3216060711750238",
+    "nama": "MAYA WULANDARI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok C6/39"
+  },
+  {
+    "id": "res-239",
+    "nik": "3216061610900239",
+    "nama": "DIAN Mulyani",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok C6/40"
+  },
+  {
+    "id": "res-240",
+    "nik": "3216061001930240",
+    "nama": "NINA Mulyani",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok D7/1"
+  },
+  {
+    "id": "res-241",
+    "nik": "3216063001800241",
+    "nama": "ARIS AISYAH",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok D7/2"
+  },
+  {
+    "id": "res-242",
+    "nik": "3216063005770242",
+    "nama": "RINA INDRIANI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok D7/3"
+  },
+  {
+    "id": "res-243",
+    "nik": "3216061108910243",
+    "nama": "ARIS PRATAMA",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok D7/4"
+  },
+  {
+    "id": "res-244",
+    "nik": "3216061607960244",
+    "nama": "FAJAR INDRIANI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D7/5"
+  },
+  {
+    "id": "res-245",
+    "nik": "3216061302980245",
+    "nama": "RIZKY SARI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D7/6"
+  },
+  {
+    "id": "res-246",
+    "nik": "3216062001790246",
+    "nama": "AGUS PRASETYO",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok D7/7"
+  },
+  {
+    "id": "res-247",
+    "nik": "3216062902760247",
+    "nama": "DEDI INDRIANI",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok D7/8"
+  },
+  {
+    "id": "res-248",
+    "nik": "3216061908820248",
+    "nama": "ADITYA HIDAYAT",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok D7/9"
+  },
+  {
+    "id": "res-249",
+    "nik": "3216061808730249",
+    "nama": "SITI AISYAH",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D7/10"
+  },
+  {
+    "id": "res-250",
+    "nik": "3216061708920250",
+    "nama": "DIAN SARI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D7/11"
+  },
+  {
+    "id": "res-251",
+    "nik": "3216060403820251",
+    "nama": "NINA HIDAYAT",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok D7/12"
+  },
+  {
+    "id": "res-252",
+    "nik": "3216060612890252",
+    "nama": "HENDRA FITRIANI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok D7/13"
+  },
+  {
+    "id": "res-253",
+    "nik": "3216061309820253",
+    "nama": "LISA PRATAMA",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D7/14"
+  },
+  {
+    "id": "res-254",
+    "nik": "3216061511740254",
+    "nama": "PUTRI UTAMI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D7/15"
+  },
+  {
+    "id": "res-255",
+    "nik": "3216062906920255",
+    "nama": "RATNA RAHAYU",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok D7/16"
+  },
+  {
+    "id": "res-256",
+    "nik": "3216060901760256",
+    "nama": "DEWI SETIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok D7/17"
+  },
+  {
+    "id": "res-257",
+    "nik": "3216062408770257",
+    "nama": "DIAN INDRIANI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok D7/18"
+  },
+  {
+    "id": "res-258",
+    "nik": "3216062704840258",
+    "nama": "PUTRI WULANDARI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D7/19"
+  },
+  {
+    "id": "res-259",
+    "nik": "3216061712770259",
+    "nama": "LISA Mulyani",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D7/20"
+  },
+  {
+    "id": "res-260",
+    "nik": "3216061401970260",
+    "nama": "BUDI LESTARI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok D7/21"
+  },
+  {
+    "id": "res-261",
+    "nik": "3216062805750261",
+    "nama": "LISA WIJAYA",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D7/22"
+  },
+  {
+    "id": "res-262",
+    "nik": "3216061310900262",
+    "nama": "ADITYA FITRIANI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok D7/23"
+  },
+  {
+    "id": "res-263",
+    "nik": "3216060707760263",
+    "nama": "EKO SARI",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok D7/24"
+  },
+  {
+    "id": "res-264",
+    "nik": "3216061908960264",
+    "nama": "HENDRA Mulyani",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok D7/25"
+  },
+  {
+    "id": "res-265",
+    "nik": "3216060404750265",
+    "nama": "BUDI PRASETYO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D7/26"
+  },
+  {
+    "id": "res-266",
+    "nik": "3216060601750266",
+    "nama": "HENDRA PRASETYO",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D7/27"
+  },
+  {
+    "id": "res-267",
+    "nik": "3216063108800267",
+    "nama": "BUDI AISYAH",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D7/28"
+  },
+  {
+    "id": "res-268",
+    "nik": "3216061501740268",
+    "nama": "MAYA UTAMI",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D7/29"
+  },
+  {
+    "id": "res-269",
+    "nik": "3216060305810269",
+    "nama": "RATNA AISYAH",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok D7/30"
+  },
+  {
+    "id": "res-270",
+    "nik": "3216062710850270",
+    "nama": "BUDI RAMADHAN",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok D7/31"
+  },
+  {
+    "id": "res-271",
+    "nik": "3216062106860271",
+    "nama": "DEWI PRATAMA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok D7/32"
+  },
+  {
+    "id": "res-272",
+    "nik": "3216061104780272",
+    "nama": "RINA LESTARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D7/33"
+  },
+  {
+    "id": "res-273",
+    "nik": "3216060412880273",
+    "nama": "PUTRI NUGROHO",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok D7/34"
+  },
+  {
+    "id": "res-274",
+    "nik": "3216062103810274",
+    "nama": "SITI FITRIANI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok D7/35"
+  },
+  {
+    "id": "res-275",
+    "nik": "3216060206770275",
+    "nama": "LISA Mulyani",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok D7/36"
+  },
+  {
+    "id": "res-276",
+    "nik": "3216061702870276",
+    "nama": "RINA PRASETYO",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok D7/37"
+  },
+  {
+    "id": "res-277",
+    "nik": "3216061207810277",
+    "nama": "EKO WIJAYA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok D7/38"
+  },
+  {
+    "id": "res-278",
+    "nik": "3216063104890278",
+    "nama": "FAJAR WULANDARI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok D7/39"
+  },
+  {
+    "id": "res-279",
+    "nik": "3216060601860279",
+    "nama": "PUTRI SAPUTRA",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D7/40"
+  },
+  {
+    "id": "res-280",
+    "nik": "3216061704800280",
+    "nama": "BUDI UTAMI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok D8/1"
+  },
+  {
+    "id": "res-281",
+    "nik": "3216061912970281",
+    "nama": "RIZKY WULANDARI",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok D8/2"
+  },
+  {
+    "id": "res-282",
+    "nik": "3216061804800282",
+    "nama": "IWAN KURNIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok D8/3"
+  },
+  {
+    "id": "res-283",
+    "nik": "3216062202800283",
+    "nama": "ADITYA AISYAH",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok D8/4"
+  },
+  {
+    "id": "res-284",
+    "nik": "3216061510990284",
+    "nama": "DEWI AISYAH",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok D8/5"
+  },
+  {
+    "id": "res-285",
+    "nik": "3216061202740285",
+    "nama": "ARIS NUGROHO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D8/6"
+  },
+  {
+    "id": "res-286",
+    "nik": "3216062901750286",
+    "nama": "HENDRA PUSPITA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok D8/7"
+  },
+  {
+    "id": "res-287",
+    "nik": "3216060604930287",
+    "nama": "RATNA RAHAYU",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok D8/8"
+  },
+  {
+    "id": "res-288",
+    "nik": "3216062302870288",
+    "nama": "RINA SAPUTRA",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok D8/9"
+  },
+  {
+    "id": "res-289",
+    "nik": "3216061910760289",
+    "nama": "DIAN PRASETYO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D8/10"
+  },
+  {
+    "id": "res-290",
+    "nik": "3216062405980290",
+    "nama": "PUTRI FITRIANI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D8/11"
+  },
+  {
+    "id": "res-291",
+    "nik": "3216061309960291",
+    "nama": "ADITYA RAMADHAN",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok D8/12"
+  },
+  {
+    "id": "res-292",
+    "nik": "3216060406820292",
+    "nama": "DIAN SETIAWAN",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok D8/13"
+  },
+  {
+    "id": "res-293",
+    "nik": "3216060910920293",
+    "nama": "EKO Mulyani",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok D8/14"
+  },
+  {
+    "id": "res-294",
+    "nik": "3216061107860294",
+    "nama": "MAYA SANTOSO",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok D8/15"
+  },
+  {
+    "id": "res-295",
+    "nik": "3216062401750295",
+    "nama": "AGUS SETIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok D8/16"
+  },
+  {
+    "id": "res-296",
+    "nik": "3216060611700296",
+    "nama": "DEDI INDRIANI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok D8/17"
+  },
+  {
+    "id": "res-297",
+    "nik": "3216061901950297",
+    "nama": "ARIS RAHAYU",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok D8/18"
+  },
+  {
+    "id": "res-298",
+    "nik": "3216060804850298",
+    "nama": "PUTRI UTAMI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D8/19"
+  },
+  {
+    "id": "res-299",
+    "nik": "3216062911760299",
+    "nama": "LISA SARI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D8/20"
+  },
+  {
+    "id": "res-300",
+    "nik": "3216060401720300",
+    "nama": "ADITYA SETIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok D8/21"
+  },
+  {
+    "id": "res-301",
+    "nik": "3216060409720301",
+    "nama": "ANI SARI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok D8/22"
+  },
+  {
+    "id": "res-302",
+    "nik": "3216061608740302",
+    "nama": "MAYA PRASETYO",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D8/23"
+  },
+  {
+    "id": "res-303",
+    "nik": "3216061709920303",
+    "nama": "HENDRA FITRIANI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok D8/24"
+  },
+  {
+    "id": "res-304",
+    "nik": "3216061010800304",
+    "nama": "RIZKY PRATAMA",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok D8/25"
+  },
+  {
+    "id": "res-305",
+    "nik": "3216060509880305",
+    "nama": "SITI WULANDARI",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D8/26"
+  },
+  {
+    "id": "res-306",
+    "nik": "3216061102840306",
+    "nama": "RIZKY HIDAYAT",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D8/27"
+  },
+  {
+    "id": "res-307",
+    "nik": "3216061702700307",
+    "nama": "SITI SETIAWAN",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok D8/28"
+  },
+  {
+    "id": "res-308",
+    "nik": "3216060304730308",
+    "nama": "NINA Mulyani",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok D8/29"
+  },
+  {
+    "id": "res-309",
+    "nik": "3216063011810309",
+    "nama": "DEDI FITRIANI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok D8/30"
+  },
+  {
+    "id": "res-310",
+    "nik": "3216060806880310",
+    "nama": "PUTRI UTAMI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok D8/31"
+  },
+  {
+    "id": "res-311",
+    "nik": "3216060610800311",
+    "nama": "ADITYA PRASETYO",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok D8/32"
+  },
+  {
+    "id": "res-312",
+    "nik": "3216060506980312",
+    "nama": "RIZKY INDRIANI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok D8/33"
+  },
+  {
+    "id": "res-313",
+    "nik": "3216062409860313",
+    "nama": "PUTRI LESTARI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok D8/34"
+  },
+  {
+    "id": "res-314",
+    "nik": "3216061010760314",
+    "nama": "RATNA WIJAYA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok D8/35"
+  },
+  {
+    "id": "res-315",
+    "nik": "3216061003980315",
+    "nama": "DEWI RAMADHAN",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D8/36"
+  },
+  {
+    "id": "res-316",
+    "nik": "3216062501920316",
+    "nama": "DEWI HIDAYAT",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok D8/37"
+  },
+  {
+    "id": "res-317",
+    "nik": "3216062410960317",
+    "nama": "SITI KURNIAWAN",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D8/38"
+  },
+  {
+    "id": "res-318",
+    "nik": "3216060609760318",
+    "nama": "BUDI Mulyani",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok D8/39"
+  },
+  {
+    "id": "res-319",
+    "nik": "3216061401920319",
+    "nama": "ARIS SANTOSO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok D8/40"
+  },
+  {
+    "id": "res-320",
+    "nik": "3216061308850320",
+    "nama": "ANI UTAMI",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/1"
+  },
+  {
+    "id": "res-321",
+    "nik": "3216062601740321",
+    "nama": "MAYA PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok E9/2"
+  },
+  {
+    "id": "res-322",
+    "nik": "3216063006740322",
+    "nama": "ARIS UTAMI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok E9/3"
+  },
+  {
+    "id": "res-323",
+    "nik": "3216060510740323",
+    "nama": "IWAN Mulyani",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok E9/4"
+  },
+  {
+    "id": "res-324",
+    "nik": "3216062104930324",
+    "nama": "RIZKY INDRIANI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/5"
+  },
+  {
+    "id": "res-325",
+    "nik": "3216060701950325",
+    "nama": "ARIS HIDAYAT",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok E9/6"
+  },
+  {
+    "id": "res-326",
+    "nik": "3216061905730326",
+    "nama": "RATNA INDRIANI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok E9/7"
+  },
+  {
+    "id": "res-327",
+    "nik": "3216063102950327",
+    "nama": "ADITYA RAMADHAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E9/8"
+  },
+  {
+    "id": "res-328",
+    "nik": "3216061209840328",
+    "nama": "NINA NUGROHO",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/9"
+  },
+  {
+    "id": "res-329",
+    "nik": "3216060211830329",
+    "nama": "RATNA SARI",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok E9/10"
+  },
+  {
+    "id": "res-330",
+    "nik": "3216062011800330",
+    "nama": "HENDRA NUGROHO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok E9/11"
+  },
+  {
+    "id": "res-331",
+    "nik": "3216061406720331",
+    "nama": "ANI SAPUTRA",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok E9/12"
+  },
+  {
+    "id": "res-332",
+    "nik": "3216061901750332",
+    "nama": "IWAN SAPUTRA",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok E9/13"
+  },
+  {
+    "id": "res-333",
+    "nik": "3216062907980333",
+    "nama": "EKO Mulyani",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/14"
+  },
+  {
+    "id": "res-334",
+    "nik": "3216061008960334",
+    "nama": "LISA SANTOSO",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok E9/15"
+  },
+  {
+    "id": "res-335",
+    "nik": "3216060303940335",
+    "nama": "AGUS SAPUTRA",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok E9/16"
+  },
+  {
+    "id": "res-336",
+    "nik": "3216061904700336",
+    "nama": "DEWI AISYAH",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok E9/17"
+  },
+  {
+    "id": "res-337",
+    "nik": "3216061510760337",
+    "nama": "MAYA UTAMI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok E9/18"
+  },
+  {
+    "id": "res-338",
+    "nik": "3216061812780338",
+    "nama": "AGUS AISYAH",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/19"
+  },
+  {
+    "id": "res-339",
+    "nik": "3216060310770339",
+    "nama": "RIZKY WULANDARI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/20"
+  },
+  {
+    "id": "res-340",
+    "nik": "3216060610830340",
+    "nama": "ADITYA HIDAYAT",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok E9/21"
+  },
+  {
+    "id": "res-341",
+    "nik": "3216062701890341",
+    "nama": "SITI RAMADHAN",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E9/22"
+  },
+  {
+    "id": "res-342",
+    "nik": "3216061205730342",
+    "nama": "NINA PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/23"
+  },
+  {
+    "id": "res-343",
+    "nik": "3216061704830343",
+    "nama": "DIAN SETIAWAN",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok E9/24"
+  },
+  {
+    "id": "res-344",
+    "nik": "3216062405800344",
+    "nama": "FAJAR SAPUTRA",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok E9/25"
+  },
+  {
+    "id": "res-345",
+    "nik": "3216060205800345",
+    "nama": "ADITYA KURNIAWAN",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/26"
+  },
+  {
+    "id": "res-346",
+    "nik": "3216063011740346",
+    "nama": "MAYA FITRIANI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok E9/27"
+  },
+  {
+    "id": "res-347",
+    "nik": "3216060109920347",
+    "nama": "DIAN UTAMI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok E9/28"
+  },
+  {
+    "id": "res-348",
+    "nik": "3216062806730348",
+    "nama": "IWAN WULANDARI",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E9/29"
+  },
+  {
+    "id": "res-349",
+    "nik": "3216061309990349",
+    "nama": "ANI PRATAMA",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok E9/30"
+  },
+  {
+    "id": "res-350",
+    "nik": "3216062806830350",
+    "nama": "SITI LESTARI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok E9/31"
+  },
+  {
+    "id": "res-351",
+    "nik": "3216061108740351",
+    "nama": "HENDRA KURNIAWAN",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok E9/32"
+  },
+  {
+    "id": "res-352",
+    "nik": "3216062605850352",
+    "nama": "RIZKY RAHAYU",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/33"
+  },
+  {
+    "id": "res-353",
+    "nik": "3216062403930353",
+    "nama": "RINA PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E9/34"
+  },
+  {
+    "id": "res-354",
+    "nik": "3216062204780354",
+    "nama": "ANI HIDAYAT",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok E9/35"
+  },
+  {
+    "id": "res-355",
+    "nik": "3216061202700355",
+    "nama": "SITI HIDAYAT",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok E9/36"
+  },
+  {
+    "id": "res-356",
+    "nik": "3216062201720356",
+    "nama": "DIAN PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok E9/37"
+  },
+  {
+    "id": "res-357",
+    "nik": "3216062501720357",
+    "nama": "ADITYA PRATAMA",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok E9/38"
+  },
+  {
+    "id": "res-358",
+    "nik": "3216063103940358",
+    "nama": "LISA LESTARI",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok E9/39"
+  },
+  {
+    "id": "res-359",
+    "nik": "3216062911870359",
+    "nama": "FAJAR SAPUTRA",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok E9/40"
+  },
+  {
+    "id": "res-360",
+    "nik": "3216060605910360",
+    "nama": "DIAN PUSPITA",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/1"
+  },
+  {
+    "id": "res-361",
+    "nik": "3216062410790361",
+    "nama": "DEDI FITRIANI",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok E10/2"
+  },
+  {
+    "id": "res-362",
+    "nik": "3216062309750362",
+    "nama": "DEDI KURNIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E10/3"
+  },
+  {
+    "id": "res-363",
+    "nik": "3216060107730363",
+    "nama": "DIAN RAMADHAN",
+    "rt_id": "004",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/4"
+  },
+  {
+    "id": "res-364",
+    "nik": "3216062006900364",
+    "nama": "EKO Mulyani",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok E10/5"
+  },
+  {
+    "id": "res-365",
+    "nik": "3216060812790365",
+    "nama": "DEWI SETIAWAN",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok E10/6"
+  },
+  {
+    "id": "res-366",
+    "nik": "3216060504760366",
+    "nama": "RINA SANTOSO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E10/7"
+  },
+  {
+    "id": "res-367",
+    "nik": "3216061701850367",
+    "nama": "HENDRA RAMADHAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/8"
+  },
+  {
+    "id": "res-368",
+    "nik": "3216060411950368",
+    "nama": "EKO PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok E10/9"
+  },
+  {
+    "id": "res-369",
+    "nik": "3216062012710369",
+    "nama": "EKO PRATAMA",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/10"
+  },
+  {
+    "id": "res-370",
+    "nik": "3216061903930370",
+    "nama": "ANI SETIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/11"
+  },
+  {
+    "id": "res-371",
+    "nik": "3216062501890371",
+    "nama": "EKO NUGROHO",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok E10/12"
+  },
+  {
+    "id": "res-372",
+    "nik": "3216061510950372",
+    "nama": "AGUS SARI",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E10/13"
+  },
+  {
+    "id": "res-373",
+    "nik": "3216062004700373",
+    "nama": "AGUS RAMADHAN",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok E10/14"
+  },
+  {
+    "id": "res-374",
+    "nik": "3216060302740374",
+    "nama": "PUTRI PRATAMA",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok E10/15"
+  },
+  {
+    "id": "res-375",
+    "nik": "3216061307780375",
+    "nama": "IWAN RAHAYU",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok E10/16"
+  },
+  {
+    "id": "res-376",
+    "nik": "3216062309980376",
+    "nama": "ANI AISYAH",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok E10/17"
+  },
+  {
+    "id": "res-377",
+    "nik": "3216060805880377",
+    "nama": "EKO UTAMI",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E10/18"
+  },
+  {
+    "id": "res-378",
+    "nik": "3216062510920378",
+    "nama": "PUTRI NUGROHO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "IBU RUMAH TANGGA",
+    "alamat": "Villa Samudra Jaya Blok E10/19"
+  },
+  {
+    "id": "res-379",
+    "nik": "3216061610960379",
+    "nama": "EKO SETIAWAN",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok E10/20"
+  },
+  {
+    "id": "res-380",
+    "nik": "3216061406810380",
+    "nama": "RIZKY WIJAYA",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/21"
+  },
+  {
+    "id": "res-381",
+    "nik": "3216060203830381",
+    "nama": "DIAN WIJAYA",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/22"
+  },
+  {
+    "id": "res-382",
+    "nik": "3216061601710382",
+    "nama": "LISA PUSPITA",
+    "rt_id": "005",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E10/23"
+  },
+  {
+    "id": "res-383",
+    "nik": "3216060705960383",
+    "nama": "RIZKY PRATAMA",
+    "rt_id": "002",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/24"
+  },
+  {
+    "id": "res-384",
+    "nik": "3216062506800384",
+    "nama": "DEDI PUSPITA",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E10/25"
+  },
+  {
+    "id": "res-385",
+    "nik": "3216062807980385",
+    "nama": "SITI PUSPITA",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "KARYAWAN SWASTA",
+    "alamat": "Villa Samudra Jaya Blok E10/26"
+  },
+  {
+    "id": "res-386",
+    "nik": "3216060808970386",
+    "nama": "LISA LESTARI",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok E10/27"
+  },
+  {
+    "id": "res-387",
+    "nik": "3216062710950387",
+    "nama": "FAJAR NUGROHO",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok E10/28"
+  },
+  {
+    "id": "res-388",
+    "nik": "3216061903900388",
+    "nama": "DEWI FITRIANI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok E10/29"
+  },
+  {
+    "id": "res-389",
+    "nik": "3216062202960389",
+    "nama": "NINA PUSPITA",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/30"
+  },
+  {
+    "id": "res-390",
+    "nik": "3216060509790390",
+    "nama": "NINA LESTARI",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/31"
+  },
+  {
+    "id": "res-391",
+    "nik": "3216062505990391",
+    "nama": "SITI RAMADHAN",
+    "rt_id": "003",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Kontrak",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/32"
+  },
+  {
+    "id": "res-392",
+    "nik": "3216062111950392",
+    "nama": "DEWI PUSPITA",
+    "rt_id": "004",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "WIRASWASTA",
+    "alamat": "Villa Samudra Jaya Blok E10/33"
+  },
+  {
+    "id": "res-393",
+    "nik": "3216063011860393",
+    "nama": "ADITYA PRATAMA",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "BURUH",
+    "alamat": "Villa Samudra Jaya Blok E10/34"
+  },
+  {
+    "id": "res-394",
+    "nik": "3216062411920394",
+    "nama": "RIZKY PRASETYO",
+    "rt_id": "005",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "TNI/POLRI",
+    "alamat": "Villa Samudra Jaya Blok E10/35"
+  },
+  {
+    "id": "res-395",
+    "nik": "3216061808920395",
+    "nama": "LISA RAMADHAN",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEDAGANG",
+    "alamat": "Villa Samudra Jaya Blok E10/36"
+  },
+  {
+    "id": "res-396",
+    "nik": "3216060110710396",
+    "nama": "RIZKY PRASETYO",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok E10/37"
+  },
+  {
+    "id": "res-397",
+    "nik": "3216062702700397",
+    "nama": "PUTRI HIDAYAT",
+    "rt_id": "001",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "PEGAWAI NEGERI",
+    "alamat": "Villa Samudra Jaya Blok E10/38"
+  },
+  {
+    "id": "res-398",
+    "nik": "3216061405870398",
+    "nama": "DEDI KURNIAWAN",
+    "rt_id": "003",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Tetap",
+    "pekerjaan": "MAHASISWA",
+    "alamat": "Villa Samudra Jaya Blok E10/39"
+  },
+  {
+    "id": "res-399",
+    "nik": "3216060412780399",
+    "nama": "AGUS UTAMI",
+    "rt_id": "001",
+    "jenisKelamin": "LAKI-LAKI",
+    "status": "Kontrak",
+    "pekerjaan": "DRIVING ONLINE",
+    "alamat": "Villa Samudra Jaya Blok E10/40"
+  },
+  {
+    "id": "res-400",
+    "nik": "3216061109960400",
+    "nama": "FAJAR SAPUTRA",
+    "rt_id": "002",
+    "jenisKelamin": "PEREMPUAN",
+    "status": "Tetap",
+    "pekerjaan": "GURU",
+    "alamat": "Villa Samudra Jaya Blok F11/1"
+  }
+]
