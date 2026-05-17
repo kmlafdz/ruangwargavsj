@@ -479,6 +479,26 @@ export default function App() {
           }
         />
       </Routes>
+      {isViraOpen && user?.accountType === 'resident' && (
+        <style>{`
+          .dashboard-header,
+          .running-text-container-full {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            border: none !important;
+            box-shadow: none !important;
+            transition: all 0.25s ease !important;
+          }
+          .resident-container {
+            padding-top: 24px !important;
+            transition: all 0.25s ease !important;
+          }
+        `}</style>
+      )}
  
       {/* FLOATING VIRA AI CHAT WINDOW */}
       <AnimatePresence>
