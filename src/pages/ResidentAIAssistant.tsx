@@ -22,7 +22,7 @@ interface Message {
   category?: string;
 }
 
-export default function ResidentAIAssistant({ user }: { user: any }) {
+export default function ResidentAIAssistant({ user, onClose }: { user: any; onClose?: () => void }) {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -322,8 +322,9 @@ Kira-kira, bagian mana yang ingin Kakak tanyakan lebih detail? Atau ada masukan 
   return (
     <div className="vira-page-container" style={{
       background: '#f8fafc',
-      minHeight: 'calc(100vh - 64px)',
-      paddingBottom: '80px',
+      height: onClose ? '100%' : 'calc(100vh - 64px)',
+      minHeight: onClose ? 'auto' : 'calc(100vh - 64px)',
+      paddingBottom: onClose ? '0' : '80px',
       display: 'flex',
       flexDirection: 'column',
       fontFamily: "'Outfit', sans-serif"
@@ -331,7 +332,7 @@ Kira-kira, bagian mana yang ingin Kakak tanyakan lebih detail? Atau ada masukan 
       {/* HEADER PANEL - GLASSMORPHISM */}
       <div style={{
         background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
-        padding: '20px 24px',
+        padding: onClose ? '14px 18px' : '20px 24px',
         color: '#fff',
         position: 'sticky',
         top: 0,
@@ -339,70 +340,96 @@ Kira-kira, bagian mana yang ingin Kakak tanyakan lebih detail? Atau ada masukan 
         boxShadow: '0 10px 25px rgba(37, 99, 235, 0.15)',
         display: 'flex',
         alignItems: 'center',
-        gap: '14px',
+        justifyContent: 'space-between',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
       }}>
-        <button 
-          onClick={() => navigate('/warga/dashboard')}
-          style={{
-            background: 'rgba(255,255,255,0.15)',
-            border: 'none',
-            color: '#fff',
-            width: '38px',
-            height: '38px',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <div style={{ position: 'relative' }}>
-          <div style={{
-            width: '46px',
-            height: '46px',
-            borderRadius: '14px',
-            border: '2px solid rgba(255,255,255,0.3)',
-            overflow: 'hidden',
-            background: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
-          }}>
-            <img 
-              src="/vira_ai_avatar.png" 
-              alt="Vira AI" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={(e) => {
-                // Fallback in case image is missing
-                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150';
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Back button or close button indicator */}
+          {!onClose && (
+            <button 
+              onClick={() => navigate('/warga/dashboard')}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: 'none',
+                color: '#fff',
+                width: '38px',
+                height: '38px',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                marginRight: '4px'
               }}
-            />
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
+          <div style={{ position: 'relative' }}>
+            <div style={{
+              width: onClose ? '38px' : '46px',
+              height: onClose ? '38px' : '46px',
+              borderRadius: '12px',
+              border: '2px solid rgba(255,255,255,0.3)',
+              overflow: 'hidden',
+              background: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+            }}>
+              <img 
+                src="/vira_ai_avatar.png" 
+                alt="Vira AI" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150';
+                }}
+              />
+            </div>
+            <div style={{
+              position: 'absolute',
+              bottom: '-1px',
+              right: '-1px',
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              background: '#22c55e',
+              border: '2px solid #1e3a8a',
+              boxShadow: '0 0 0 2px rgba(34, 197, 94, 0.3)'
+            }} />
           </div>
-          <div style={{
-            position: 'absolute',
-            bottom: '-2px',
-            right: '-2px',
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-            background: '#22c55e',
-            border: '2px solid #1e3a8a',
-            boxShadow: '0 0 0 2px rgba(34, 197, 94, 0.3)'
-          }} />
+          <div>
+            <h2 style={{ fontSize: onClose ? '14px' : '16px', fontWeight: 900, margin: 0, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              Vira AI <Sparkles size={13} className="pulse-yellow" style={{ color: '#fbbf24' }} />
+            </h2>
+            <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)', margin: '1px 0 0', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Asisten Pintar Warga
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 style={{ fontSize: '16px', fontWeight: 900, margin: 0, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            Vira AI <Sparkles size={14} className="pulse-yellow" style={{ color: '#fbbf24' }} />
-          </h2>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', margin: '2px 0 0', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Asisten Pintar Warga 011
-          </p>
-        </div>
+
+        {onClose && (
+          <button 
+            onClick={onClose}
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              border: 'none',
+              color: '#fff',
+              width: '32px',
+              height: '32px',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {/* CHAT AREA */}

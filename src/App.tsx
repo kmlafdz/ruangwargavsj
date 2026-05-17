@@ -26,7 +26,7 @@ import AnnouncementsPage from './pages/AnnouncementsPage';
 import FeedbackPage from './pages/FeedbackPage';
 import AccountActivationPage from './pages/AccountActivationPage';
 import ResidentAIAssistant from './pages/ResidentAIAssistant';
-import { MessageSquare, Sparkles } from 'lucide-react';
+import { MessageSquare, Sparkles, X } from 'lucide-react';
 import WaitingApprovalPage from './pages/WaitingApprovalPage';
 import RevisionPage from './pages/RevisionPage';
 import { RoleGuard } from './components/RoleGuard';
@@ -34,7 +34,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ResidentBottomNav from './components/ResidentBottomNav';
 import SplashScreen from './components/SplashScreen';
 import GlobalPinLock from './components/GlobalPinLock';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { User } from './types';
 import './index.css';
@@ -100,6 +100,7 @@ export default function App() {
     }
     return false;
   });
+  const [isViraOpen, setIsViraOpen] = useState(false);
 
   // Background Visibility & Inactivity Timers (5 Minutes)
   useEffect(() => {
@@ -398,7 +399,7 @@ export default function App() {
                       <Route path="/admin/dev/feedback" element={<RoleGuard user={user} allowedRoles={['developer', 'rw', 'rt']}><FeedbackPage isAdminView={true} user={user!} /></RoleGuard>} />
 
                       {/* WARGA DOMAIN */}
-                      <Route path="/warga/dashboard" element={<RoleGuard user={user} allowedRoles={['resident']}><ResidentDashboard user={user!} /></RoleGuard>} />
+                      <Route path="/warga/dashboard" element={<RoleGuard user={user} allowedRoles={['resident']}><ResidentDashboard user={user!} onToggleViraAI={() => setIsViraOpen(true)} /></RoleGuard>} />
                       <Route path="/warga/profile" element={<RoleGuard user={user} allowedRoles={['resident']}><ResidentProfilePage user={user!} onLogout={handleLogout} /></RoleGuard>} />
                       <Route path="/warga/setting" element={<RoleGuard user={user} allowedRoles={['resident']}><ProfilePage user={user!} onUpdateUser={handleUpdateUser} /></RoleGuard>} />
                       <Route path="/warga/chat" element={<RoleGuard user={user} allowedRoles={['resident']}><ChatPage user={user!} /></RoleGuard>} />
@@ -409,16 +410,16 @@ export default function App() {
                       <Route path="/warga/ai" element={<RoleGuard user={user} allowedRoles={['resident']}><ResidentAIAssistant user={user!} /></RoleGuard>} />
                       <Route path="/warga/pengumuman" element={<RoleGuard user={user} allowedRoles={['resident']}><AnnouncementsPage isAdminView={false} user={user!} /></RoleGuard>} />
                       <Route path="/warga/feedback" element={<RoleGuard user={user} allowedRoles={['resident']}><FeedbackPage isAdminView={false} user={user!} /></RoleGuard>} />
-
+ 
                       <Route path="*" element={<PlaceholderPage title={meta.title} />} />
                     </Routes>
                   </div>
                 </main>
               </div>
-              {user?.accountType === 'resident' && location.pathname !== '/warga/setting' && location.pathname !== '/warga/ai' && <ResidentBottomNav />}
-              {user?.accountType === 'resident' && location.pathname !== '/warga/ai' && (
+              {user?.accountType === 'resident' && location.pathname !== '/warga/setting' && <ResidentBottomNav />}
+              {user?.accountType === 'resident' && (
                 <button
-                  onClick={() => navigate('/warga/ai')}
+                  onClick={() => setIsViraOpen(prev => !prev)}
                   style={{
                     position: 'fixed',
                     bottom: location.pathname === '/warga/setting' ? '24px' : '90px',
@@ -426,21 +427,25 @@ export default function App() {
                     width: '56px',
                     height: '56px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                    background: isViraOpen 
+                      ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' 
+                      : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
                     color: '#ffffff',
                     border: 'none',
-                    boxShadow: '0 8px 24px rgba(37, 99, 235, 0.4)',
+                    boxShadow: isViraOpen 
+                      ? '0 8px 24px rgba(239, 68, 68, 0.4)' 
+                      : '0 8px 24px rgba(37, 99, 235, 0.4)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    zIndex: 999,
+                    zIndex: 10001,
                     transition: 'transform 0.2s, background 0.2s',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
                   onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                 >
-                  <Sparkles size={24} />
+                  {isViraOpen ? <X size={24} /> : <Sparkles size={24} />}
                 </button>
               )}
               {user?.accountType === 'admin' && location.pathname !== '/admin/dev/chat' && (
@@ -474,6 +479,37 @@ export default function App() {
           }
         />
       </Routes>
+ 
+      {/* FLOATING VIRA AI CHAT WINDOW */}
+      <AnimatePresence>
+        {isViraOpen && user?.accountType === 'resident' && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            style={{
+              position: 'fixed',
+              bottom: '160px',
+              right: '20px',
+              width: '380px',
+              maxWidth: 'calc(100vw - 40px)',
+              height: '560px',
+              maxHeight: 'calc(100vh - 200px)',
+              background: '#ffffff',
+              borderRadius: '24px',
+              boxShadow: '0 20px 50px rgba(15, 23, 42, 0.15)',
+              border: '1px solid #cbd5e1',
+              zIndex: 10000,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <ResidentAIAssistant user={user} onClose={() => setIsViraOpen(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {isAppLocked && user?.pin && (
         <GlobalPinLock

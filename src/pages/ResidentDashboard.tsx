@@ -21,9 +21,10 @@ import PinVerificationModal from '../components/PinVerificationModal';
 
 interface ResidentDashboardProps {
   user: User | null;
+  onToggleViraAI?: () => void;
 }
 
-export default function ResidentDashboard({ user: initialUser }: ResidentDashboardProps) {
+export default function ResidentDashboard({ user: initialUser, onToggleViraAI }: ResidentDashboardProps) {
   const [user, setUser] = useState<User | null>(initialUser);
   const [isLocked, setIsLocked] = useState(false);
   const [showNik, setShowNik] = useState(false);
@@ -516,7 +517,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
               </div>
 
               <button 
-                onClick={() => navigate('/warga/ai')}
+                onClick={() => onToggleViraAI ? onToggleViraAI() : navigate('/warga/ai')}
                 style={{
                   height: '38px',
                   borderRadius: '12px',
