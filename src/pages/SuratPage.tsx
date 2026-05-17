@@ -2473,14 +2473,12 @@ export default function SuratPage() {
                 boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', textAlign: 'center' 
               }}
             >
-              <div style={{
-                width: 56, height: 56, 
-                background: adminConfirm.actionType === 'approve' ? '#e6f4ea' : '#fce8e6', 
-                color: adminConfirm.actionType === 'approve' ? '#10b981' : '#ef4444', 
-                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 16px'
-              }}>
-                {adminConfirm.actionType === 'approve' ? <CheckCircle size={28} /> : <AlertCircle size={28} />}
+              <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 16px' }}>
+                <img 
+                  src="/vira_ai_confirm.png" 
+                  alt="Vira AI Confirm" 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '16px' }} 
+                />
               </div>
 
               <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', marginBottom: 10 }}>
@@ -2581,14 +2579,12 @@ export default function SuratPage() {
                 boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', textAlign: 'center' 
               }}
             >
-              <div style={{
-                width: 56, height: 56, 
-                background: '#eff6ff', 
-                color: '#2563eb', 
-                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 16px', border: '1.5px solid #dbeafe'
-              }}>
-                <Send size={24} style={{ marginLeft: 3 }} />
+              <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 16px' }}>
+                <img 
+                  src="/vira_ai_confirm.png" 
+                  alt="Vira AI Confirm" 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '16px' }} 
+                />
               </div>
 
               <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', marginBottom: 10 }}>

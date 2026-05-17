@@ -684,8 +684,12 @@ export default function WargaPage() {
       {showDeleteConfirm && (
         <div className="modal-overlay">
           <div className="card fade-in shadow-xl" style={{ maxWidth: 400, width: '100%', padding: 32, borderRadius: 24, textAlign: 'center' }}>
-            <div style={{ width: 64, height: 64, background: 'var(--red-50)', color: 'var(--red-600)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-              <Trash2 size={32} />
+            <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 20px' }}>
+              <img 
+                src="/vira_ai_confirm.png" 
+                alt="Vira AI Confirm" 
+                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '16px' }} 
+              />
             </div>
             <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--gray-800)', marginBottom: 12 }}>Konfirmasi Hapus</h3>
             <p style={{ fontSize: 14, color: 'var(--gray-500)', lineHeight: 1.6, marginBottom: 24 }}>

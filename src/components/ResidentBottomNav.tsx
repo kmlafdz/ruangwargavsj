@@ -2,7 +2,7 @@ import React from 'react';
 import { Home, FileText, MessageSquare, Megaphone, User } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export default function ResidentBottomNav() {
+export default function ResidentBottomNav({ onTabClick }: { onTabClick?: () => void }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,7 +23,10 @@ export default function ResidentBottomNav() {
           <div 
             key={index} 
             className={`bottom-nav-item ${isActive ? 'active' : ''}`}
-            onClick={() => navigate(item.path)}
+            onClick={() => {
+              if (onTabClick) onTabClick();
+              navigate(item.path);
+            }}
           >
             <Icon size={20} className="bottom-nav-icon" />
             <span className="bottom-nav-label">{item.label}</span>

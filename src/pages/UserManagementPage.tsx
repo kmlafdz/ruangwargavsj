@@ -508,18 +508,12 @@ export default function UserManagementPage() {
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal" style={{ maxWidth: 400, textAlign: 'center' }}>
             <div className="modal-body" style={{ padding: '32px 24px' }}>
-              <div style={{ 
-                width: 64, 
-                height: 64, 
-                background: 'var(--blue-50)', 
-                color: 'var(--blue-600)', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                margin: '0 auto 20px' 
-              }}>
-                <UserPlus size={30} />
+              <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 20px' }}>
+                <img 
+                  src="/vira_ai_confirm.png" 
+                  alt="Vira AI Confirm" 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '16px' }} 
+                />
               </div>
               <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--gray-800)', marginBottom: 12 }}>
                 Konfirmasi Pembuatan Akun

@@ -155,10 +155,13 @@ export default function App() {
   // Reset scroll position to top when navigating to a new page
   useEffect(() => {
     window.scrollTo(0, 0);
-    const pageContent = document.querySelector('.page-content');
-    if (pageContent) {
-      pageContent.scrollTop = 0;
-    }
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+    
+    const scrollContainers = document.querySelectorAll('.page-content, .main-area, .resident-layout, .resident-container, .dashboard-content');
+    scrollContainers.forEach(el => {
+      el.scrollTop = 0;
+    });
   }, [location.pathname]);
 
   useEffect(() => {
@@ -416,7 +419,9 @@ export default function App() {
                   </div>
                 </main>
               </div>
-              {user?.accountType === 'resident' && location.pathname !== '/warga/setting' && <ResidentBottomNav />}
+              {user?.accountType === 'resident' && location.pathname !== '/warga/setting' && (
+                <ResidentBottomNav onTabClick={() => setIsViraOpen(false)} />
+              )}
               {user?.accountType === 'resident' && (
                 <button
                   onClick={() => setIsViraOpen(prev => !prev)}
@@ -479,34 +484,66 @@ export default function App() {
           }
         />
       </Routes>
-      {isViraOpen && user?.accountType === 'resident' && (
+      {user?.accountType === 'resident' && (
         <style>{`
           .dashboard-header,
-          .running-text-container-full {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            height: 0 !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            overflow: hidden !important;
-            border: none !important;
-            box-shadow: none !important;
-            transition: all 0.25s ease !important;
-          }
+          .running-text-container-full,
           .resident-container {
-            padding-top: 24px !important;
-            transition: all 0.25s ease !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
           }
+          ${isViraOpen ? `
+            body, html {
+              overflow: hidden !important;
+            }
+            .dashboard-header,
+            .running-text-container-full {
+              opacity: 0 !important;
+              pointer-events: none !important;
+              height: 0 !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              overflow: hidden !important;
+              border: none !important;
+              box-shadow: none !important;
+            }
+            .resident-container {
+              padding-top: 24px !important;
+            }
+          ` : ''}
         `}</style>
       )}
  
       {/* FLOATING VIRA AI CHAT WINDOW */}
-      <AnimatePresence>
-        {isViraOpen && user?.accountType === 'resident' && (
+      {user?.accountType === 'resident' && (
+        <>
+          {/* BLURRED BACKDROP OVERLAY */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ 
+              opacity: isViraOpen ? 1 : 0,
+              pointerEvents: isViraOpen ? 'auto' : 'none'
+            }}
+            transition={{ duration: 0.25 }}
+            onClick={() => setIsViraOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.4)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 9999,
+            }}
+          />
+
+          {/* CHAT PANEL */}
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ 
+              opacity: isViraOpen ? 1 : 0, 
+              y: isViraOpen ? 0 : 50, 
+              scale: isViraOpen ? 1 : 0.9,
+              pointerEvents: isViraOpen ? 'auto' : 'none'
+            }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
             style={{
               position: 'fixed',
@@ -528,8 +565,8 @@ export default function App() {
           >
             <ResidentAIAssistant user={user} onClose={() => setIsViraOpen(false)} />
           </motion.div>
-        )}
-      </AnimatePresence>
+        </>
+      )}
 
       {isAppLocked && user?.pin && (
         <GlobalPinLock

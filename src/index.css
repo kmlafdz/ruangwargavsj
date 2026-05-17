@@ -381,7 +381,7 @@ td { text-align: center; padding: 14px 16px; border-bottom: 1px solid var(--gray
     background: #fff;
     border-top: 1px solid var(--gray-200);
     box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-    z-index: 1000;
+    z-index: 10002;
     padding: 8px 16px 20px; /* Safe area padding */
     justify-content: space-between;
   }

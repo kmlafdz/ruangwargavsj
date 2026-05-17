@@ -51,6 +51,11 @@ export default function ResidentDashboard({ user: initialUser, onToggleViraAI }:
       const target = e.target;
       if (!target) return;
 
+      // Only respond to scroll events on the main document or viewport!
+      if (target !== document && target !== window && target !== document.documentElement && target !== document.body) {
+        return;
+      }
+
       const currentScrollY = target === document 
         ? window.scrollY 
         : (target.scrollTop !== undefined ? target.scrollTop : 0);

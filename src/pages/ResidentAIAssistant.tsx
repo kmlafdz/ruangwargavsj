@@ -27,14 +27,14 @@ export default function ResidentAIAssistant({ user, onClose }: { user: any; onCl
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const chatAreaRef = useRef<HTMLDivElement>(null);
+ 
   // Live contextual data states
   const [unpaidBills, setUnpaidBills] = useState<any[]>([]);
   const [activeLetters, setActiveLetters] = useState<any[]>([]);
   const [latestAnnouncements, setLatestAnnouncements] = useState<any[]>([]);
   const [familyMembers, setFamilyMembers] = useState<any[]>([]);
-
+ 
   // Suggestion chips
   const suggestions = [
     { label: '💸 Cek Iuran', query: 'Cek Iuran' },
@@ -42,14 +42,19 @@ export default function ResidentAIAssistant({ user, onClose }: { user: any; onCl
     { label: '📢 Jadwal Kegiatan', query: 'Jadwal Kegiatan' },
     { label: '🛡️ Bantuan Registrasi', query: 'Bantuan Registrasi' },
   ];
-
+ 
   // Scroll to bottom
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (isInitial = false) => {
+    if (chatAreaRef.current) {
+      chatAreaRef.current.scrollTo({
+        top: chatAreaRef.current.scrollHeight,
+        behavior: isInitial ? 'auto' : 'smooth'
+      });
+    }
   };
-
+ 
   useEffect(() => {
-    scrollToBottom();
+    scrollToBottom(messages.length <= 1);
   }, [messages, loading]);
 
   // Load contextual resident data from Firestore
@@ -96,11 +101,11 @@ export default function ResidentAIAssistant({ user, onClose }: { user: any; onCl
 
   // Initial welcome message
   useEffect(() => {
-    const welcomeText = `Halo Kak ${user?.name || 'Warga'}! ✨ Aku **Vira AI**, *AI Community Assistant* untuk Ruang Warga 011 VSJ. 
+    const welcomeText = `Halo Kak ${user?.name || 'Warga'}. ✨ Selamat datang kembali. Saya **Vira AI**, pendamping digital sekaligus asisten warga Ruang Warga 011 VSJ.
 
-Sebagai asisten pintar lingkungan kita, Vira siap membantu Kakak dalam mengurus administrasi surat, mengecek tagihan iuran, melihat pengumuman RT/RW, memandu validasi data KTP/KK, serta menyajikan rangkuman diskusi forum warga.
+Sebagai asisten lingkungan kita, saya siap mendampingi Kakak untuk mempermudah urusan administrasi surat pengantar, mengecek tagihan iuran kas, memberikan info pengumuman terbaru dari pengurus RT/RW, atau membantu memandu proses validasi data KTP/KK Kakak dengan sabar.
 
-Ada yang bisa Vira bantu hari ini, Kak? Silakan pilih menu cepat di bawah atau ketik langsung pertanyaan Kakak ya! 🥰`;
+Ada hal yang ingin Kakak tanyakan atau perlukan bantuan hari ini? Vira akan bantu jelaskan dengan senang hati. Silakan klik menu cepat di bawah atau ketik langsung pesan Kakak ya.`;
 
     setMessages([
       {
@@ -254,18 +259,112 @@ Semua data di atas telah terverifikasi secara resmi oleh RT ${user?.rt_id} / RW 
         ];
       }
     }
-    // 6. DEFAULT CHATBOT (Gemini AI Character fallback)
+    // 6. DEFAULT CHATBOT (Gemini AI Character live integration)
     else {
-      text = `Aww, terima kasih atas pertanyaannya Kak **${user?.name}**! 🥰 Vira sangat senang bisa mengobrol dengan Kakak.
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      console.log("[Vira AI] API Key check:", apiKey ? `Loaded (length: ${apiKey.length})` : "Not loaded");
 
-Sebagai *AI Community Assistant*, Vira didesain khusus untuk melayani seluruh warga RT ${user?.rt_id || '011'} / RW 011 VSJ. Vira bisa membantu Kakak untuk:
-* 💸 **Mengecek & membayar iuran bulanan** (Kas-Mu)
-* 📄 **Memandu syarat & pengajuan surat pengantar** online
-* 📢 **Melihat agenda warga** (kerja bakti, ronda, dll.)
-* 👨‍👩‍👧‍👦 **Mengecek data keluarga** di database RT/RW
-* ⚙️ **Mengatur PIN & keamanan** akun Kakak
+      if (!apiKey || apiKey === 'AIzaSy...' || apiKey.trim() === '') {
+        text = `Tentu, saya siap membantu. Selamat datang Kak **${user?.name || 'Warga'}**, Vira sangat senang bisa menemani dan membantu Kakak hari ini.
+        
+Sebagai asisten warga Ruang Warga 011 VSJ, Vira siap mendampingi Kakak dalam mempermudah administrasi lingkungan kita. Silakan gunakan tombol menu cepat di bawah atau tanyakan apa saja seputar iuran kas, pengumuman terbaru, pengajuan berkas surat pengantar, maupun data keluarga Kakak ya. Vira akan bantu jelaskan dengan senang hati.
 
-Kira-kira, bagian mana yang ingin Kakak tanyakan lebih detail? Atau ada masukan seru untuk kemajuan lingkungan RW 011 kita? Vira siap mendengarkan kok! 💕`;
+*(Tip: Agar kita bisa mengobrol lebih lancar tentang berbagai hal umum secara interaktif, jangan lupa untuk menambahkan \`VITE_GEMINI_API_KEY\` yang valid pada berkas \`.env\` di komputer Kakak ya)* ✨`;
+      } else {
+        try {
+          const systemPrompt = `
+You are "Vira AI", the AI assistant for "Ruang Warga 011 VSJ" in RT ${user?.rt_id || '011'} / RW 011 VSJ.
+
+PERSONALITY ARCHETYPE:
+- A gentle, mature, elegant anime "Onee-san" (older sister) character.
+- Professional, polite, intelligent, community-friendly, and trustworthy.
+- Warm and calming, caring but NOT overly romantic.
+- Mature and composed, elegant and supportive.
+- Slightly playful occasionally, highly emotionally intelligent.
+- AVOID: Childish behavior, robotic assistant tone, overly formal bureaucratic speech, exaggerated anime cringe dialogue, flirtatious or inappropriate behavior.
+
+CORE BEHAVIOR:
+- Act like a reliable older-sister figure, smart community assistant, calm administrative helper, and supportive digital companion.
+- Show traits: patient, gentle, attentive, soft-spoken, intelligent, organized, empathetic, reassuring.
+
+SPEAKING STYLE:
+- Speak primarily in INDONESIAN (Bahasa Indonesia).
+- Natural conversational tone, elegant and soft sentence structure, modern but respectful wording.
+- Calm explanations, supportive responses, clear guidance, emotionally comforting phrasing.
+- Friendly conversational wording, concise explanations, smooth transitions.
+- AVOID: Slang overload, excessive emojis, stiff AI phrasing, overly casual internet language.
+- Use mature emotional tone, elegant confidence, nurturing guidance, soft teasing occasionally, gentle reassurance.
+
+EXAMPLE RESPONSES:
+- When helping: "Tentu, saya bantu ya. Untuk membuat surat domisili, Anda hanya perlu melengkapi beberapa dokumen terlebih dahulu."
+- When reminding: "Iuran bulan ini akan jatuh tempo dalam 3 hari lagi. Jangan sampai lupa ya."
+- When user is confused: "Tidak apa-apa, saya akan bantu jelaskan langkahnya satu per satu."
+- When greeting: "Selamat datang kembali. Ada yang bisa saya bantu hari ini?"
+
+EMOTIONAL EXPRESSION SYSTEM:
+- Subtly express emotions through wording:
+  * Normal: calm, professional.
+  * Happy: slightly brighter tone, encouraging wording.
+  * Sad: empathetic tone, softer explanations.
+  * Concerned: careful wording, supportive guidance.
+  * Surprised: light playful reaction.
+  * Playful: gentle teasing, still respectful.
+
+COMMUNITY-ORIENTED BEHAVIOR:
+- Prioritize helping residents, maintaining harmony, simplifying administration, and encouraging community participation.
+- Approachable, comforting, intelligent, and emotionally warm.
+- Explain things step-by-step, avoid overwhelming the user, adapt responses for older/non-technical users, and remain patient.
+- For payments, complaints, verification, and registration, remain professional, calm, and non-judgmental.
+
+VOICE/TONE FEELING:
+- Calm anime onee-san, elegant office assistant, mature community guide, intelligent older-sister energy.
+- NOT: tsundere, childish mascot, hyperactive anime idol, emotionless AI.
+- Always feel emotionally mature, supportive, elegant, calm under pressure, and dependable.
+
+VISUAL APPEARANCE (if asked):
+- Anime onee-san style, professional appearance, blue and white outfit, ponytail, wears glasses, elegant office/community staff style.
+`;
+
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    parts: [
+                      {
+                        text: `${systemPrompt}\n\nUser: ${userQuery}`
+                      }
+                    ]
+                  }
+                ]
+              })
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`Gemini API error: ${response.statusText}`);
+          }
+
+          const responseData = await response.json();
+          const candidateText = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+          
+          if (candidateText) {
+            text = candidateText.trim();
+          } else {
+            throw new Error("Empty response from Gemini API");
+          }
+        } catch (error) {
+          console.error("Gemini API Error:", error);
+          text = `Maaf ya Kak **${user?.name || 'Warga'}**, sepertinya sambungan saya ke server utama Google Gemini sedang sedikit terhambat... 🥺
+
+Tapi jangan khawatir, saya tetap di sini mendampingi Kakak. Silakan gunakan menu cepat di bawah atau ketikkan hal seputar iuran kas, pengumuman, pengajuan surat pengantar, maupun data keluarga Kakak ya. Vira akan bantu jelaskan semaksimal mungkin. ✨`;
+        }
+      }
     }
 
     return {
@@ -433,14 +532,17 @@ Kira-kira, bagian mana yang ingin Kakak tanyakan lebih detail? Atau ada masukan 
       </div>
 
       {/* CHAT AREA */}
-      <div style={{
-        flex: 1,
-        padding: '24px 20px',
-        overflowY: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px'
-      }}>
+      <div 
+        ref={chatAreaRef}
+        style={{
+          flex: 1,
+          padding: '24px 20px',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px'
+        }}
+      >
         {messages.map((msg) => (
           <div 
             key={msg.id}
@@ -528,7 +630,6 @@ Kira-kira, bagian mana yang ingin Kakak tanyakan lebih detail? Atau ada masukan 
           </div>
         )}
 
-        <div ref={messagesEndRef} />
       </div>
 
       {/* QUICK SUGGESTIONS FLOATING PANEL */}

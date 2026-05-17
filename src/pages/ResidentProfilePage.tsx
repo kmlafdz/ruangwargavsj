@@ -199,18 +199,12 @@ export default function ResidentProfilePage({ user: initialUser, onLogout }: Res
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
               }}
             >
-              <div style={{
-                width: '56px',
-                height: '56px',
-                background: '#fef2f2',
-                color: '#ef4444',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 20px'
-              }}>
-                <LogOut size={24} />
+              <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 20px' }}>
+                <img 
+                  src="/vira_ai_confirm.png" 
+                  alt="Vira AI Confirm" 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '16px' }} 
+                />
               </div>
               <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', marginBottom: '8px' }}>
                 Konfirmasi Keluar

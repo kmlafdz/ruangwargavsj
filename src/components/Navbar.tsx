@@ -27,6 +27,11 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
       const target = e.target;
       if (!target) return;
 
+      // Only respond to scroll events on the main document or viewport!
+      if (target !== document && target !== window && target !== document.documentElement && target !== document.body) {
+        return;
+      }
+
       const currentScrollY = target === document 
         ? window.scrollY 
         : (target.scrollTop !== undefined ? target.scrollTop : 0);
@@ -71,8 +76,12 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               style={{ background: '#fff', width: '100%', maxWidth: 400, borderRadius: 28, padding: 32, textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
             >
-              <div style={{ width: 64, height: 64, background: '#fef2f2', color: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                <LogOut size={28} />
+              <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 20px' }}>
+                <img 
+                  src="/vira_ai_confirm.png" 
+                  alt="Vira AI Confirm" 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '16px' }} 
+                />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 12 }}>Konfirmasi Keluar</h3>
               <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.6, marginBottom: 32 }}>
