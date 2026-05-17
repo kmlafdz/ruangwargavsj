@@ -26,7 +26,7 @@ import AnnouncementsPage from './pages/AnnouncementsPage';
 import FeedbackPage from './pages/FeedbackPage';
 import AccountActivationPage from './pages/AccountActivationPage';
 import ResidentAIAssistant from './pages/ResidentAIAssistant';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Sparkles } from 'lucide-react';
 import WaitingApprovalPage from './pages/WaitingApprovalPage';
 import RevisionPage from './pages/RevisionPage';
 import { RoleGuard } from './components/RoleGuard';
@@ -415,10 +415,10 @@ export default function App() {
                   </div>
                 </main>
               </div>
-              {user?.accountType === 'resident' && location.pathname !== '/warga/setting' && location.pathname !== '/warga/chat' && <ResidentBottomNav />}
-              {user?.accountType === 'resident' && location.pathname !== '/warga/chat' && (
+              {user?.accountType === 'resident' && location.pathname !== '/warga/setting' && location.pathname !== '/warga/ai' && <ResidentBottomNav />}
+              {user?.accountType === 'resident' && location.pathname !== '/warga/ai' && (
                 <button
-                  onClick={() => navigate('/warga/chat')}
+                  onClick={() => navigate('/warga/ai')}
                   style={{
                     position: 'fixed',
                     bottom: location.pathname === '/warga/setting' ? '24px' : '90px',
@@ -440,7 +440,7 @@ export default function App() {
                   onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
                   onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                 >
-                  <MessageSquare size={24} />
+                  <Sparkles size={24} />
                 </button>
               )}
               {user?.accountType === 'admin' && location.pathname !== '/admin/dev/chat' && (

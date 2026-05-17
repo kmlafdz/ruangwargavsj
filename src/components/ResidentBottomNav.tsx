@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, Sparkles, Megaphone, User } from 'lucide-react';
+import { Home, FileText, MessageSquare, Megaphone, User } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function ResidentBottomNav() {
@@ -9,7 +9,7 @@ export default function ResidentBottomNav() {
   const navItems = [
     { icon: Home, label: 'Beranda', path: '/warga/dashboard' },
     { icon: FileText, label: 'Surat', path: '/warga/surat' },
-    { icon: Sparkles, label: 'Asisten AI', path: '/warga/ai' },
+    { icon: MessageSquare, label: 'Forum', path: '/warga/chat' },
     { icon: Megaphone, label: 'Pengumuman', path: '/warga/pengumuman' },
     { icon: User, label: 'Profil', path: '/warga/profile' },
   ];
