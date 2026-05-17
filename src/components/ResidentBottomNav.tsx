@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, Wallet, MessageSquare, User } from 'lucide-react';
+import { Home, FileText, Wallet, Megaphone, User } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function ResidentBottomNav() {
@@ -10,15 +10,15 @@ export default function ResidentBottomNav() {
     { icon: Home, label: 'Beranda', path: '/warga/dashboard' },
     { icon: FileText, label: 'Surat', path: '/warga/surat' },
     { icon: Wallet, label: 'Iuran', path: '/warga/keuangan' },
-    { icon: MessageSquare, label: 'Chat', path: '/warga/chat' },
-    { icon: User, label: 'Profil', path: '/warga/setting' },
+    { icon: Megaphone, label: 'Pengumuman', path: '/warga/pengumuman' },
+    { icon: User, label: 'Profil', path: '/warga/profile' },
   ];
 
   return (
     <div className="resident-bottom-nav">
       {navItems.map((item, index) => {
         const Icon = item.icon;
-        const isActive = location.pathname.startsWith(item.path);
+        const isActive = location.pathname.startsWith(item.path) || (item.label === 'Profil' && location.pathname.startsWith('/warga/setting'));
         return (
           <div 
             key={index} 

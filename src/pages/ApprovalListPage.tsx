@@ -199,7 +199,7 @@ export default function ApprovalListPage() {
                         </button>
                         <button 
                           className={`btn btn-sm ${req.statusValidasi === 'Ditolak' ? 'btn-secondary' : 'btn-primary'}`} 
-                          onClick={() => navigate(`/admin/approval/${req.nik}`)}
+                          onClick={() => navigate(`/admin/dev/approval/${req.nik}`)}
                         >
                           {req.statusValidasi === 'Ditolak' ? (
                             <><CheckCircle2 size={14} /> <span className="hide-mobile">Telah Ditinjau</span></>

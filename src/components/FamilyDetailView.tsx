@@ -307,7 +307,7 @@ export default function FamilyDetailView({ family, members, onBack, onAddMember,
 
 function MemberCardPremium({ member, onEdit, onDelete }: { member: FamilyMember; onEdit: () => void; onDelete: () => void }) {
   const isMale = member.jenisKelamin?.toUpperCase() === 'LAKI-LAKI';
-  const name = member.fullName || member.namaLengkap || member.nama;
+  const name = member.fullName || member.namaLengkap || "";
   const nik = member.nik;
   const role = member.hubungan || member.statusKeluarga;
 

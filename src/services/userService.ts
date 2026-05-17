@@ -3,7 +3,7 @@ import {
   query, orderBy, onSnapshot, where, setDoc, serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { User } from '../types';
+import { User, AdminRole } from '../types';
 
 /**
  * Fetch all users from Firestore
@@ -25,10 +25,10 @@ export function subscribeToUsers(onUpdate: (users: User[]) => void): () => void 
 }
 
 /**
- * Update user role
+ * Update admin role
  */
-export async function updateUserRole(userId: string, role: string): Promise<void> {
-  await updateDoc(doc(db, 'users', userId), { role });
+export async function updateAdminRole(userId: string, adminRole: AdminRole): Promise<void> {
+  await updateDoc(doc(db, 'users', userId), { adminRole });
 }
 
 /**
@@ -91,9 +91,11 @@ export async function deleteUser(nik: string): Promise<void> {
 /**
  * Create a user account from a resident record
  */
-export async function createUserFromResident(resident: any, role: string): Promise<void> {
+export async function createUserFromResident(resident: any): Promise<void> {
+  const { getDoc } = await import('firebase/firestore');
   // Use NIK as the document ID for the user to keep it unique per resident
   const userRef = doc(db, 'users', resident.nik);
+  const userSnap = await getDoc(userRef);
   
   // New Activation Flow fields
   const dobRaw = resident.birthDate || resident.tanggalLahir || '01/01/2000';
@@ -109,18 +111,29 @@ export async function createUserFromResident(resident: any, role: string): Promi
     dobFormatted = `${y}-${d}-${m}`; // Format: YYYY-DD-MM
   }
 
-  await setDoc(userRef, {
+  const baseFields = {
     name: resident.nama || resident.fullName || resident.namaLengkap,
     nik: resident.nik,
-    role: role,
     rt_id: resident.rt_id || resident.rt || '',
     rw_id: resident.rw || '011',
-    status: 'Approved',
-    accountStatus: 'pending_registration',
-    isFirstLogin: true,
-    temporaryPasswordActive: true,
-    createdAt: serverTimestamp(),
-    username: resident.nik, // Default username is NIK
-    password: dobFormatted // Temporary password is DOB (YYYY-DD-MM)
-  });
+    communityPosition: resident.communityPosition || ''
+  };
+
+  if (!userSnap.exists()) {
+    // Akun BELUM ada, buat akun baru dengan status pending_registration
+    await setDoc(userRef, {
+      ...baseFields,
+      accountType: 'resident', // New Structure
+      status: 'Approved',
+      accountStatus: 'pending_registration',
+      isFirstLogin: true,
+      temporaryPasswordActive: true,
+      createdAt: serverTimestamp(),
+      username: resident.nik, // Default username is NIK
+      password: dobFormatted // Temporary password is DOB (YYYY-DD-MM)
+    });
+  } else {
+    // Akun SUDAH ada, HANYA perbarui data profil dasar tanpa mereset password / status aktivasi!
+    await setDoc(userRef, baseFields, { merge: true });
+  }
 }

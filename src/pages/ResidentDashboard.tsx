@@ -1,21 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Home, User as UserIcon, Users, FileText, 
-  Wallet, MessageSquare, Megaphone, Bell, 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Home, User as UserIcon, Users, FileText,
+  Wallet, MessageSquare, Megaphone, Bell,
   HelpCircle, LogOut, Search, CreditCard,
   FileCheck, AlertCircle, Clock, ChevronRight,
   MapPin, Calendar, Smartphone, Info, Settings,
   MessageCircle, ThumbsUp, Share2, Bookmark, MoreHorizontal,
   Send, Image as ImageIcon, PlusCircle, Filter, TrendingUp,
   Plus, ArrowRight, ShieldCheck, Eye, EyeOff, CheckCircle,
-  Lock as LockIcon, Fingerprint, XCircle, Loader2
+  Lock as LockIcon, Fingerprint, XCircle, Loader2, Wifi
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User } from '../types';
-import BiometricLock from '../components/BiometricLock';
 import { db } from '../firebase/config';
 import { doc, updateDoc, onSnapshot, collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/login/logo.png';
+import { SocialBadge } from '../components/SocialBadge';
+import PinVerificationModal from '../components/PinVerificationModal';
 
 interface ResidentDashboardProps {
   user: User | null;
@@ -25,6 +27,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
   const [user, setUser] = useState<User | null>(initialUser);
   const [isLocked, setIsLocked] = useState(false);
   const [showNik, setShowNik] = useState(false);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState({
     iuranStatus: 'Lunas',
@@ -38,6 +41,57 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
   const [isPosting, setIsPosting] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', content: '', category: 'Diskusi Umum' });
   const navigate = useNavigate();
+
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = (e: any) => {
+      const target = e.target;
+      if (!target) return;
+
+      const currentScrollY = target === document 
+        ? window.scrollY 
+        : (target.scrollTop !== undefined ? target.scrollTop : 0);
+
+      const scrollDiff = Math.abs(currentScrollY - lastScrollYRef.current);
+
+      if (currentScrollY <= 10) {
+        setHeaderVisible(true);
+      } else if (scrollDiff > 8) {
+        if (currentScrollY > lastScrollYRef.current) {
+          setHeaderVisible(false);
+        } else {
+          setHeaderVisible(true);
+        }
+        lastScrollYRef.current = currentScrollY;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, []);
+
+  const [runningAnnouncements, setRunningAnnouncements] = useState<string>('');
+
+  useEffect(() => {
+    const q = query(collection(db, 'announcements'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const titles: string[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.title) {
+          titles.push(data.title);
+        }
+      });
+      if (titles.length > 0) {
+        setRunningAnnouncements(titles.join('  •  '));
+      } else {
+        setRunningAnnouncements('Belum ada pengumuman resmi terbaru.');
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   const [showLetterForm, setShowLetterForm] = useState(false);
   const [isSubmittingLetter, setIsSubmittingLetter] = useState(false);
@@ -57,7 +111,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
   const handleSubmitLetter = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !letterData.keperluan) return;
-    
+
     setIsSubmittingLetter(true);
     try {
       await addDoc(collection(db, 'surat_requests'), {
@@ -82,10 +136,17 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
 
   const handleLogout = () => {
     localStorage.removeItem('erw_user');
-    navigate('/warga-login', { replace: true });
-    window.location.reload(); // Force reload to clear all states
+    window.location.href = '/warga-login';
   };
-  
+
+  const handleToggleNik = () => {
+    if (!showNik && user?.pin) {
+      setIsPinModalOpen(true);
+    } else {
+      setShowNik(false);
+    }
+  };
+
   // Real-time user data sync
   useEffect(() => {
     if (!initialUser?.id) return;
@@ -110,8 +171,8 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
       const currentMonth = new Date().toLocaleString('default', { month: 'long' });
       const isLunas = snap.docs.some(d => d.data().description?.includes(currentMonth));
       const unpaid = snap.docs.filter(d => d.data().status === 'Unpaid').length;
-      setStats(prev => ({ 
-        ...prev, 
+      setStats(prev => ({
+        ...prev,
         iuranStatus: isLunas ? 'LUNAS' : 'BELUM BAYAR',
         iuranBelumBayar: unpaid
       }));
@@ -132,10 +193,16 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
     });
 
     // 4. Notifications
-    const role = user.role === 'warga' ? 'warga' : 'admin';
     const notifQuery = query(collection(db, 'notifications'), where('isRead', '==', false));
     const notifUnsub = onSnapshot(notifQuery, (snap) => {
-      const unread = snap.docs.filter(d => d.data().targetId === user.id || d.data().targetRole === role).length;
+      const unread = snap.docs.filter(d => {
+        const data = d.data();
+        const isTargetUser = data.targetId === user.id;
+        const isTargetResident = data.targetAccountType === 'resident' || 
+                                 data.targetAccountType === 'warga' ||
+                                 (data.targetRoles && (data.targetRoles.includes('resident') || data.targetRoles.includes('warga')));
+        return isTargetUser || isTargetResident;
+      }).length;
       setStats(prev => ({ ...prev, notifBaru: unread }));
     });
 
@@ -145,28 +212,9 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
       pengaduanUnsub();
       notifUnsub();
     };
-  }, [user?.id, user?.role]);
+  }, [user?.id, user?.accountType]);
 
-  // 3-minute Inactivity Timer
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    const resetTimer = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        if (user?.biometricEnabled) setIsLocked(true);
-      }, 180000); // 3 minutes
-    };
 
-    window.addEventListener('mousemove', resetTimer);
-    window.addEventListener('keypress', resetTimer);
-    resetTimer();
-
-    return () => {
-      window.removeEventListener('mousemove', resetTimer);
-      window.removeEventListener('keypress', resetTimer);
-      clearTimeout(timer);
-    };
-  }, [user?.biometricEnabled]);
 
   // Forum Real-time Sync
   useEffect(() => {
@@ -185,7 +233,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
         ...newPost,
         authorId: user?.id,
         authorName: user?.name,
-        authorRole: user?.role,
+        authorPosition: user?.communityPosition || 'Warga',
         rt_id: user?.rt_id,
         createdAt: new Date(),
         likes: 0,
@@ -199,19 +247,17 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
     }
   };
 
-  if (isLocked) {
-    return <BiometricLock userName={user?.name || 'Warga'} onUnlock={() => setIsLocked(false)} />;
-  }
+
 
   // MANDATORY REGISTRATION CHECK
-  if (user?.role === 'warga') {
+  if (user?.accountType === 'resident') {
     if (user.registrationStatus === 'pending_input') {
       return (
         <div className="login-container" style={{ padding: 20 }}>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="login-card" 
+            className="login-card"
             style={{ maxWidth: 450, textAlign: 'center', background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)' }}
           >
             <div style={{ width: 80, height: 80, background: 'var(--blue-50)', color: 'var(--blue-600)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
@@ -233,10 +279,10 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
     if (user.registrationStatus === 'pending_approval') {
       return (
         <div className="login-container" style={{ padding: 20 }}>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="login-card" 
+            className="login-card"
             style={{ maxWidth: 450, textAlign: 'center', background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)' }}
           >
             <div style={{ width: 80, height: 80, background: '#fffbeb', color: '#d97706', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
@@ -269,59 +315,143 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
         <div className="dashboard-content">
           {/* DIGITAL ID CARD - THE ONLY ONE WITH CONTAINER */}
           <section className="section-card-id">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ scale: 1.01 }}
               className="digital-id-card"
             >
-              <div className="card-decor-1" />
-              <div className="card-decor-2" />
-              <div className="card-header">
-                <div className="card-label-group">
-                  <span className="card-subtitle">KARTU ID DIGITAL</span>
-                  <h2 className="card-title glowing-text">RUANG WARGA VSJ</h2>
-                </div>
-                <div className="card-logo-placeholder">
-                  <ShieldCheck size={28} color="#fff" />
-                </div>
+              <div className="card-watermark" />
+              <div className="card-decor-dots" />
+              <div className="card-smart-chip">
+                <div /><div /><div /><div />
               </div>
-
-              <div className="card-user-info">
-                <div className="user-details">
+              
+              {/* MAIN CONTENT AREA - SHIFTED UP */}
+              <div className="card-main-content" style={{ marginTop: '2cqw' }}>
+                <div className="card-left">
+                  <div style={{ marginBottom: 8 }}>
+                    <SocialBadge 
+                      position={user?.communityPosition} 
+                      rt_id={user?.rt_id} 
+                      style={{ fontSize: 10, padding: '2px 10px' }} 
+                    />
+                  </div>
                   <div className="user-name">{user?.name}</div>
-                  <div className="user-nik-container">
+                  <div className="user-nik-pill">
+                    <Fingerprint size={14} className="nik-icon" />
                     <span className="user-nik">
-                      {showNik ? user?.nik : (user?.nik || '****************').replace(/.(?=.{4})/g, '•')}
+                      {showNik ? user?.nik : `•••• •••• •••• ${user?.nik?.slice(-4) || '0000'}`}
                     </span>
-                    <button onClick={() => setShowNik(!showNik)} className="btn-toggle-nik">
+                    <button onClick={handleToggleNik} className="btn-toggle-nik-glass">
                       {showNik ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                   <div className="user-address-text">
-                    <MapPin size={12} style={{ marginRight: 4 }} />
-                    {`BLOK ${(user as any).blok || (user as any).extractedData?.blok || '?'}/${(user as any).nomorRumah || (user as any).extractedData?.nomorRumah || (user as any).no || '?'}, RT ${user?.rt_id || '01'}/11`}
+                    <MapPin size={14} color="#3b82f6" fill="#3b82f6" fillOpacity={0.2} />
+                    {`BLOK ${(user as any).blok || 'G/8'}, RT ${user?.rt_id || '002'}/11`}
                   </div>
                 </div>
 
-                <div className="card-qr-area">
-                  <img 
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${user?.nik || 'RESIDENT'}&bgcolor=ffffff&color=1e40af`} 
-                    alt="QR Code" 
-                    className="card-qr-img" 
-                  />
-                  <div className="qr-label">VERIFY ID</div>
+                <div className="card-right">
+                  <div className="card-qr-area-new">
+                    <div className="qr-wrapper">
+                      <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${user?.nik || 'RESIDENT'}&bgcolor=ffffff&color=0f172a`} 
+                        alt="QR Code" 
+                        className="card-qr-img-new" 
+                      />
+                      <div className="qr-center-logo">
+                        <img src={logo} alt="Logo" />
+                      </div>
+                    </div>
+                    <div className="qr-label-new">SCAN TO VERIFY</div>
+                  </div>
                 </div>
               </div>
 
-              <div className="card-footer-verified">
-                <div className="verified-badge-green">
-                  <CheckCircle size={14} />
+              {/* FOOTER */}
+              <div className="card-footer-new">
+                <div className="verified-badge-pill">
+                  <ShieldCheck size={16} color="#4ade80" />
                   <span>VERIFIED MEMBER</span>
+                </div>
+                <div className="official-id-group">
+                  <span className="official-id-text">OFFICIAL ID</span>
+                  <Wifi size={16} className="wireless-icon" />
                 </div>
               </div>
             </motion.div>
           </section>
+
+          {(!user?.email || !user?.pinSet || !user?.pin) && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                border: '1px solid #fde68a',
+                borderRadius: '20px',
+                padding: '16px 20px',
+                marginTop: '10px',
+                marginBottom: '24px',
+                boxShadow: '0 10px 15px -3px rgba(217, 119, 6, 0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                textAlign: 'left'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  background: '#f59e0b',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <LockIcon size={18} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 900, color: '#78350f' }}>
+                    Lengkapi Keamanan Akun
+                  </h4>
+                  <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#92400e', fontWeight: 700 }}>
+                    Email & PIN transaksi belum lengkap.
+                  </p>
+                </div>
+              </div>
+              <p style={{ margin: 0, fontSize: '11.5px', color: '#78350f', lineHeight: 1.5 }}>
+                Demi keamanan data Anda, silakan lengkapi <strong>Email</strong> (pemulihan akun) serta <strong>PIN Keamanan</strong> untuk otorisasi transaksi kas atau pengajuan surat.
+              </p>
+              <button 
+                onClick={() => navigate('/warga/setting')}
+                style={{
+                  height: '38px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: '#d97706',
+                  color: '#ffffff',
+                  fontSize: '11.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 6px -1px rgba(217, 119, 6, 0.2)',
+                  width: 'fit-content',
+                  padding: '0 16px'
+                }}
+              >
+                Lengkapi Sekarang <ArrowRight size={13} />
+              </button>
+            </motion.div>
+          )}
 
           {/* QUICK ACTIONS SECTION - No Container */}
           <section className="section-quick-actions">
@@ -329,13 +459,13 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
             <div className="quick-actions-grid">
               {[
                 { label: 'Keluarga', icon: Users, color: '#8b5cf6', route: '/warga/keluarga' },
-                { label: 'Surat', icon: Plus, color: '#3b82f6', action: () => setShowLetterForm(true) },
+                { label: 'Surat', icon: Plus, color: '#3b82f6', route: '/warga/surat' },
                 { label: 'Lapor', icon: Megaphone, color: '#f59e0b', route: '/warga/report' },
                 { label: 'Kritik & Saran', icon: MessageSquare, color: '#10b981', route: '/warga/feedback' },
               ].map((act, i) => (
-                <motion.button 
+                <motion.button
                   key={i} whileTap={{ scale: 0.95 }}
-                  onClick={() => act.action ? act.action() : navigate(act.route || '/')}
+                  onClick={() => navigate(act.route || '/')}
                   className="quick-action-item"
                 >
                   <div className="action-icon-wrapper" style={{ background: act.color }}>
@@ -374,7 +504,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
                   <span className="summary-value value-purple">{stats.pengaduanSelesai} Selesai</span>
                 </div>
               </div>
-              <div className="summary-item status-orange">
+              <div className="summary-item status-orange" onClick={() => navigate('/warga/pengumuman')} style={{ cursor: 'pointer' }}>
                 <div className="summary-icon icon-orange"><Bell size={20} /></div>
                 <div className="summary-info">
                   <span className="summary-label">Notifikasi</span>
@@ -411,8 +541,8 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
               <div className="security-info">
                 <div className="security-icon-box"><ShieldCheck size={24} color="#3b82f6" /></div>
                 <div className="security-text">
-                  <span className="security-title">Keamanan & Biometrik</span>
-                  <span className="security-status">{user?.biometricEnabled ? 'Sudah Aktif' : 'Belum Aktif'}</span>
+                  <span className="security-title">Keamanan & PIN</span>
+                  <span className="security-status">{user?.pin ? 'PIN Aktif' : 'Belum Aktif'}</span>
                 </div>
               </div>
               <button className="btn-circle-action" onClick={() => window.location.href = '#/warga/setting'}><ArrowRight size={20} /></button>
@@ -430,6 +560,12 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
               {user?.photoUrl ? <img src={user.photoUrl} alt="User" /> : <UserIcon size={48} />}
             </div>
             <h2 className="profile-name-text">{user?.name}</h2>
+            {user?.communityPosition && (
+              <div className="card-position-badge" style={{ marginBottom: 12 }}>
+                {user.communityPosition.includes('RW') ? '👑' : user.communityPosition.includes('RT') ? '🛡️' : user.communityPosition.includes('Sekretaris') ? '📋' : user.communityPosition.includes('Bendahara') ? '💰' : '✨'}
+                {' '}{user.communityPosition}
+              </div>
+            )}
             <p className="profile-nik-text">NIK: {user?.nik || 'N/A'}</p>
             <div className="profile-tag">RT {user?.rt_id} / RW 011</div>
           </section>
@@ -447,11 +583,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
                 <span className="menu-item-label">Ubah Password</span>
                 <ChevronRight size={18} color="#cbd5e1" />
               </button>
-              <button className="profile-menu-item">
-                <div className="menu-item-icon bg-orange"><Fingerprint size={18} /></div>
-                <span className="menu-item-label">Biometrik</span>
-                <div className="menu-item-badge">{user?.biometricEnabled ? 'Aktif' : 'Non-aktif'}</div>
-              </button>
+
             </div>
 
             <h3 className="section-title" style={{ marginTop: 24 }}>Dukungan</h3>
@@ -491,7 +623,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
                 <span>Buat Diskusi</span>
               </button>
             </div>
-            
+
             <div className="forum-search-container">
               <Search className="forum-search-icon" size={20} />
               <input type="text" placeholder="Cari diskusi atau topik..." className="forum-search-input" />
@@ -499,8 +631,8 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
 
             <div className="category-scroll">
               {categories.map(cat => (
-                <div 
-                  key={cat} 
+                <div
+                  key={cat}
                   className={`category-chip ${forumCategory === cat ? 'active' : ''}`}
                   onClick={() => setForumCategory(cat)}
                 >
@@ -541,8 +673,8 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
               </div>
             ) : (
               filteredPosts.map(post => (
-                <motion.div 
-                  key={post.id} 
+                <motion.div
+                  key={post.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="forum-post-card"
@@ -551,7 +683,22 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
                     <div className="post-author-info">
                       <div className="author-avatar">{post.authorName?.charAt(0)}</div>
                       <div>
-                        <div className="author-name">{post.authorName}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div className="author-name">{post.authorName}</div>
+                          {(post as any).authorPosition && (
+                            <span style={{ 
+                              fontSize: 10, 
+                              fontWeight: 800, 
+                              background: '#eff6ff', 
+                              color: '#2563eb', 
+                              padding: '1px 6px', 
+                              borderRadius: 4,
+                              textTransform: 'uppercase'
+                            }}>
+                              {(post as any).authorPosition}
+                            </span>
+                          )}
+                        </div>
                         <div className="post-meta">
                           <span className="role-badge">RT 0{post.rt_id}</span>
                           <span>•</span>
@@ -559,7 +706,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
                         </div>
                       </div>
                     </div>
-                    <div className="category-tag" style={{ 
+                    <div className="category-tag" style={{
                       background: post.category === 'Pengumuman' ? '#fee2e2' : '#eff6ff',
                       color: post.category === 'Pengumuman' ? '#ef4444' : '#3b82f6'
                     }}>
@@ -591,30 +738,30 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
           {/* CREATE POST MODAL */}
           <AnimatePresence>
             {isPosting && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', zIndex: 2000, display: 'flex', alignItems: 'flex-end' }}
               >
-                <motion.div 
+                <motion.div
                   initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                   style={{ background: '#fff', width: '100%', borderRadius: '32px 32px 0 0', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}
                 >
                   <div style={{ width: 40, height: 4, background: '#e2e8f0', borderRadius: 2, margin: '0 auto 24px' }} />
                   <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1e3a8a', marginBottom: 20 }}>Buat Diskusi Baru</h3>
-                  
+
                   <div className="input-group">
                     <label className="label">Judul Diskusi</label>
-                    <input 
-                      type="text" className="form-input" placeholder="Apa yang ingin Anda bahas?" 
-                      value={newPost.title} onChange={e => setNewPost({...newPost, title: e.target.value})}
+                    <input
+                      type="text" className="form-input" placeholder="Apa yang ingin Anda bahas?"
+                      value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })}
                       style={{ width: '100%', height: 48, borderRadius: 12, border: '1px solid #e2e8f0', padding: '0 16px', outline: 'none' }}
                     />
                   </div>
 
                   <div className="input-group" style={{ marginTop: 16 }}>
                     <label className="label">Kategori</label>
-                    <select 
-                      className="form-input" value={newPost.category} onChange={e => setNewPost({...newPost, category: e.target.value})}
+                    <select
+                      className="form-input" value={newPost.category} onChange={e => setNewPost({ ...newPost, category: e.target.value })}
                       style={{ width: '100%', height: 48, borderRadius: 12, border: '1px solid #e2e8f0', padding: '0 16px', outline: 'none', appearance: 'none' }}
                     >
                       {categories.filter(c => c !== 'Semua').map(c => <option key={c} value={c}>{c}</option>)}
@@ -623,9 +770,9 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
 
                   <div className="input-group" style={{ marginTop: 16 }}>
                     <label className="label">Konten / Isi Diskusi</label>
-                    <textarea 
-                      placeholder="Ceritakan lebih detail..." 
-                      value={newPost.content} onChange={e => setNewPost({...newPost, content: e.target.value})}
+                    <textarea
+                      placeholder="Ceritakan lebih detail..."
+                      value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })}
                       style={{ width: '100%', height: 120, borderRadius: 12, border: '1px solid #e2e8f0', padding: '16px', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
                     />
                   </div>
@@ -653,11 +800,11 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
       {/* Logout Confirmation Modal */}
       <AnimatePresence>
         {showLogoutConfirm && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{ position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               style={{ background: '#fff', width: '100%', maxWidth: 400, borderRadius: 28, padding: 32, textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
             >
@@ -669,13 +816,13 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
                 Apakah Anda yakin ingin keluar dari akun <strong>{user?.name}</strong>? Anda perlu login kembali untuk mengakses layanan warga.
               </p>
               <div style={{ display: 'flex', gap: 12 }}>
-                <button 
+                <button
                   onClick={() => setShowLogoutConfirm(false)}
                   style={{ flex: 1, height: 50, borderRadius: 14, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
                 >
                   Batal
                 </button>
-                <button 
+                <button
                   onClick={handleLogout}
                   style={{ flex: 1, height: 50, borderRadius: 14, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
                 >
@@ -691,18 +838,18 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
       {/* LETTER SUBMISSION MODAL */}
       <AnimatePresence>
         {showLetterForm && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', zIndex: 5000, display: 'flex', alignItems: 'flex-end' }}
           >
-            <motion.div 
+            <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              style={{ 
-                background: '#fff', width: '100%', 
-                borderRadius: '32px 32px 0 0', 
+              style={{
+                background: '#fff', width: '100%',
+                borderRadius: '32px 32px 0 0',
                 padding: '24px 24px 42px', // Added more bottom padding for safe area
-                maxHeight: '95vh', overflowY: 'auto' 
+                maxHeight: '95vh', overflowY: 'auto'
               }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', marginBottom: 24 }}>
@@ -711,7 +858,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
                   <FileText size={24} />
                 </div>
                 <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1e3a8a', margin: 0 }}>Buat Pengajuan Surat</h3>
-                <button 
+                <button
                   onClick={() => setShowLetterForm(false)}
                   style={{ position: 'absolute', right: 0, top: 20, background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer' }}
                 >
@@ -724,10 +871,10 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#475569', marginBottom: 10 }}>Pilih Jenis Surat</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
                     {letterTypes.map(type => (
-                      <div 
+                      <div
                         key={type.title}
-                        onClick={() => setLetterData({...letterData, jenis: `Surat ${type.title}`})}
-                        style={{ 
+                        onClick={() => setLetterData({ ...letterData, jenis: `Surat ${type.title}` })}
+                        style={{
                           border: `1px solid ${letterData.jenis.includes(type.title) ? '#2563eb' : '#e2e8f0'}`,
                           background: letterData.jenis.includes(type.title) ? '#eff6ff' : '#fff',
                           borderRadius: 16, padding: 12, display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer'
@@ -747,10 +894,10 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
 
                 <div>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#475569', marginBottom: 10 }}>Tujuan / Keperluan</label>
-                  <textarea 
+                  <textarea
                     placeholder="Contoh: Persyaratan pendaftaran sekolah."
                     value={letterData.keperluan}
-                    onChange={e => setLetterData({...letterData, keperluan: e.target.value})}
+                    onChange={e => setLetterData({ ...letterData, keperluan: e.target.value })}
                     required
                     style={{ width: '100%', height: 100, border: '1px solid #e2e8f0', borderRadius: 16, padding: 14, fontSize: 14, outline: 'none', background: '#f8fafc', resize: 'none' }}
                   />
@@ -762,8 +909,8 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
                     {isSubmittingLetter ? <Loader2 size={18} className="animate-spin" /> : <><Send size={18} /> Kirim Pengajuan</>}
                   </button>
                 </div>
-                
-                <button 
+
+                <button
                   type="button"
                   onClick={() => { setShowLetterForm(false); navigate('/warga/surat'); }}
                   style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, fontSize: 13, textDecoration: 'underline', marginTop: 8, cursor: 'pointer', textAlign: 'center' }}
@@ -777,9 +924,15 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
       </AnimatePresence>
 
       {activeTab === 'dashboard' && (
-        <div className="running-text-container-full">
+        <div 
+          className="running-text-container-full"
+          style={{
+            transform: headerVisible ? 'translateY(0)' : 'translateY(-100px)',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
           <div className="running-text-content">
-            <span>📢 Info Pengumuman: {stats.notifBaru} Pesan Baru Belum Terbaca • 💰 Status Keuangan: {(stats as any).iuranBelumBayar > 0 ? 'Terdapat Iuran Belum Terbayar' : 'Seluruh Iuran Lunas'} • 🏠 Selamat Datang di Sistem Mandiri Ruang Warga VSJ RT 0{user?.rt_id}/11</span>
+            <span>📢 PENGUMUMAN TERBARU: {runningAnnouncements}  •  💰 STATUS KEUANGAN: {(stats as any).iuranBelumBayar > 0 ? 'Terdapat Iuran Belum Terbayar' : 'Seluruh Iuran Lunas'}  •  🏠 Selamat Datang di Ruang Warga VSJ RT 0{user?.rt_id}/11</span>
           </div>
         </div>
       )}
@@ -791,7 +944,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
               {activeTab === 'dashboard' ? `Halo, ${user?.name?.split(' ')[0] || 'Warga'} 👋` : 'Profil Saya'}
             </h1>
             <p className="greeting-date">
-              {activeTab === 'dashboard' 
+              {activeTab === 'dashboard'
                 ? new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })
                 : 'Kelola informasi akun Anda'
               }
@@ -805,28 +958,20 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
         {renderTabContent()}
       </div>
 
-      {/* FIXED BOTTOM NAVIGATION */}
-      <nav className="bottom-nav">
-        {([
-          { id: 'dashboard', icon: Home, label: 'Beranda' },
-          { id: 'surat', icon: FileText, label: 'Surat' },
-          { id: 'keuangan', icon: Wallet, label: 'Iuran' },
-          { id: 'forum', icon: Users, label: 'Forum' },
-          { id: 'profile', icon: UserIcon, label: 'Profil' }
-        ] as any[]).map((item) => (
-          <button 
-            key={item.id} 
-            onClick={() => setActiveTab(item.id)}
-            className={`nav-link ${activeTab === item.id ? 'active' : ''}`}
-          >
-            <div className="nav-icon-wrapper">
-              <item.icon size={24} />
-              {(item.badge ?? 0) > 0 && <span className="nav-badge">{item.badge}</span>}
-            </div>
-            <span className="nav-label">{item.label}</span>
-          </button>
-        ))}
-      </nav>
+
+
+      {user && (
+        <PinVerificationModal
+          isOpen={isPinModalOpen}
+          correctPin={user.pin || ''}
+          userName={user.name || 'Warga'}
+          userId={user.id}
+          userPassword={user.password}
+          title="Verifikasi PIN untuk Melihat NIK"
+          onSuccess={() => setShowNik(true)}
+          onClose={() => setIsPinModalOpen(false)}
+        />
+      )}
 
       <style>{`
         .resident-layout {
@@ -839,7 +984,7 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
         .resident-container {
           max-width: 500px;
           margin: 0 auto;
-          padding: 28px 2px 80px; /* Tighter gap to running text */
+          padding: 12px 16px 80px; /* Added 16px lateral padding for premium mobile safe margins */
         }
 
         /* Header Styles */
@@ -847,8 +992,8 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 12px;
-          padding: 4px 6px 0;
+          margin-bottom: 8px; /* Reduced from 12px */
+          padding: 0 4px;
         }
         .greeting-title {
           font-size: 20px;
@@ -958,176 +1103,196 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
 
         /* Digital ID Card (REMAINS AS CARD) */
         .digital-id-card {
-          background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-          border-radius: 20px;
-          padding: 16px 20px;
+          width: 100%;
+          max-width: 420px;
+          aspect-ratio: 1.58 / 1;
+          height: auto;
+          margin: 0 auto;
+          background: linear-gradient(135deg, #021a52 0%, #083b9c 45%, #021a52 100%);
+          border-radius: 32px;
+          padding: 6cqw;
           color: #fff;
           position: relative;
           overflow: hidden;
-          box-shadow: 0 12px 24px -6px rgba(59, 130, 246, 0.4);
-          border: 1px solid rgba(255,255,255,0.1);
+          box-shadow: none;
+          container-type: inline-size;
+          display: flex;
+          flex-direction: column;
         }
-        .card-decor-1 {
+        .card-decor-dots {
           position: absolute;
-          top: -20px;
-          right: -20px;
-          width: 140px;
-          height: 140px;
-          background: rgba(255,255,255,0.1);
-          border-radius: 50%;
-        }
-        .card-decor-2 {
-          position: absolute;
-          bottom: -30px;
-          left: 10%;
-          width: 80px;
-          height: 80px;
-          background: rgba(255,255,255,0.05);
-          border-radius: 50%;
+          top: 8cqw;
+          left: 6cqw;
+          width: 8cqw;
+          height: 6cqw;
+          opacity: 0.15;
+          background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+          background-size: 5px 5px;
         }
         .card-header {
           display: flex;
           justify-content: space-between;
-          align-items: flex-start; /* Changed to start for better alignment */
-          margin-bottom: 12px;
+          align-items: flex-start;
+          margin-bottom: 2cqw;
           position: relative;
-          z-index: 1;
-        }
-        .card-label-group {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start; /* Ensure left alignment */
-        }
-        .card-subtitle {
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 1.5px;
-          opacity: 0.8;
-          display: block;
-          margin-bottom: 2px;
-        }
-        .card-title {
-          font-size: 16px;
-          font-weight: 900;
-          margin: 0;
-        }
-        .glowing-text {
-          color: #fff;
-          text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(59, 130, 246, 0.5);
-          letter-spacing: 0.5px;
+          z-index: 2;
         }
         .card-logo-placeholder {
-          background: rgba(255,255,255,0.2);
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
+          background: #fff;
+          width: 18cqw;
+          height: 18cqw;
+          border-radius: 18px;
           display: flex;
           align-items: center;
           justify-content: center;
-          backdrop-filter: blur(4px);
-          border: 1px solid rgba(255,255,255,0.3);
+          box-shadow: 0 8px 16px rgba(0,0,0,0.2);
         }
-        .card-badge {
-          background: rgba(255,255,255,0.2);
-          padding: 4px 10px;
-          border-radius: 8px;
-          font-size: 9px;
-          font-weight: 700;
-          backdrop-filter: blur(4px);
-        }
-        .card-user-info {
-          display: flex;
-          gap: 14px;
-          align-items: center;
-          margin-bottom: 16px;
-          position: relative;
-          z-index: 1;
-        }
-        .user-avatar-container {
-          width: 52px;
-          height: 52px;
-          border-radius: 16px;
-          border: 2px solid rgba(255,255,255,0.3);
-          overflow: hidden;
-          background: rgba(255,255,255,0.1);
-        }
-        .user-avatar-img {
+        .card-divider-glow {
+          height: 1px;
+          background: linear-gradient(to right, #3b82f6 0%, #3b82f6 12%, rgba(255,255,255,0.08) 12%, rgba(255,255,255,0.08) 100%);
           width: 100%;
-          height: 100%;
-          object-fit: cover;
+          margin-bottom: 5cqw;
+          position: relative;
         }
-        .user-avatar-placeholder {
-          height: 100%;
-          display: flex;
+        .card-divider-glow::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: -1px;
+          width: 12cqw;
+          height: 3px;
+          background: #3b82f6;
+          filter: blur(2px);
+          border-radius: 10px;
+        }
+        .card-main-content {
+          display: grid;
+          grid-template-columns: 1fr 28cqw;
+          gap: 4cqw;
+          flex: 1;
           align-items: center;
-          justify-content: center;
+          position: relative;
+          z-index: 2;
         }
         .user-name {
-          font-size: 16px;
-          font-weight: 800;
-          margin-bottom: 0px;
+          font-size: 6.2cqw;
+          font-weight: 900;
+          color: #fff;
+          margin-bottom: 2.5cqw;
+          line-height: 1.1;
+          text-transform: uppercase;
         }
-        .user-nik-container {
+        .card-position-badge {
+          background: rgba(255, 255, 255, 0.15);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          padding: 1cqw 2.5cqw;
+          border-radius: 50px;
+          font-size: 2.5cqw;
+          font-weight: 800;
+          color: #fff;
+          display: inline-flex;
+          align-items: center;
+          gap: 1cqw;
+          margin-bottom: 2cqw;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .user-nik-pill {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 2.5cqw;
+          background: rgba(15, 23, 42, 0.4);
+          padding: 2cqw 4cqw;
+          border-radius: 100px;
+          border: 1px solid rgba(255,255,255,0.1);
+          margin-bottom: 3cqw;
+          width: fit-content;
+          backdrop-filter: blur(4px);
         }
         .user-nik {
-          font-size: 13px;
+          font-size: 3.8cqw;
           font-family: 'JetBrains Mono', monospace;
-          opacity: 0.9;
+          color: #fff;
         }
         .user-address-text {
-          font-size: 11px;
-          opacity: 0.8;
+          font-size: 3.5cqw;
+          color: #fff;
           display: flex;
           align-items: center;
-          margin-top: 4px;
+          gap: 2cqw;
+          font-weight: 700;
+          opacity: 0.9;
         }
-        .card-qr-area {
-          margin-left: auto;
+        .card-qr-area-new {
           background: #fff;
-          padding: 8px;
-          border-radius: 12px;
+          padding: 2.5cqw;
+          border-radius: 16px;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 4px;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-          width: 70px;
-          height: 85px;
-          justify-content: center;
-          flex-shrink: 0;
+          gap: 2cqw;
+          box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+          width: 28cqw;
         }
-        .card-qr-img {
-          width: 54px;
-          height: 54px;
-          object-fit: contain;
+        .qr-wrapper {
+          position: relative;
+          width: 23cqw;
+          height: 23cqw;
         }
-        .qr-label {
-          font-size: 7px;
-          font-weight: 800;
-          color: #1e40af;
-          letter-spacing: 0.5px;
+        .card-qr-img-new {
+          width: 100%;
+          height: 100%;
         }
-        .card-footer-verified {
-          margin-top: 12px;
+        .qr-center-logo {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 6cqw;
+          height: 6cqw;
+          background: #fff;
+          border-radius: 4px;
+          padding: 1px;
           display: flex;
-          justify-content: flex-end;
-          border-top: 1px solid rgba(255,255,255,0.1);
-          padding-top: 10px;
+          align-items: center;
+          justify-content: center;
         }
-        .verified-badge-green {
-          background: rgba(34, 197, 94, 0.2);
-          color: #4ade80;
-          padding: 4px 10px;
+        .qr-label-new {
+          font-size: 2.2cqw;
+          font-weight: 900;
+          color: #0f172a;
+        }
+        .card-footer-new {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 4cqw;
+          z-index: 2;
+        }
+        .verified-badge-pill {
+          background: rgba(16, 185, 129, 0.1);
+          color: #10b981;
+          padding: 2cqw 4cqw;
           border-radius: 100px;
-          font-size: 10px;
+          font-size: 3.2cqw;
           font-weight: 800;
           display: flex;
           align-items: center;
-          gap: 6px;
-          border: 1px solid rgba(34, 197, 94, 0.3);
+          gap: 2cqw;
+          border: 1.5px solid rgba(16, 185, 129, 0.3);
+        }
+        .official-id-group {
+          display: flex;
+          align-items: center;
+          gap: 2cqw;
+          color: #94a3b8;
+          opacity: 0.6;
+        }
+        .official-id-text {
+          font-size: 2.8cqw;
+          font-weight: 800;
         }
           padding: 2px;
         }
@@ -1152,6 +1317,90 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
           font-size: 11px;
           font-weight: 700;
           display: block;
+        }
+
+        /* High-End Container Queries for Ultra-Responsive Card Elements */
+        @container (max-width: 360px) {
+          .digital-id-card {
+            padding: 4.5cqw !important;
+          }
+          .card-main-content {
+            gap: 2.5cqw !important;
+          }
+          .user-name {
+            font-size: 5.6cqw !important;
+            margin-bottom: 2cqw !important;
+          }
+          .user-nik-pill {
+            padding: 1.5cqw 3cqw !important;
+            gap: 1.5cqw !important;
+            margin-bottom: 2cqw !important;
+          }
+          .user-nik {
+            font-size: 3.4cqw !important;
+            letter-spacing: -0.2px !important;
+          }
+          .user-address-text {
+            font-size: 3.2cqw !important;
+            gap: 1.5cqw !important;
+          }
+          .card-qr-area-new {
+            padding: 2cqw !important;
+            border-radius: 12px !important;
+            width: 26cqw !important;
+          }
+          .qr-wrapper {
+            width: 22cqw !important;
+            height: 22cqw !important;
+          }
+          .qr-label-new {
+            font-size: 2cqw !important;
+          }
+          .card-footer-new {
+            padding-top: 3cqw !important;
+          }
+          .verified-badge-pill {
+            padding: 1.5cqw 3cqw !important;
+            font-size: 2.8cqw !important;
+            gap: 1.5cqw !important;
+          }
+          .official-id-text {
+            font-size: 2.5cqw !important;
+          }
+        }
+
+        @container (max-width: 310px) {
+          .digital-id-card {
+            padding: 4cqw !important;
+          }
+          .user-name {
+            font-size: 5cqw !important;
+          }
+          .user-nik-pill {
+            padding: 1cqw 2cqw !important;
+            gap: 1cqw !important;
+          }
+          .user-nik {
+            font-size: 3cqw !important;
+            letter-spacing: -0.4px !important;
+          }
+          .user-address-text {
+            font-size: 2.8cqw !important;
+          }
+          .card-qr-area-new {
+            width: 24cqw !important;
+          }
+          .qr-wrapper {
+            width: 20cqw !important;
+            height: 20cqw !important;
+          }
+          .verified-badge-pill {
+            padding: 1cqw 2cqw !important;
+            font-size: 2.5cqw !important;
+          }
+          .official-id-text {
+            font-size: 2.2cqw !important;
+          }
         }
 
         /* Quick Actions (FLAT) */
@@ -1585,7 +1834,6 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
 
         @media (max-width: 380px) {
           .resident-container { padding: 16px 16px 90px; }
-          .digital-id-card { padding: 20px; }
           .summary-grid { gap: 8px; }
           .summary-item { padding: 10px 8px; }
         }

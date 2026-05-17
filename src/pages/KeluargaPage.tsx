@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  Search, Plus, Eye, Edit2, Trash2,
+  Search, Plus, Eye, Edit2, Trash2, X,
   ChevronLeft, ChevronRight, Users, Home, UserCheck, Activity,
   TrendingUp
 } from 'lucide-react';
@@ -71,93 +71,253 @@ function StatCard({ icon, colorClass, value, label, change, loading }: StatCardP
 }
 
 // ── Detail wrapper ──
-function DetailPane({ family, onBack, showToast }: { family: any; onBack: () => void; showToast: any }) {
-  const [showMemberForm, setShowMemberForm] = useState(false);
-  const [editingMember, setEditingMember] = useState<any | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+function FamilyDetailModal({ family, onClose, showToast }: { family: any; onClose: () => void; showToast: any }) {
+  const HIERARCHY_OPTIONS = [
+    'Kepala Keluarga', 'Suami', 'Istri', 'Anak', 'Orang Tua', 'Menantu', 'Cucu', 'Saudara', 'Lainnya'
+  ];
 
-  const handleSaveMember = async (data: any) => {
-    try {
-      const residentData = {
-        nik: data.nik,
-        nama: data.namaLengkap,
-        jenisKelamin: data.jenisKelamin,
-        tanggalLahir: data.tanggalLahir,
-        tempatLahir: data.tempatLahir || '',
-        agama: data.agama || 'ISLAM',
-        nomorHP: data.noTelepon || '',
-        hubungan: data.hubungan,
-        statusPerkawinan: data.statusPerkawinan,
-        pekerjaan: data.pekerjaan,
-        alamat: data.alamat,
-        noKK: family.nomorKK,
-        updatedAt: new Date().toISOString()
-      };
+  const normalizeHubungan = (hub: string): string => {
+    if (!hub) return 'Lainnya';
+    const clean = hub.trim().toLowerCase();
+    const matched = HIERARCHY_OPTIONS.find(opt => opt.toLowerCase() === clean);
+    if (matched) return matched;
+    return 'Lainnya';
+  };
 
-      if (data.id && !data.id.startsWith('nik-')) {
-        // Edit existing
-        await updateDoc(doc(db, 'residents', data.id), residentData);
-      } else {
-        // Create new
-        const newRef = doc(collection(db, 'residents'));
-        await setDoc(newRef, { ...residentData, createdAt: new Date().toISOString() });
-      }
+  const [localHubungan, setLocalHubungan] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    (family.members || []).forEach((m: any) => {
+      initial[m.id] = normalizeHubungan(m.hubungan || 'Lainnya');
+    });
+    return initial;
+  });
+  const [saving, setSaving] = useState(false);
+  const [familyStatus, setFamilyStatus] = useState<string>(family.status || 'Aktif');
 
-      // If this member is the new Head of Family, update the family doc
-      if (data.hubungan === 'Kepala Keluarga') {
-        await updateDoc(doc(db, 'families', family.id), {
-          kepalaKeluarga: data.namaLengkap
+  const handleChangeHubungan = (memberId: string, newHub: string) => {
+    setLocalHubungan(prev => {
+      const next = { ...prev, [memberId]: newHub };
+      if (newHub === 'Kepala Keluarga') {
+        Object.keys(next).forEach(id => {
+          if (id !== memberId && next[id] === 'Kepala Keluarga') {
+            next[id] = 'Lainnya';
+          }
         });
       }
+      return next;
+    });
+  };
 
-      showToast(`Data ${data.namaLengkap} berhasil disimpan`);
-      setShowMemberForm(false);
+  const handleSaveAll = async () => {
+    setSaving(true);
+    try {
+      const { doc, writeBatch, collection, query, where, getDocs } = await import('firebase/firestore');
+      const batch = writeBatch(db);
+      let newKepalaKeluargaName = family.kepalaKeluarga;
+
+      // Update resident relationship
+      (family.members || []).forEach((m: any) => {
+        const currentHub = m.hubungan || 'Lainnya';
+        const newHub = localHubungan[m.id];
+        
+        if (currentHub !== newHub) {
+          const resRef = doc(db, 'residents', m.id);
+          batch.update(resRef, {
+            hubungan: newHub,
+            updatedAt: new Date().toISOString()
+          });
+
+          if (newHub === 'Kepala Keluarga') {
+            newKepalaKeluargaName = m.nama || m.namaLengkap || m.fullName || family.kepalaKeluarga;
+          }
+        }
+      });
+
+      // Update family status and kepalaKeluarga in Firestore
+      const familyRef = doc(db, 'families', family.id);
+      const famPayload: any = {
+        status: familyStatus,
+        updatedAt: new Date().toISOString()
+      };
+      if (newKepalaKeluargaName !== family.kepalaKeluarga) {
+        famPayload.kepalaKeluarga = newKepalaKeluargaName;
+      }
+      batch.update(familyRef, famPayload);
+
+      // Block/Activate resident accounts based on familyStatus
+      for (const m of (family.members || [])) {
+        if (m.nik) {
+          const uQ = query(collection(db, 'users'), where('username', '==', m.nik));
+          const uSnap = await getDocs(uQ);
+          if (!uSnap.empty) {
+            const userDocRef = doc(db, 'users', uSnap.docs[0].id);
+            const targetAccountStatus = familyStatus === 'Aktif' ? 'active' : 'blocked';
+            batch.update(userDocRef, { accountStatus: targetAccountStatus });
+          }
+        }
+      }
+
+      await batch.commit();
+      showToast(familyStatus === 'Aktif' ? 'Data keluarga berhasil disimpan' : 'KK berhasil dinonaktifkan & semua akun warga diblokir');
+      onClose();
     } catch (err) {
       console.error(err);
-      showToast('Gagal menyimpan data anggota', 'error');
+      showToast('Gagal memperbarui data keluarga', 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDeleteMember = async () => {
-    try {
-      await deleteDoc(doc(db, 'residents', confirmDelete.item.id));
-      showToast('Anggota keluarga berhasil dihapus');
-      setConfirmDelete(null);
-    } catch (err) {
-      showToast('Gagal menghapus anggota', 'error');
-    }
-  };
+  // Sort local members for rendering using the hierarchy index
+  const sortedMembers = [...(family.members || [])].sort((a, b) => {
+    const hubA = localHubungan[a.id] || 'Lainnya';
+    const hubB = localHubungan[b.id] || 'Lainnya';
+    const orderA = HIERARCHY_OPTIONS.indexOf(hubA);
+    const orderB = HIERARCHY_OPTIONS.indexOf(hubB);
+    return (orderA === -1 ? 99 : orderA) - (orderB === -1 ? 99 : orderB);
+  });
 
   return (
-    <>
-      {family && <FamilyDetailView
-        family={family}
-        members={family.members || []}
-        onBack={onBack}
-        onAddMember={() => { setEditingMember(null); setShowMemberForm(true); }}
-        onEditMember={m => { setEditingMember(m); setShowMemberForm(true); }}
-        onDeleteMember={m => setConfirmDelete({ item: m })}
-      />}
+    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100 }}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="modal modal-lg modal-mobile-fix"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: 650, borderRadius: 28, overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.2)', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}
+      >
+        <div style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)', padding: '24px 28px', color: '#fff', position: 'relative' }}>
+          <button 
+            onClick={onClose} 
+            style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 32, height: 32, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <X size={16} />
+          </button>
+          
+          <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1.5, opacity: 0.7, marginBottom: 4 }}>Detail Kartu Keluarga</div>
+          <h2 style={{ fontSize: 22, fontWeight: 900, margin: '0 0 12px', letterSpacing: -0.5 }}>{family.nomorKK}</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, opacity: 0.9 }}>
+            <div><b>Kepala Keluarga:</b> {family.kepalaKeluarga}</div>
+            <div><b>Alamat:</b> {family.blok ? `Blok ${family.blok} No. ${family.nomorRumah}` : family.alamat} &nbsp;·&nbsp; RT {family.rt}/RW {family.rw}</div>
+          </div>
+        </div>
 
-      {showMemberForm && (
-        <MemberFormModal
-          member={editingMember}
-          existingMembers={family.members || []}
-          kkId={family?.id || ''}
-          onSave={handleSaveMember}
-          onClose={() => { setShowMemberForm(false); setEditingMember(null); }}
-        />
-      )}
+        <div className="modal-body" style={{ padding: 24, background: '#f8fafc', maxHeight: '55vh', overflowY: 'auto' }}>
+          <h3 style={{ fontSize: 14, fontWeight: 900, color: '#1e3a8a', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Users size={16} /> Anggota Keluarga ({sortedMembers.length})
+          </h3>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {sortedMembers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px 0', color: '#94a3b8', background: '#fff', borderRadius: 16 }}>
+                Belum ada anggota keluarga terdaftar.
+              </div>
+            ) : sortedMembers.map((m: any) => {
+              const currentHub = localHubungan[m.id] || 'Lainnya';
+              const name = m.nama || m.namaLengkap || m.fullName || '';
+              const initials = name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase() || '?';
+              
+              return (
+                <div 
+                  key={m.id}
+                  style={{
+                    background: '#fff',
+                    borderRadius: 16,
+                    padding: '16px',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.01)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
+                      <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', marginTop: 1 }}>NIK: {m.nik}</div>
+                    </div>
+                  </div>
 
-      {confirmDelete && (
-        <ConfirmDialog
-          title="Hapus Anggota Keluarga?"
-          message={`Hapus ${confirmDelete.item.nama || confirmDelete.item.namaLengkap} dari daftar keluarga?`}
-          onConfirm={handleDeleteMember}
-          onCancel={() => setConfirmDelete(null)}
-        />
-      )}
-    </>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <label style={{ fontSize: 10, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>Hubungan dalam Keluarga</label>
+                    <select
+                      value={currentHub}
+                      onChange={e => handleChangeHubungan(m.id, e.target.value)}
+                      style={{
+                        width: '100%',
+                        height: 40,
+                        background: '#f8fafc',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: 10,
+                        padding: '0 12px',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: currentHub === 'Kepala Keluarga' ? '#1e40af' : '#475569',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {HIERARCHY_OPTIONS.map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="modal-footer" style={{ 
+          padding: '16px 24px', 
+          background: '#fff', 
+          borderTop: '1px solid #f1f5f9', 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          gap: 12 
+        }}>
+          <div style={{ flex: '1 1 auto', minWidth: 150 }}>
+            {familyStatus === 'Aktif' ? (
+              <button 
+                type="button"
+                className="btn btn-outline" 
+                onClick={() => setFamilyStatus('Non-Aktif')} 
+                style={{ width: '100%', height: 44, borderRadius: 12, borderColor: '#fca5a5', background: '#fef2f2', color: '#dc2626', fontSize: 13, fontWeight: 700 }}
+              >
+                🔴 Nonaktifkan KK
+              </button>
+            ) : (
+              <button 
+                type="button"
+                className="btn btn-outline" 
+                onClick={() => setFamilyStatus('Aktif')} 
+                style={{ width: '100%', height: 44, borderRadius: 12, borderColor: '#86efac', background: '#f0fdf4', color: '#16a34a', fontSize: 13, fontWeight: 700 }}
+              >
+                🟢 Aktifkan KK
+              </button>
+            )}
+          </div>
+          
+          <div style={{ display: 'flex', gap: 8, flex: '1 1 auto', justifyContent: 'flex-end', minWidth: 200 }}>
+            <button className="btn btn-secondary" onClick={onClose} style={{ height: 44, borderRadius: 12, fontSize: 13, fontWeight: 700, flex: 1, maxWidth: 100 }}>
+              Batal
+            </button>
+            <button 
+              className="btn btn-primary" 
+              onClick={handleSaveAll} 
+              disabled={saving}
+              style={{ height: 44, borderRadius: 12, background: '#1e3a8a', color: '#fff', fontSize: 13, fontWeight: 700, flex: 2, padding: '0 16px', whiteSpace: 'nowrap' }}
+            >
+              {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -179,6 +339,21 @@ export default function KeluargaPage() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => setToast({ message, type });
+
+  useEffect(() => {
+    const isOpen = showFamilyForm || confirmDelete || selectedFamily;
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('body-modal-open');
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.classList.remove('body-modal-open');
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.classList.remove('body-modal-open');
+    };
+  }, [showFamilyForm, confirmDelete, selectedFamily]);
 
   useEffect(() => {
     setLoading(true);
@@ -373,151 +548,127 @@ export default function KeluargaPage() {
       </div>
 
       <div className="card-premium">
-        {view === 'list' ? (
-          <>
-            <div className="card-header-premium flex-between">
-              <div>
-                <h3 className="card-title-premium">Manajemen Kartu Keluarga</h3>
-                <p className="card-subtitle-premium">Daftar lengkap KK terverifikasi di wilayah RW 011</p>
-              </div>
-            </div>
+        <div className="card-header-premium flex-between">
+          <div>
+            <h3 className="card-title-premium">Manajemen Kartu Keluarga</h3>
+            <p className="card-subtitle-premium">Daftar lengkap KK terverifikasi di wilayah RW 011</p>
+          </div>
+        </div>
 
-            <div className="toolbar-premium">
-              <div className="search-wrapper-premium">
-                <Search size={18} className="search-icon-premium" />
-                <input 
-                  placeholder="Cari No. KK, Kepala Keluarga, atau Alamat..."
-                  value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} 
-                />
-              </div>
-              <div className="filters-premium">
-                <select value={filterRT} onChange={e => { setFilterRT(e.target.value); setPage(1); }}>
-                  <option value="">Semua RT</option>
-                  {['001', '002', '003', '004', '005'].map(r => <option key={r} value={r}>RT {r}</option>)}
-                </select>
-                <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}>
-                  <option value="">Semua Status</option>
-                  <option value="Aktif">Aktif</option>
-                  <option value="Non-Aktif">Non-Aktif</option>
-                </select>
-              </div>
-            </div>
+        <div className="toolbar-premium">
+          <div className="search-wrapper-premium">
+            <Search size={18} className="search-icon-premium" />
+            <input 
+              placeholder="Cari No. KK, Kepala Keluarga, atau Alamat..."
+              value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} 
+            />
+          </div>
+          <div className="filters-premium">
+            <select value={filterRT} onChange={e => { setFilterRT(e.target.value); setPage(1); }}>
+              <option value="">Semua RT</option>
+              {['001', '002', '003', '004', '005'].map(r => <option key={r} value={r}>RT {r}</option>)}
+            </select>
+            <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}>
+              <option value="">Semua Status</option>
+              <option value="Aktif">Aktif</option>
+              <option value="Non-Aktif">Non-Aktif</option>
+            </select>
+          </div>
+        </div>
 
-            <div className="table-container-premium">
-              <table className="table-premium hide-on-mobile">
-                <thead>
+        <div className="table-container-premium">
+          <table className="table-premium hide-on-mobile">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nomor Kartu Keluarga</th>
+                <th>Kepala Keluarga</th>
+                <th>Jumlah Anggota</th>
+                <th>Lokasi Rumah</th>
+                <th>RT/RW</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Aksi</th>
+              </tr>
+            </thead>
+            {loading ? <TableSkeleton /> : (
+              <tbody>
+                {paginated.length === 0 ? (
                   <tr>
-                    <th>#</th>
-                    <th>Nomor Kartu Keluarga</th>
-                    <th>Kepala Keluarga</th>
-                    <th>Jumlah Anggota</th>
-                    <th>Lokasi Rumah</th>
-                    <th>RT/RW</th>
-                    <th>Status</th>
-                    <th style={{ textAlign: 'right' }}>Aksi</th>
+                    <td colSpan={8} style={{ textAlign: 'center', padding: '60px 0', color: '#94a3b8' }}>
+                      <Users size={48} style={{ opacity: 0.2, marginBottom: 12 }} />
+                      <p>Tidak ditemukan data Kartu Keluarga</p>
+                    </td>
                   </tr>
-                </thead>
-                {loading ? <TableSkeleton /> : (
-                  <tbody>
-                    {paginated.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} style={{ textAlign: 'center', padding: '60px 0', color: '#94a3b8' }}>
-                          <Users size={48} style={{ opacity: 0.2, marginBottom: 12 }} />
-                          <p>Tidak ditemukan data Kartu Keluarga</p>
-                        </td>
-                      </tr>
-                    ) : paginated.map((fam, idx) => (
-                      <tr key={fam.id}>
-                        <td><span className="row-number">{(page - 1) * PAGE_SIZE + idx + 1}</span></td>
-                        <td>
-                          <div className="kk-number-badge">
-                            {fam.nomorKK}
-                          </div>
-                        </td>
-                        <td><div className="cell-main-text">{fam.kepalaKeluarga}</div></td>
-                        <td>
-                          <div className="member-count-badge">
-                            <Users size={12} /> {fam.jumlahAnggota || 0} Anggota
-                          </div>
-                        </td>
-                        <td><div className="cell-sub-text" style={{ maxWidth: 200 }}>{fam.alamat}</div></td>
-                        <td><div className="rt-rw-badge">RT {fam.rt} / 011</div></td>
-                        <td>
-                          <span className={`status-badge-premium ${fam.status === 'Non-Aktif' ? 'inactive' : 'active'}`}>
-                            {fam.status || 'Aktif'}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="action-buttons-premium">
-                            <button className="action-btn-p secondary" onClick={() => openDetail(fam)} title="Detail"><Eye size={16} /></button>
-                            <button className="action-btn-p primary" onClick={() => { setEditingFamily(fam); setShowFamilyForm(true); }} title="Edit"><Edit2 size={16} /></button>
-                            <button className="action-btn-p danger" onClick={() => setConfirmDelete({ item: fam })} title="Hapus"><Trash2 size={16} /></button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                )}
-              </table>
-
-              {/* Mobile Card View */}
-              <div className="mobile-family-cards hide-on-desktop">
-                {loading ? <div className="p-20 center"><Activity className="spin" /></div> : (
-                  paginated.length === 0 ? (
-                    <div className="empty-mobile">Tidak ditemukan data</div>
-                  ) : paginated.map((fam, idx) => (
-                    <div className="mobile-kk-card" key={fam.id} onClick={() => openDetail(fam)}>
-                      <div className="m-card-header">
-                        <div className="m-kk-badge">{fam.nomorKK}</div>
-                        <span className={`status-dot ${fam.status === 'Non-Aktif' ? 'inactive' : 'active'}`} />
+                ) : paginated.map((fam, idx) => (
+                  <tr key={fam.id}>
+                    <td><span className="row-number">{(page - 1) * PAGE_SIZE + idx + 1}</span></td>
+                    <td>
+                      <div className="kk-number-badge">
+                        {fam.nomorKK}
                       </div>
-                      <div className="m-card-body">
-                        <div className="m-kepala">{fam.kepalaKeluarga}</div>
-                        <div className="m-meta">
-                          <span>RT {fam.rt} / 011</span>
-                          <span>•</span>
-                          <span>{fam.jumlahAnggota || 0} Anggota</span>
-                        </div>
-                        <div className="m-address">{fam.alamat}</div>
+                    </td>
+                    <td><div className="cell-main-text">{fam.kepalaKeluarga}</div></td>
+                    <td>
+                      <div className="member-count-badge">
+                        <Users size={12} /> {fam.jumlahAnggota || 0} Anggota
                       </div>
-                      <div className="m-card-footer" onClick={e => e.stopPropagation()}>
-                        <button className="m-action edit" onClick={() => { setEditingFamily(fam); setShowFamilyForm(true); }}><Edit2 size={14} /> EDIT</button>
-                        <button className="m-action delete" onClick={() => setConfirmDelete({ item: fam })}><Trash2 size={14} /></button>
+                    </td>
+                    <td><div className="cell-sub-text" style={{ maxWidth: 200 }}>{fam.blok ? `Blok ${fam.blok} No. ${fam.nomorRumah}` : fam.alamat}</div></td>
+                    <td><div className="rt-rw-badge">RT {fam.rt} / 011</div></td>
+                    <td>
+                      <span className={`status-badge-premium ${fam.status === 'Non-Aktif' ? 'inactive' : 'active'}`}>
+                        {fam.status || 'Aktif'}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="action-buttons-premium">
+                        <button className="action-btn-p secondary" onClick={() => openDetail(fam)} title="Detail"><Eye size={16} /></button>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="pagination-premium">
-              <span className="pagination-info-premium">
-                Menampilkan <b>{Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)}</b> dari <b>{filtered.length}</b> data keluarga
-              </span>
-              <div className="pagination-controls-premium">
-                <button className="p-control-btn" onClick={() => goToPage(page - 1)} disabled={page === 1}><ChevronLeft size={16} /></button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button key={p} className={`p-number-btn ${p === page ? 'active' : ''}`} onClick={() => goToPage(p)}>{p}</button>
+                    </td>
+                  </tr>
                 ))}
-                <button className="p-control-btn" onClick={() => goToPage(page + 1)} disabled={page === totalPages}><ChevronRight size={16} /></button>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="card-header">
-              <div className="breadcrumb" style={{ margin: 0 }}>
-                <span className="link" onClick={backToList}>Daftar KK</span>
-                <span className="sep">›</span>
-                <span>{activeFamily?.kepalaKeluarga}</span>
-              </div>
-              <button className="btn btn-secondary btn-sm" onClick={backToList}><ChevronLeft size={14} /> Kembali</button>
-            </div>
-            <div className="card-body">
-              <DetailPane family={activeFamily} onBack={backToList} showToast={showToast} />
-            </div>
-          </>
-        )}
+              </tbody>
+            )}
+          </table>
+
+          {/* Mobile Card View */}
+          <div className="mobile-family-cards hide-on-desktop">
+            {loading ? <div className="p-20 center"><Activity className="spin" /></div> : (
+              paginated.length === 0 ? (
+                <div className="empty-mobile">Tidak ditemukan data</div>
+              ) : paginated.map((fam, idx) => (
+                <div className={`mobile-kk-card ${fam.status === 'Non-Aktif' ? 'inactive' : ''}`} key={fam.id} onClick={() => openDetail(fam)}>
+                  <div className="m-card-header">
+                    <div className="m-kk-badge">{fam.nomorKK}</div>
+                    <span className={`status-dot ${fam.status === 'Non-Aktif' ? 'inactive' : 'active'}`} />
+                  </div>
+                  <div className="m-card-body">
+                    <div className="m-kepala">{fam.kepalaKeluarga}</div>
+                    <div className="m-meta">
+                      <span>RT {fam.rt} / 011</span>
+                      <span>•</span>
+                      <span>{fam.jumlahAnggota || 0} Anggota</span>
+                    </div>
+                    <div className="m-address">{fam.blok ? `Blok ${fam.blok} No. ${fam.nomorRumah}` : fam.alamat}</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="pagination-premium">
+          <span className="pagination-info-premium">
+            Menampilkan <b>{Math.min((page - 1) * PAGE_SIZE + 1, filtered.length)}–{Math.min(page * PAGE_SIZE, filtered.length)}</b> dari <b>{filtered.length}</b> data keluarga
+          </span>
+          <div className="pagination-controls-premium">
+            <button className="p-control-btn" onClick={() => goToPage(page - 1)} disabled={page === 1}><ChevronLeft size={16} /></button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <button key={p} className={`p-number-btn ${p === page ? 'active' : ''}`} onClick={() => goToPage(p)}>{p}</button>
+            ))}
+            <button className="p-control-btn" onClick={() => goToPage(page + 1)} disabled={page === totalPages}><ChevronRight size={16} /></button>
+          </div>
+        </div>
       </div>
 
       {showFamilyForm && (
@@ -535,6 +686,13 @@ export default function KeluargaPage() {
           message={`Data KK atas nama "${confirmDelete.item.kepalaKeluarga}" akan dihapus.`}
           onConfirm={handleDeleteFamily}
           onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+      {activeFamily && (
+        <FamilyDetailModal
+          family={activeFamily}
+          onClose={backToList}
+          showToast={showToast}
         />
       )}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -863,58 +1021,70 @@ export default function KeluargaPage() {
             background: #f8fafc;
           }
           .mobile-kk-card {
-            background: #fff;
-            border-radius: 18px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: none;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.15);
+            transition: all 0.3s ease;
+          }
+          .mobile-kk-card.inactive {
+            background: linear-gradient(135deg, #991b1b 0%, #ef4444 100%);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15);
           }
           .m-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
           }
           .m-kk-badge {
             font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
             font-weight: 800;
-            color: #3b82f6;
-            background: #eff6ff;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.15);
             padding: 4px 10px;
             border-radius: 8px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
           }
           .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-          .status-dot.active { background: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
-          .status-dot.inactive { background: #94a3b8; }
+          .status-dot.active { background: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25); }
+          .status-dot.inactive { background: #fee2e2; box-shadow: 0 0 0 4px rgba(254, 226, 226, 0.35); }
           
-          .m-kepala { font-size: 16px; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
-          .m-meta { display: flex; gap: 8px; font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
-          .m-address { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+          .m-kepala { font-size: 18px; font-weight: 800; color: #ffffff; margin-bottom: 6px; }
+          .m-meta { display: flex; gap: 8px; font-size: 12px; color: rgba(255, 255, 255, 0.8); font-weight: 600; margin-bottom: 10px; }
+          .m-address { font-size: 12px; color: rgba(255, 255, 255, 0.6); line-height: 1.4; }
           
           .m-card-footer {
             display: flex;
             gap: 8px;
-            margin-top: 16px;
+            margin-top: 20px;
             padding-top: 16px;
-            border-top: 1px solid #f8fafc;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
           }
           .m-action {
             flex: 1;
-            height: 36px;
-            border-radius: 10px;
-            border: 1px solid #f1f5f9;
-            background: #fff;
+            height: 38px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
             font-size: 11px;
             font-weight: 900;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
           }
-          .m-action.edit { color: #3b82f6; }
-          .m-action.delete { color: #ef4444; width: 36px; flex: none; }
+          .m-action:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.25);
+          }
         }
         
         .hide-on-desktop { display: none; }
@@ -958,6 +1128,47 @@ export default function KeluargaPage() {
         .p-control-btn:not(:disabled):hover, .p-number-btn:not(.active):hover {
           background: #f8fafc;
           border-color: #cbd5e1;
+        }
+        body.body-modal-open .navbar {
+          display: none !important;
+        }
+        .modal-overlay {
+          position: fixed !important;
+          inset: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          overflow: hidden !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          z-index: 2000 !important;
+          touch-action: none !important;
+          overscroll-behavior: contain !important;
+        }
+        .modal-mobile-fix {
+          display: flex !important;
+          flex-direction: column !important;
+          max-height: 85vh !important;
+          overflow: hidden !important;
+          overscroll-behavior: contain !important;
+        }
+        .modal-mobile-fix > div:first-child,
+        .modal-mobile-fix > div:last-child {
+          touch-action: none !important;
+        }
+        .modal-body {
+          flex: 1 !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+          overscroll-behavior: contain !important;
+          touch-action: pan-y !important;
+        }
+        @media (max-width: 480px) {
+          .modal-mobile-fix {
+            width: 95% !important;
+            margin: 10px auto !important;
+            max-height: 85vh !important;
+          }
         }
       `}</style>
     </div>

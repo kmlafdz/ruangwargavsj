@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { User } from '../types';
 
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 interface ResidentData {
@@ -72,7 +72,7 @@ export default function WargaPage() {
   // ROLE-BASED DATA ISOLATION
   const filteredResidents = residents.filter(res => {
     // 1. Filter by RT access (isolation)
-    if (user?.role === 'rt' && res.rt_id !== user.rt_id) return false;
+    if (user?.adminRole === 'rt' && res.rt_id !== user.rt_id) return false;
 
     // 2. Filter by Search
     const matchesSearch = res.nama.toLowerCase().includes(search.toLowerCase()) || res.nik.includes(search);
@@ -100,34 +100,80 @@ export default function WargaPage() {
     nomorHP: '',
     blok: 'A',
     nomorRumah: '',
-    role: 'warga'
+    communityPosition: ''
   });
 
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedResident, setSelectedResident] = useState<ResidentData | null>(null);
+  const [selectedFamilyStatus, setSelectedFamilyStatus] = useState<string>('Memuat...');
 
+  useEffect(() => {
+    if (!selectedResident?.noKK) {
+      setSelectedFamilyStatus('-');
+      return;
+    }
+    
+    setSelectedFamilyStatus('Memuat...');
+    const fetchFamilyStatus = async () => {
+      try {
+        const q = query(collection(db, 'families'), where('nomorKK', '==', selectedResident.noKK));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          const famData = snap.docs[0].data();
+          setSelectedFamilyStatus(famData.status || 'Aktif');
+        } else {
+          setSelectedFamilyStatus('Belum Terdaftar');
+        }
+      } catch (err) {
+        console.error("Gagal mengambil status KK:", err);
+        setSelectedFamilyStatus('-');
+      }
+    };
+    
+    fetchFamilyStatus();
+  }, [selectedResident]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingItem, setDeletingItem] = useState<{ id: string, name: string, nik: string } | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const isOpen = showDetailModal || showAddModal || showDeleteConfirm || showSuccessModal || showErrorModal;
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('body-modal-open');
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.classList.remove('body-modal-open');
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.classList.remove('body-modal-open');
+    };
+  }, [showDetailModal, showAddModal, showDeleteConfirm, showSuccessModal, showErrorModal]);
   
   const handleAddResident = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // ROLE RESTRICTION VALIDATION
-    const restrictedRoles = ['KETUA RW', 'KETUA RT 01', 'KETUA RT 02', 'KETUA RT 03', 'KETUA RT 04', 'KETUA RT 05'];
-    if (restrictedRoles.includes(formData.role)) {
+    // VALIDASI PEMBATASAN JABATAN (Hanya boleh 1 orang per jabatan penting)
+    const isRestricted = formData.communityPosition === 'ketua_rw' || formData.communityPosition.startsWith('ketua_rt_');
+    if (formData.communityPosition && isRestricted) {
       try {
         const { getDocs, query, collection, where } = await import('firebase/firestore');
-        const q = query(collection(db, 'residents'), where('role', '==', formData.role));
+        const q = query(collection(db, 'residents'), 
+          where('communityPosition', '==', formData.communityPosition)
+        );
         const snap = await getDocs(q);
 
-        // Cek jika ada warga lain (ID berbeda) yang sudah punya role ini
         const duplicate = snap.docs.find(d => d.id !== editingId);
+
         if (duplicate) {
-          setErrorMessage(`Jabatan ${formData.role} sudah terisi oleh warga lain (${duplicate.data().nama}). Hanya diperbolehkan 1 orang per jabatan.`);
+          const positionLabel = formData.communityPosition === 'ketua_rw' 
+            ? 'Ketua RW' 
+            : `Ketua RT ${formData.communityPosition.split('_')[2]}`;
+          setErrorMessage(`Jabatan ${positionLabel} sudah terisi oleh warga lain (${duplicate.data().nama}). Hanya diperbolehkan 1 orang untuk jabatan ini.`);
           setShowErrorModal(true);
           return;
         }
@@ -185,14 +231,14 @@ export default function WargaPage() {
         nama: '', nik: '', rt_id: '', jenisKelamin: 'Laki-laki', 
         tanggalLahir: '', tempatLahir: '', agama: 'ISLAM', 
         statusPerkawinan: 'BELUM KAWIN', pekerjaan: '', 
-        nomorHP: '', blok: 'A', nomorRumah: '', role: 'warga' 
+        nomorHP: '', blok: 'A', nomorRumah: '', communityPosition: '' 
       });
       setShowSuccessModal(true);
 
       // SINKRONISASI ROLE KE KOLEKSI USERS & KIRIM WA
       try {
         const { createUserFromResident } = await import('../services/userService');
-        await createUserFromResident({ ...finalData, fullName: finalData.nama }, finalData.role || 'warga');
+        await createUserFromResident({ ...finalData, fullName: finalData.nama });
         
         // Hanya kirim WA jika ini adalah warga BARU (bukan edit)
         if (!editingId && finalData.nomorHP) {
@@ -234,7 +280,7 @@ export default function WargaPage() {
       nomorHP: res.nomorHP || '',
       blok: res.blok || 'A',
       nomorRumah: res.nomorRumah || '',
-      role: res.role || 'warga'
+      communityPosition: (res as any).communityPosition || ''
     });
     setShowAddModal(true);
   };
@@ -267,7 +313,7 @@ export default function WargaPage() {
 
   return (
     <div className="page-container">
-      {user?.role === 'rt' && (
+      {user?.adminRole === 'rt' && (
         <div style={{ marginBottom: 20, padding: 12, background: 'var(--green-50)', border: '1px solid var(--green-200)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10, color: 'var(--green-800)' }}>
           <ShieldAlert size={18} />
           <span style={{ fontSize: 13, fontWeight: 600 }}>Mode Terisolasi: Menampilkan warga khusus wilayah RT {user.rt_id}</span>
@@ -284,11 +330,11 @@ export default function WargaPage() {
             <button className="btn btn-primary btn-sm" onClick={() => { 
               setEditingId(null); 
               setFormData({ 
-                nama: '', nik: '', rt_id: user?.role === 'rt' ? user.rt_id || '' : '', jenisKelamin: 'Laki-laki', 
+                nama: '', nik: '', rt_id: user?.adminRole === 'rt' ? user.rt_id || '' : '', jenisKelamin: 'Laki-laki', 
                 tanggalLahir: '', tempatLahir: '', agama: 'ISLAM', 
                 statusPerkawinan: 'BELUM KAWIN', pekerjaan: '', 
-                nomorHP: '', blok: 'A', nomorRumah: '', role: 'warga' 
-              }); 
+                nomorHP: '', blok: 'A', nomorRumah: '', communityPosition: '' 
+              } as any); 
               setShowAddModal(true); 
             }}>
               <Plus size={16} /> Tambah Warga
@@ -307,7 +353,7 @@ export default function WargaPage() {
             />
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            {user?.role !== 'rt' && (
+            {user?.adminRole !== 'rt' && (
               <select className="filter-select" value={rtFilter} onChange={e => setRtFilter(e.target.value)}>
                 <option value="all">Semua RT</option>
                 <option value="001">RT 001</option>
@@ -344,8 +390,12 @@ export default function WargaPage() {
                 <tr key={res.id}>
                   <td style={{ textAlign: 'left' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div className="admin-avatar" style={{ width: 32, height: 32, fontSize: 11, background: 'var(--blue-50)', color: 'var(--blue-600)' }}>
-                        {res.nama.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                      <div className="admin-avatar" style={{ width: 32, height: 32, fontSize: 11, background: 'var(--blue-50)', color: 'var(--blue-600)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {res.facePhotoBase64 ? (
+                          <img src={res.facePhotoBase64} alt={res.nama} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          res.nama.split(' ').map(n => n[0]).join('').slice(0, 2)
+                        )}
                       </div>
                       <span style={{ fontWeight: 600 }}>{res.nama}</span>
                     </div>
@@ -355,12 +405,12 @@ export default function WargaPage() {
                   <td>{res.jenisKelamin}</td>
                   <td>
                     <span className="badge" style={{
-                      background: res.role && res.role.startsWith('KETUA') ? 'var(--blue-50)' : 'var(--gray-50)',
-                      color: res.role && res.role.startsWith('KETUA') ? 'var(--blue-600)' : 'var(--gray-500)',
+                      background: (res as any).communityPosition ? 'var(--blue-50)' : 'var(--gray-50)',
+                      color: (res as any).communityPosition ? 'var(--blue-600)' : 'var(--gray-500)',
                       fontWeight: 700,
                       fontSize: 10
                     }}>
-                      {(res.role || 'warga').toUpperCase()}
+                      {((res as any).communityPosition || 'Warga').replace(/_/g, ' ').toUpperCase()}
                     </span>
                   </td>
                   <td style={{ fontSize: 13 }}>{res.nomorHP || '-'}</td>
@@ -408,8 +458,12 @@ export default function WargaPage() {
             <div key={res.id} className="card shadow-sm" style={{ marginBottom: 12, padding: 16, border: '1px solid var(--gray-100)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div className="admin-avatar" style={{ width: 36, height: 36, fontSize: 12 }}>
-                    {res.nama.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  <div className="admin-avatar" style={{ width: 36, height: 36, fontSize: 12, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {res.facePhotoBase64 ? (
+                      <img src={res.facePhotoBase64} alt={res.nama} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      res.nama.split(' ').map(n => n[0]).join('').slice(0, 2)
+                    )}
                   </div>
                   <div>
                     <div style={{ fontWeight: 800, color: 'var(--gray-800)', fontSize: 14 }}>{res.nama}</div>
@@ -505,7 +559,7 @@ export default function WargaPage() {
                     required 
                     value={formData.rt_id} 
                     onChange={e => setFormData({ ...formData, rt_id: e.target.value })}
-                    disabled={user?.role === 'rt'}
+                    disabled={user?.adminRole === 'rt'}
                   >
                     <option value="">Pilih RT</option>
                     <option value="001">RT 001</option>
@@ -597,22 +651,19 @@ export default function WargaPage() {
                     </div>
 
                     <div className="form-group full">
-                      <label>Hak Akses / Role User</label>
-                      <select
-                        className="form-input"
-                        value={formData.role}
-                        onChange={e => setFormData({ ...formData, role: e.target.value })}
-                        style={{ background: 'var(--blue-50)', borderColor: 'var(--blue-200)', fontWeight: 600 }}
+                      <label>Jabatan Komunitas / Social ID</label>
+                      <select 
+                        className="form-input" 
+                        value={formData.communityPosition || 'warga'} 
+                        onChange={e => setFormData({ ...formData, communityPosition: e.target.value })}
                       >
-                        <option value="warga">Warga (Default)</option>
-                        <option value="KETUA RW">Ketua RW</option>
-                        <option value="developer">Developer</option>
-                        <option disabled>──────────</option>
-                        <option value="KETUA RT 01">Ketua RT 01</option>
-                        <option value="KETUA RT 02">Ketua RT 02</option>
-                        <option value="KETUA RT 03">Ketua RT 03</option>
-                        <option value="KETUA RT 04">Ketua RT 04</option>
-                        <option value="KETUA RT 05">Ketua RT 05</option>
+                        <option value="warga">Warga</option>
+                        <option value="ketua_rw">Ketua RW</option>
+                        <option value="ketua_rt_001">Ketua RT 001</option>
+                        <option value="ketua_rt_002">Ketua RT 002</option>
+                        <option value="ketua_rt_003">Ketua RT 003</option>
+                        <option value="ketua_rt_004">Ketua RT 004</option>
+                        <option value="ketua_rt_005">Ketua RT 005</option>
                       </select>
                     </div>
                   </>
@@ -722,7 +773,7 @@ export default function WargaPage() {
             <div style={{ padding: 24, background: 'var(--blue-600)', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 style={{ fontSize: 18, fontWeight: 700 }}>Detail Informasi Warga</h3>
-                <p style={{ fontSize: 12, opacity: 0.8 }}>NIK: {selectedResident.nik}</p>
+                <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 13, marginTop: 4, marginBottom: 0 }}>Level Akses: {user?.adminRole?.toUpperCase() || 'WARGA'}</p>
               </div>
               <button onClick={() => setShowDetailModal(false)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer' }}>✕</button>
             </div>
@@ -737,7 +788,7 @@ export default function WargaPage() {
                 </div>
               )}
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              <div className="detail-grid-responsive">
                 <div className="detail-item">
                   <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Nama Lengkap</label>
                   <p style={{ fontWeight: 600, color: 'var(--gray-800)' }}>{selectedResident.nama}</p>
@@ -753,7 +804,23 @@ export default function WargaPage() {
                 <div className="detail-item">
                   <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Tanggal Lahir</label>
                   <p style={{ fontWeight: 600, color: 'var(--gray-800)' }}>
-                    {selectedResident.tanggalLahir ? new Date(selectedResident.tanggalLahir).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'}
+                    {(() => {
+                      const tgl = selectedResident.tanggalLahir;
+                      if (!tgl) return '-';
+                      const parts = tgl.split('/');
+                      if (parts.length === 3) {
+                        const [d, m, y] = parts;
+                        const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+                        if (!isNaN(dateObj.getTime())) {
+                          return dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                        }
+                      }
+                      const parsed = new Date(tgl);
+                      if (!isNaN(parsed.getTime())) {
+                        return parsed.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                      }
+                      return tgl;
+                    })()}
                   </p>
                 </div>
                 <div className="detail-item">
@@ -776,19 +843,39 @@ export default function WargaPage() {
                   <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Nomor KK</label>
                   <p style={{ fontWeight: 600, color: 'var(--gray-800)' }}>{selectedResident.noKK || '-'}</p>
                 </div>
-                <div className="detail-item" style={{ gridColumn: 'span 2' }}>
-                  <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Alamat KTP</label>
-                  <p style={{ fontWeight: 600, color: 'var(--gray-800)', fontSize: 13 }}>{selectedResident.alamat || '-'}</p>
-                </div>
-                <div className="detail-item" style={{ gridColumn: 'span 2' }}>
-                  <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Alamat Domisili Perumahan</label>
-                  <p style={{ fontWeight: 600, color: 'var(--gray-800)', fontSize: 13 }}>
-                    {selectedResident.blok ? `Blok ${selectedResident.blok}, Nomor ${selectedResident.nomorRumah}` : 'Data alamat perumahan tidak lengkap'}
+                <div className="detail-item">
+                  <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Hubungan Keluarga</label>
+                  <p style={{ fontWeight: 600, color: 'var(--gray-800)' }}>
+                    {(selectedResident as any).hubungan || (selectedResident as any).statusKeluarga || 'Lainnya'}
                   </p>
+                </div>
+                <div className="detail-item">
+                  <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Status KK</label>
+                  <span className="badge" style={{ 
+                    background: selectedFamilyStatus === 'Aktif' ? '#dcfce7' : selectedFamilyStatus === 'Non-Aktif' ? '#fee2e2' : '#f1f5f9',
+                    color: selectedFamilyStatus === 'Aktif' ? '#15803d' : selectedFamilyStatus === 'Non-Aktif' ? '#dc2626' : '#64748b',
+                    padding: '4px 12px',
+                    borderRadius: '50px',
+                    fontWeight: 700,
+                    fontSize: '11px',
+                    display: 'inline-block'
+                  }}>
+                    {selectedFamilyStatus.toUpperCase()}
+                  </span>
                 </div>
                 <div className="detail-item">
                   <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Wilayah RT / RW</label>
                   <p style={{ fontWeight: 700, color: 'var(--blue-700)' }}>RT {selectedResident.rt_id || '-'} / RW {selectedResident.rw_id || '011'}</p>
+                </div>
+                <div className="detail-item detail-item-span-2" style={{ gridColumn: 'span 2' }}>
+                  <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Alamat KTP</label>
+                  <p style={{ fontWeight: 600, color: 'var(--gray-800)', fontSize: 13 }}>{selectedResident.alamat || '-'}</p>
+                </div>
+                <div className="detail-item detail-item-span-2" style={{ gridColumn: 'span 2' }}>
+                  <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Alamat Domisili Perumahan</label>
+                  <p style={{ fontWeight: 600, color: 'var(--gray-800)', fontSize: 13 }}>
+                    {selectedResident.blok ? `Blok ${selectedResident.blok}, Nomor ${selectedResident.nomorRumah}` : 'Data alamat perumahan tidak lengkap'}
+                  </p>
                 </div>
                 <div className="detail-item">
                   <label style={{ fontSize: 11, color: 'var(--gray-500)', textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>Nomor HP</label>
@@ -852,7 +939,7 @@ export default function WargaPage() {
                     style={{ flex: 2 }}
                     onClick={() => {
                       setShowDetailModal(false);
-                      navigate('/admin/approvals'); 
+                      navigate('/admin/dev/approvals'); 
                     }}
                   >
                     Tinjau di Halaman Persetujuan Warga
@@ -866,7 +953,65 @@ export default function WargaPage() {
           </div>
         </div>
       )}
-
+      <style>{`
+        body.body-modal-open .navbar {
+          display: none !important;
+        }
+        .modal-overlay {
+          position: fixed !important;
+          inset: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          overflow: hidden !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          z-index: 2000 !important;
+          touch-action: none !important;
+          overscroll-behavior: contain !important;
+        }
+        .modal-mobile-fix {
+          display: flex !important;
+          flex-direction: column !important;
+          max-height: 85vh !important;
+          overflow: hidden !important;
+          overscroll-behavior: contain !important;
+        }
+        .modal-mobile-fix > div:first-child,
+        .modal-mobile-fix > div:last-child {
+          touch-action: none !important;
+        }
+        .modal-body {
+          flex: 1 !important;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+          overscroll-behavior: contain !important;
+          touch-action: pan-y !important;
+        }
+        .detail-grid-responsive {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+        .detail-item p {
+          word-break: break-all;
+          white-space: normal;
+        }
+        @media (max-width: 576px) {
+          .detail-grid-responsive {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .detail-item-span-2 {
+            grid-column: span 1 !important;
+          }
+          .modal-mobile-fix {
+            width: 95% !important;
+            margin: 10px auto !important;
+            max-height: 85vh !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -10,7 +10,7 @@ import { User } from '../types';
 import logo from '../assets/login/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 
 // Images from public assets
 const housingImages = [
@@ -45,15 +45,48 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setLoading(true);
 
     // DEV BYPASS
-    if (username === 'kemaldev' && password === '1234') {
-      onLogin({
-        id: 'dev-admin',
-        username: 'kemaldev',
-        name: 'Developer Admin',
-        role: 'developer',
-        rt_id: 'RT 001',
-        accountStatus: 'active'
-      } as User);
+    const isDevAccount = 
+      (username === 'kemaldev' || username === 'kemal dev' || username === 'kmlafdz') && 
+      password === '1234';
+
+    if (isDevAccount) {
+      try {
+        const docSnap = await getDoc(doc(db, 'users', 'dev-admin'));
+        if (docSnap.exists()) {
+          const dbData = docSnap.data();
+          onLogin({
+            id: 'dev-admin',
+            username: username,
+            name: dbData.name || (username === 'kmlafdz' ? 'Kmlafdz Admin' : 'Developer Admin'),
+            photoUrl: dbData.photoUrl || '',
+            accountType: 'admin',
+            adminRole: 'developer',
+            rt_id: 'RT 001',
+            accountStatus: 'active',
+            ...dbData
+          } as User);
+        } else {
+          onLogin({
+            id: 'dev-admin',
+            username: username,
+            name: username === 'kmlafdz' ? 'Kmlafdz Admin' : 'Developer Admin',
+            accountType: 'admin',
+            adminRole: 'developer',
+            rt_id: 'RT 001',
+            accountStatus: 'active'
+          } as User);
+        }
+      } catch (err) {
+        onLogin({
+          id: 'dev-admin',
+          username: username,
+          name: username === 'kmlafdz' ? 'Kmlafdz Admin' : 'Developer Admin',
+          accountType: 'admin',
+          adminRole: 'developer',
+          rt_id: 'RT 001',
+          accountStatus: 'active'
+        } as User);
+      }
       return;
     }
 
@@ -69,6 +102,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
       if (userData.password !== password) {
         throw new Error('Password salah.');
+      }
+
+      // Check if user is an admin
+      const isAdmin = userData.accountType === 'admin' || (userData as any).role !== 'warga';
+      if (!isAdmin) {
+        throw new Error('Akses Ditolak: Akun ini bukan akun Administrator.');
       }
 
       onLogin(userData);
@@ -213,16 +252,68 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         }
 
         @media (max-width: 768px) {
-          .login-page-root { padding: 16px; align-items: center; overflow: hidden; display: flex; touch-action: pan-y; }
+          .login-page-root { 
+            padding: 16px; 
+            align-items: center; 
+            overflow: hidden !important; 
+            display: flex; 
+            touch-action: none; 
+            height: 100vh !important;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+          }
           .desktop-split { display: none; }
-          .mobile-view { width: 100%; display: flex; align-items: center; justify-content: center; }
-          .glass-card-admin { padding: 24px 20px; border-radius: 24px; width: 100%; margin: 0; max-width: 100%; }
+          .mobile-view { 
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100%;
+          }
+          .glass-card-admin { 
+            padding: 24px 20px; 
+            border-radius: 24px; 
+            width: 100%; 
+            margin: 0; 
+            max-width: 100%; 
+            box-sizing: border-box; 
+            max-height: calc(100vh - 32px);
+          }
           .blob { width: 200px; height: 200px; }
           h1 { font-size: 18px !important; margin-bottom: 4px !important; }
           .admin-btn-primary, .admin-input-field { height: 48px; font-size: 12px; }
           .admin-input-group { margin-bottom: 12px; }
           .admin-card-header { margin-bottom: 20px !important; }
-          .admin-card-header img { width: 40px !important; height: 40px !important; margin-bottom: 12px !important; }
+          .admin-card-header img { width: 90px !important; height: auto !important; margin-bottom: 12px !important; transition: all 0.2s ease; }
+        }
+
+        /* Keyboard active / small screen height optimization to keep fixed card fully visible and crisp without scrolling */
+        @media (max-width: 768px) and (max-height: 600px) {
+          .glass-card-admin {
+            padding: 16px 20px !important;
+          }
+          .admin-card-header img { 
+            display: none !important; /* Hide logo when keyboard is open to fit screen perfectly */
+          }
+          .admin-card-header {
+            margin-bottom: 8px !important;
+          }
+          .admin-input-group {
+            margin-bottom: 8px !important;
+          }
+          .admin-btn-primary, .admin-input-field {
+            height: 42px !important;
+          }
+          h1 {
+            font-size: 16px !important;
+          }
+          .admin-label {
+            margin-bottom: 4px !important;
+          }
+          /* Hide bottom redundant links when keyboard is active to save space */
+          .glass-card-admin > div:last-child {
+            display: none !important;
+          }
         }
       `}} />
 
@@ -319,10 +410,7 @@ function AdminLoginForm({
       className="glass-card-admin"
     >
       <div className="admin-card-header" style={{ marginBottom: '24px', textAlign: 'center' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '60px', height: '60px', background: 'rgba(0,0,0,0.05)', borderRadius: '18px', border: '1px solid rgba(0,0,0,0.05)', padding: '12px', marginBottom: '20px', position: 'relative' }}>
-          <img src={logo} alt="Logo" style={{ width: '100%', objectFit: 'contain', zIndex: 10 }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(59, 130, 246, 0.1)', filter: 'blur(15px)', borderRadius: '50%' }} />
-        </div>
+        <img src={logo} alt="Logo" style={{ width: '120px', height: 'auto', margin: '0 auto 16px', display: 'block' }} />
         <h1 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontStyle: 'italic', color: '#0f172a' }}>
           <ShieldCheck size={24} style={{ color: '#1e3a8a' }} /> Secure Access
         </h1>
@@ -362,34 +450,7 @@ function AdminLoginForm({
         </button>
       </form>
 
-      <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #f3f4f6', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <button 
-          onClick={async () => {
-            try {
-              const { setDoc, doc } = await import('firebase/firestore');
-              await setDoc(doc(db, 'users', 'kemaldev'), {
-                username: 'kemaldev',
-                password: '1234',
-                name: 'Kemal Developer',
-                role: 'developer',
-                rt_id: 'RT 001',
-                accountStatus: 'active',
-                createdAt: new Date()
-              });
-              alert('Kredensial kemaldev berhasil disimpan ke Database!');
-            } catch (e) {
-              alert('Gagal simpan ke DB: ' + e);
-            }
-          }}
-          style={{ border: 'none', background: 'none', color: '#1e3a8a', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', cursor: 'pointer', textDecoration: 'underline' }}
-        >
-          <ShieldCheck size={14} style={{ marginRight: 6 }} /> Sync dev to Database
-        </button>
 
-        <button onClick={() => navigate('/warga-login')} style={{ border: 'none', background: 'none', color: '#64748b', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', margin: '0 auto' }}>
-          <LogIn size={14} /> Back to Warga Login
-        </button>
-      </div>
     </motion.div>
   );
 }

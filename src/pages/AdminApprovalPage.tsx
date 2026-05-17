@@ -94,7 +94,7 @@ export default function AdminApprovalPage() {
                nomorKK: data.noKK,
                kepalaKeluarga: data.nama || data.fullName || '',
                kepalaKeluargaId: data.nik,
-               alamat: data.alamat || data.address || '',
+               alamat: `Blok ${data.blok || ''} No. ${data.nomorRumah || ''}`,
                rt: data.rt_id || data.rt || '',
                rw: data.rw_id || data.rw || '011',
                blok: data.blok || '',
@@ -135,7 +135,7 @@ export default function AdminApprovalPage() {
         } catch (waErr) { console.error("WA Error:", waErr); }
       }
       
-      navigate('/admin/approvals'); 
+      navigate('/admin/dev/approvals'); 
     } catch (err) {
       console.error(err);
     } finally {

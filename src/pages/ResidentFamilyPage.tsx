@@ -3,7 +3,8 @@ import {
   Users, UserPlus, ShieldCheck, 
   Trash2, Edit2, Search, 
   CheckCircle, Plus, ArrowRight,
-  Info, AlertCircle, Download
+  Info, AlertCircle, Download,
+  Eye, EyeOff
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User } from '../types';
 import { collection, query, where, getDocs, addDoc, Timestamp, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import PinVerificationModal from '../components/PinVerificationModal';
 
 interface FamilyMember {
   id: string;
@@ -28,7 +30,17 @@ export default function ResidentFamilyPage({ user }: { user: User | null }) {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showSensitive, setShowSensitive] = useState(false);
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [userProfiles, setUserProfiles] = useState<Record<string, string>>({});
+
+  const handleVerifySensitive = () => {
+    if (!showSensitive && user?.pin) {
+      setIsPinModalOpen(true);
+    } else {
+      setShowSensitive(false);
+    }
+  };
   
   // State for new member form
   const [newMember, setNewMember] = useState({
@@ -53,7 +65,18 @@ export default function ResidentFamilyPage({ user }: { user: User | null }) {
         id: doc.id,
         ...doc.data()
       }));
-      setMembers(data);
+      
+      // Sort members based on standard family hierarchy (Kepala Keluarga is always first)
+      const HIERARCHY = ['Kepala Keluarga', 'Suami', 'Istri', 'Anak', 'Cucu', 'Menantu', 'Orang Tua', 'Saudara', 'Lainnya'];
+      const sortedData = [...data].sort((a, b) => {
+        const orderA = HIERARCHY.indexOf(a.hubungan || 'Lainnya');
+        const orderB = HIERARCHY.indexOf(b.hubungan || 'Lainnya');
+        const idxA = orderA === -1 ? 99 : orderA;
+        const idxB = orderB === -1 ? 99 : orderB;
+        return idxA - idxB;
+      });
+
+      setMembers(sortedData);
       setLoading(false);
 
       // Fetch user profiles for these members to get personalized photos
@@ -122,7 +145,33 @@ export default function ResidentFamilyPage({ user }: { user: User | null }) {
             </div>
             
             <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Nomor Kartu Keluarga</div>
-            <div style={{ fontSize: 24, fontWeight: 900, letterSpacing: 1, marginBottom: 4 }}>{user?.noKK || (user as any)?.extractedData?.nomorKK || '3216XXXXXXXXXXXX'}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+              <div style={{ fontSize: 24, fontWeight: 900, letterSpacing: 1 }}>
+                {showSensitive 
+                  ? (user?.noKK || (user as any)?.extractedData?.nomorKK || '3216000000000000') 
+                  : `3216 •••• •••• ${String(user?.noKK || (user as any)?.extractedData?.nomorKK || '0000').slice(-4)}`
+                }
+              </div>
+              <button 
+                type="button"
+                onClick={handleVerifySensitive}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: 'none',
+                  color: '#ffffff',
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s'
+                }}
+              >
+                {showSensitive ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
             <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 20 }}>Terdaftar di RT 0{user?.rt_id}/RW 011 • Vila Samudra Jaya</div>
 
             <div style={{ display: 'flex', gap: 16, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 16 }}>
@@ -179,7 +228,31 @@ export default function ResidentFamilyPage({ user }: { user: User | null }) {
               
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#1e293b' }}>{member.nama}</div>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{member.nik}</div>
+                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>
+                    {showSensitive 
+                      ? member.nik 
+                      : `•••• •••• •••• ${String(member.nik).slice(-4)}`
+                    }
+                  </span>
+                  {!showSensitive && (
+                    <button 
+                      type="button"
+                      onClick={handleVerifySensitive}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#2563eb',
+                        padding: 0,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      (Lihat)
+                    </button>
+                  )}
+                </div>
                 <div style={{ marginTop: 6 }}>
                   <span style={{ 
                     fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 6,
@@ -257,6 +330,19 @@ export default function ResidentFamilyPage({ user }: { user: User | null }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {user && (
+        <PinVerificationModal
+          isOpen={isPinModalOpen}
+          correctPin={user.pin || ''}
+          userName={user.name || 'Warga'}
+          userId={user.id}
+          userPassword={user.password}
+          title="Verifikasi PIN untuk Data Keluarga"
+          onSuccess={() => setShowSensitive(true)}
+          onClose={() => setIsPinModalOpen(false)}
+        />
+      )}
 
       <style>{`
         @keyframes pulse {

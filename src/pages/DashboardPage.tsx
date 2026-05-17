@@ -51,18 +51,31 @@ export default function DashboardPage({ user }: DashboardPageProps) {
         getDocs(collection(db, 'pengaduan')),
       ]);
 
-      const wargaDocs = usersSnap.docs.filter(d => d.data().role === 'warga');
+      let wargaDocs = usersSnap.docs.filter(d => d.data().role === 'warga');
+      let familyDocs = familiesSnap.docs;
+      let suratDocs = suratSnap.docs;
+      let pengaduanDocs = pengaduanSnap.docs;
+      let financeDocs = financeSnap.docs;
+
+      // Filter by RT if role is 'rt'
+      if (user?.adminRole === 'rt') {
+        wargaDocs = wargaDocs.filter(d => d.data().rt_id === user.rt_id);
+        familyDocs = familyDocs.filter(d => d.data().rt_id === user.rt_id);
+        suratDocs = suratDocs.filter(d => d.data().rt_id === user.rt_id);
+        pengaduanDocs = pengaduanDocs.filter(d => d.data().rt_id === user.rt_id);
+        financeDocs = financeDocs.filter(d => d.data().rt_id === user.rt_id);
+      }
 
       // Stats
       setStats({
         totalWarga: wargaDocs.length,
-        totalKK: familiesSnap.size,
+        totalKK: familyDocs.length,
         pendingApproval: wargaDocs.filter(d => d.data().accountStatus === 'waiting_admin_approval').length,
-        suratPending: suratSnap.docs.filter(d => d.data().status === 'Pending').length,
-        pemasukan: financeSnap.docs.filter(d => d.data().type === 'Masuk').reduce((a, d) => a + (d.data().amount || 0), 0),
-        pengeluaran: financeSnap.docs.filter(d => d.data().type === 'Keluar').reduce((a, d) => a + (d.data().amount || 0), 0),
-        pengaduan: pengaduanSnap.size,
-        pendingPengaduan: pengaduanSnap.docs.filter(d => d.data().status === 'Baru').length,
+        suratPending: suratDocs.filter(d => d.data().status === 'Pending').length,
+        pemasukan: financeDocs.filter(d => d.data().type === 'Masuk').reduce((a, d) => a + (d.data().amount || 0), 0),
+        pengeluaran: financeDocs.filter(d => d.data().type === 'Keluar').reduce((a, d) => a + (d.data().amount || 0), 0),
+        pengaduan: pengaduanDocs.length,
+        pendingPengaduan: pengaduanDocs.filter(d => d.data().status === 'Baru').length,
       });
 
       // RT Bar Chart
@@ -333,7 +346,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
                 <span style={{ fontSize: 14, fontWeight: 800, color: '#92400e' }}>{stats.pendingApproval} Persetujuan Menunggu</span>
               </div>
               <p style={{ fontSize: 12, color: '#78350f', margin: '0 0 12px', lineHeight: 1.5 }}>Ada warga yang perlu diverifikasi segera.</p>
-              <button onClick={() => window.location.href = '/admin/approvals'} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, background: '#d97706', color: '#fff', border: 'none', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
+              <button onClick={() => window.location.href = '/admin/dev/approvals'} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, background: '#d97706', color: '#fff', border: 'none', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
                 Tinjau Sekarang <ArrowUpRight size={13} />
               </button>
             </div>

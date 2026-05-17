@@ -13,14 +13,13 @@ import { extractKTPData } from '../services/ocrService';
 import logo from '../assets/login/logo.png';
 import { db } from '../firebase/config';
 import { doc, updateDoc, collection, query, where, getDocs, setDoc, Timestamp } from 'firebase/firestore';
-import { registerBiometric, isBiometricAvailable } from '../services/biometricService';
 
 interface ActivationPageProps {
   user: UserType;
   onComplete: (updatedUser: UserType) => void;
 }
 
-type Step = 'welcome' | 'upload' | 'ocr' | 'data_review' | 'family' | 'password' | 'biometric' | 'final';
+type Step = 'welcome' | 'upload' | 'ocr' | 'data_review' | 'family' | 'password' | 'final';
 
 export default function AccountActivationPage({ user, onComplete }: ActivationPageProps) {
   const [currentStep, setCurrentStep] = useState<Step>('welcome');
@@ -36,14 +35,7 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [biometricEnabled, setBiometricEnabled] = useState(false);
-  const [biometricAvailable, setBiometricAvailable] = useState(false);
-  const [biometricCredentialId, setBiometricCredentialId] = useState<string | null>(null);
 
-  useEffect(() => {
-    isBiometricAvailable().then(setBiometricAvailable);
-  }, []);
-  
   const navigate = useNavigate();
 
   // Animation variants
@@ -77,9 +69,8 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
           return;
         }
         setError('');
-        setCurrentStep('biometric'); 
+        finalizeActivation();
         break;
-      case 'biometric': finalizeActivation(); break;
     }
   };
 
@@ -232,8 +223,8 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
         name: extractedData?.nama || user.name || '',
         ktpPhotoUrl: finalKtpUrl,
         kkPhotoUrl: finalKkUrl,
-        biometricCredentialId: biometricCredentialId || null,
-        biometricEnabled: biometricEnabled || false,
+        biometricCredentialId: null,
+        biometricEnabled: false,
         dob: extractedData?.tanggalLahir || user.dob || '',
         pendingPassword: newPassword,
         noKK,
@@ -264,7 +255,7 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
           noKK,
           isKepalaKeluarga,
           hubungan: relationship || (isKepalaKeluarga ? 'Kepala Keluarga' : ''),
-          alamat: extractedData?.alamat || '',
+          alamat: `Blok ${extractedData?.blok || ''} No. ${extractedData?.nomorRumah || ''}`,
           tempatLahir: extractedData?.tempatLahir || '',
           agama: extractedData?.agama || '',
           statusPerkawinan: extractedData?.statusPerkawinan || '',
@@ -296,7 +287,7 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
           'Pendaftaran Warga Baru',
           `${user.name} telah menyelesaikan registrasi. Mohon tinjau data KTP & KK.`,
           targetRoles,
-          { relatedId: user.nik, route: `/admin/approval/${user.nik}` }
+          { relatedId: user.nik, route: `/admin/dev/approval/${user.nik}` }
         );
       } catch (notifErr) {
         console.error("Gagal mengirim notifikasi admin:", notifErr);
@@ -418,8 +409,8 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
       <div className="activation-card">
         {/* Step dots */}
         <div className="step-indicator">
-          {['welcome', 'upload', 'ocr', 'data_review', 'family', 'password', 'biometric', 'final'].map((s, idx) => (
-            <div key={s} className={`step-dot ${['welcome', 'upload', 'ocr', 'data_review', 'family', 'password', 'biometric', 'final'].indexOf(currentStep) >= idx ? 'active' : ''}`} />
+          {['welcome', 'upload', 'ocr', 'data_review', 'family', 'password', 'final'].map((s, idx) => (
+            <div key={s} className={`step-dot ${['welcome', 'upload', 'ocr', 'data_review', 'family', 'password', 'final'].indexOf(currentStep) >= idx ? 'active' : ''}`} />
           ))}
         </div>
 
@@ -839,70 +830,7 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
               </motion.div>
             )}
 
-            {currentStep === 'biometric' && (
-              <motion.div key="biometric" {...stepVariants} style={{ textAlign: 'center' }}>
-                <div style={{ width: '80px', height: '80px', background: '#eff6ff', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: '#3b82f6' }}>
-                  <Fingerprint size={40} />
-                </div>
-                <h2 style={{ fontSize: '22px', fontWeight: 900, marginBottom: '8px', color: '#1e3a8a' }}>Keamanan Biometrik</h2>
-                <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '40px' }}>Gunakan sidik jari untuk masuk lebih cepat dan aman di masa mendatang.</p>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-                  {biometricAvailable ? (
-                    <button 
-                      className="btn-primary" 
-                      style={{ background: biometricEnabled ? '#f0fdf4' : '#fff', color: biometricEnabled ? '#16a34a' : '#1e3a8a', border: `2px solid ${biometricEnabled ? '#22c55e' : '#3b82f6'}`, height: '54px' }}
-                      onClick={async () => {
-                        try {
-                          setLoading(true);
-                          const credential = await registerBiometric(user.nik || 'user');
-                          setBiometricCredentialId(credential.id);
-                          setBiometricEnabled(true);
-                          setError('');
-                        } catch (err: any) {
-                          setError('Gagal mendaftarkan sidik jari: ' + err.message);
-                        } finally {
-                          setLoading(false);
-                        }
-                      }}
-                      disabled={loading || biometricEnabled}
-                    >
-                      {biometricEnabled ? <><CheckCircle2 size={20} /> Biometrik Berhasil Ditambahkan</> : <><Fingerprint size={20} /> Tambahkan Biometrik</>}
-                    </button>
-                  ) : (
-                    <div style={{ background: '#fff1f2', padding: '16px', borderRadius: '16px', border: '1px solid #fecdd3', marginBottom: '12px' }}>
-                      <p style={{ fontSize: '11px', color: '#e11d48', fontWeight: 700 }}>Perangkat tidak mendukung biometrik browser.</p>
-                    </div>
-                  )}
-                  
-                  <button 
-                    className="btn-outline" 
-                    style={{ height: '54px', border: '1px solid #e2e8f0', color: '#64748b' }} 
-                    onClick={finalizeActivation}
-                    disabled={loading}
-                  >
-                    {biometricEnabled ? 'Selesaikan Aktivasi' : 'Lewati dan Selesaikan Aktivasi'}
-                  </button>
-                </div>
 
-                {error && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <div style={{ color: '#ef4444', fontSize: '13px', marginBottom: '12px', fontWeight: 600 }}>{error}</div>
-                    {error.includes('ID akun') && (
-                      <button 
-                        style={{ border: 'none', background: '#fee2e2', color: '#dc2626', padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
-                        onClick={() => {
-                          localStorage.removeItem('erw_user');
-                          window.location.href = '/warga-login';
-                        }}
-                      >
-                        Login Ulang
-                      </button>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            )}
 
             {currentStep === 'final' && (
               <motion.div key="final" {...stepVariants} style={{ textAlign: 'center' }}>

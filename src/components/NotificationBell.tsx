@@ -3,28 +3,39 @@
  * Real-time admin notification bell with Firestore subscriptions
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, CheckCheck, LayoutDashboard, User, FileText } from 'lucide-react';
-import { subscribeToNotifications, markNotificationRead, markAllRead } from '../services/notificationService';
+import { Bell, CheckCheck, LayoutDashboard, User, FileText, Trash2 } from 'lucide-react';
+import { subscribeToNotifications, markNotificationRead, markAllRead, deleteAllNotifications } from '../services/notificationService';
 import type { Notification } from '../services/notificationService';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
   userRole: string;
+  userId?: string;
 }
 
-export default function NotificationBell({ userRole }: Props) {
+export default function NotificationBell({ userRole, userId }: Props) {
   const [notifs, setNotifs] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
   const dropRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  // Handle window resize dynamically for premium responsive popup placement
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 480);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const unreadCount = notifs.filter(n => !n.isRead).length;
 
   // Real-time Firestore subscription
   useEffect(() => {
-    const unsub = subscribeToNotifications(userRole, setNotifs);
+    const unsub = subscribeToNotifications(userRole, userId, setNotifs);
     return () => unsub();
-  }, [userRole]);
+  }, [userRole, userId]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -40,6 +51,36 @@ export default function NotificationBell({ userRole }: Props) {
   const handleNotifClick = async (notif: Notification) => {
     await markNotificationRead(notif.id);
     setOpen(false);
+
+    // 1. Citizens (warga) should never be redirected to admin routes (e.g. /admin/...)
+    if (userRole === 'warga' && notif.route?.startsWith('/admin')) {
+      return;
+    }
+
+    // 2. If it is a registration/approval notification and has already been reviewed/approved/rejected, don't redirect
+    if (notif.relatedId && (
+      notif.type === 'registration' || 
+      notif.type === 'approval' || 
+      notif.route?.includes('/approval/') || 
+      notif.title.toLowerCase().includes('pendaftaran') || 
+      notif.title.toLowerCase().includes('registrasi')
+    )) {
+      try {
+        const { doc, getDoc } = await import('firebase/firestore');
+        const { db } = await import('../firebase/config');
+        const regSnap = await getDoc(doc(db, 'registrations', notif.relatedId));
+        if (regSnap.exists()) {
+          const regData = regSnap.data();
+          if (regData.status && regData.status !== 'pending') {
+            // Already reviewed (approved, rejected, auto_approved)! DO NOT redirect.
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Gagal memeriksa status peninjauan pendaftaran warga:", err);
+      }
+    }
+
     if (notif.route) navigate(notif.route);
   };
 
@@ -88,25 +129,93 @@ export default function NotificationBell({ userRole }: Props) {
 
       {open && (
         <div style={{
-          position: 'absolute', right: 0, top: 48, width: 340, background: '#fff',
-          borderRadius: 14, boxShadow: '0 10px 40px rgba(0,0,0,0.15)', border: '1px solid var(--gray-100)',
-          zIndex: 1000, overflow: 'hidden',
+          position: isMobile ? 'fixed' : 'absolute',
+          right: isMobile ? 16 : 0,
+          left: isMobile ? 16 : 'auto',
+          top: isMobile ? 64 : 48,
+          width: isMobile ? 'auto' : 340,
+          maxWidth: isMobile ? 380 : 'none',
+          margin: isMobile ? '0 auto' : '0',
+          background: '#fff',
+          borderRadius: 14,
+          boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+          border: '1px solid var(--gray-100)',
+          zIndex: 1000,
+          overflow: 'hidden',
         }}>
           {/* Header */}
-          <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--gray-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>
-              Notifikasi
-              {unreadCount > 0 && (
-                <span style={{ marginLeft: 8, background: 'var(--blue-600)', color: '#fff', fontSize: 10, padding: '2px 7px', borderRadius: 20, fontWeight: 700 }}>
-                  {unreadCount} baru
-                </span>
-              )}
+          <div style={{ 
+            padding: '14px 18px', 
+            borderBottom: '1px solid var(--gray-100)', 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 10
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontWeight: 800, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6, color: '#0f172a' }}>
+                Notifikasi
+                {unreadCount > 0 && (
+                  <span style={{ 
+                    background: 'var(--blue-600)', 
+                    color: '#fff', 
+                    fontSize: 10, 
+                    padding: '2px 7px', 
+                    borderRadius: 20, 
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {unreadCount} baru
+                  </span>
+                )}
+              </div>
             </div>
-            {unreadCount > 0 && (
-              <button onClick={() => markAllRead(userRole)}
-                style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--blue-600)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <CheckCheck size={13} /> Tandai semua
-              </button>
+
+            {(unreadCount > 0 || notifs.length > 0) && (
+              <div style={{ 
+                display: 'flex', 
+                gap: 12, 
+                alignItems: 'center',
+                borderTop: '1px solid #f1f5f9',
+                paddingTop: 8
+              }}>
+                {unreadCount > 0 && (
+                  <button onClick={() => markAllRead(userRole)}
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      fontSize: 11, 
+                      color: 'var(--blue-600)', 
+                      fontWeight: 700, 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 4,
+                      padding: 0,
+                      whiteSpace: 'nowrap'
+                    }}>
+                    <CheckCheck size={13} /> Tandai dibaca
+                  </button>
+                )}
+                {notifs.length > 0 && (
+                  <button onClick={() => setShowConfirmDelete(true)}
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      fontSize: 11, 
+                      color: '#ef4444', 
+                      fontWeight: 700, 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 4,
+                      padding: 0,
+                      marginLeft: 'auto',
+                      whiteSpace: 'nowrap'
+                    }}>
+                    <Trash2 size={13} /> Hapus semua
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -150,6 +259,71 @@ export default function NotificationBell({ userRole }: Props) {
           </div>
         </div>
       )}
+
+      {/* Custom Confirmation Modal */}
+      <AnimatePresence>
+        {showConfirmDelete && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              style={{
+                background: '#ffffff', width: '100%', maxWidth: 360,
+                borderRadius: 24, padding: 24, textAlign: 'center',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                border: '1px solid rgba(255, 255, 255, 0.8)'
+              }}
+            >
+              <div style={{
+                width: 56, height: 56, background: '#fef2f2', color: '#ef4444',
+                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 16px', fontSize: 24
+              }}>
+                ⚠️
+              </div>
+              <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>Hapus Semua Notifikasi</h4>
+              <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5, marginBottom: 24 }}>
+                Apakah Anda yakin ingin menghapus semua notifikasi Anda secara permanen? Tindakan ini tidak dapat dibatalkan.
+              </p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmDelete(false)}
+                  style={{
+                    flex: 1, height: 44, borderRadius: 12, border: '1px solid #e2e8f0',
+                    background: '#ffffff', color: '#64748b', fontWeight: 700, fontSize: 13,
+                    cursor: 'pointer', transition: 'background 0.2s'
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setShowConfirmDelete(false);
+                    await deleteAllNotifications(userRole);
+                  }}
+                  style={{
+                    flex: 1, height: 44, borderRadius: 12, border: 'none',
+                    background: '#ef4444', color: '#ffffff', fontWeight: 700, fontSize: 13,
+                    cursor: 'pointer', transition: 'background 0.2s'
+                  }}
+                >
+                  Ya, Hapus
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

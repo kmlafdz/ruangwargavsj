@@ -1,16 +1,21 @@
-export type UserRole = 'developer' | 'rw' | 'rt' | 'warga' | (string & {});
+export type AdminRole = 'developer' | 'rw' | 'rt';
+export type AccountType = 'admin' | 'resident';
 export type RegistrationStatus = 'Pending' | 'Approved' | 'Rejected';
-export type AccountStatus = 'pending_registration' | 'waiting_family_approval' | 'waiting_admin_approval' | 'active' | 'rejected';
+export type AccountStatus = 'pending_registration' | 'waiting_family_approval' | 'waiting_admin_approval' | 'active' | 'rejected' | 'blocked';
 
 export interface User {
   id: string;
   name: string;
   username?: string;
+  chatUsername?: string;
   nik?: string;
-  role: UserRole;
+  accountType: AccountType;
+  adminRole?: AdminRole;
+  communityPosition?: string; // e.g. "Ketua RW", "Sekretaris"
   rt_id?: string; // e.g. "001"
   rw_id?: string; // e.g. "011"
   email?: string;
+  emailVerified?: boolean;
   phone?: string;
   status?: RegistrationStatus;
   registrationStatus?: 'pending_input' | 'pending_approval' | 'verified';
@@ -19,7 +24,7 @@ export interface User {
   temporaryPasswordActive?: boolean;
   ktpPhotoUrl?: string;
   kkPhotoUrl?: string;
-  facePhotoUrl?: string; // Cropped from KTP
+  facePhotoUrl?: string;
   familyId?: string;
   isKepalaKeluarga?: boolean;
   rejectionReason?: string;
@@ -29,7 +34,6 @@ export interface User {
   biometricCredentialId?: string | null;
   dob?: string;
   createdAt?: any;
-  // OCR extracted data
   extractedData?: {
     nik: string;
     fullName: string;

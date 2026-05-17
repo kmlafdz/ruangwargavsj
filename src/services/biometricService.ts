@@ -14,6 +14,9 @@ export interface BiometricCredential {
  */
 export async function registerBiometric(username: string): Promise<any> {
   if (!window.PublicKeyCredential) {
+    if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+      throw new Error('Autentikasi biometrik membutuhkan koneksi aman (HTTPS) atau dijalankan langsung di HP menggunakan APK Native.');
+    }
     throw new Error('Browser ini tidak mendukung autentikasi biometrik.');
   }
 

@@ -23,29 +23,27 @@ export default function SplashScreen() {
       >
         <div style={{ 
           position: 'relative', 
-          marginBottom: 32, 
+          marginBottom: 36, 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center',
           width: '100%' 
         }}>
-          <motion.div
-            animate={{ 
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.6, 0.3]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-            style={{
-              position: 'absolute',
-              inset: -20,
-              background: 'radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(255, 255, 255, 0) 70%)',
-              borderRadius: '50%'
-            }}
-          />
-          <img 
+          {/* Logo only, beautifully scaled up and animated */}
+          <motion.img 
             src={logo} 
             alt="Logo" 
-            style={{ width: 120, height: 'auto', position: 'relative', zIndex: 1 }} 
+            animate={{ 
+              y: [0, -6, 0]
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            style={{ 
+              width: 200, // Made beautifully large and clear
+              height: 'auto', 
+              position: 'relative', 
+              zIndex: 1,
+              display: 'block'
+            }} 
           />
         </div>
         

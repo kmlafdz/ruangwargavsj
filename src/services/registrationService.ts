@@ -107,7 +107,7 @@ export async function submitRegistration(payload: RegistrationPayload): Promise<
       '✅ Registrasi Auto-Disetujui',
       `${payload.fullName} (NIK: ${payload.nik}) diverifikasi otomatis oleh AI dengan skor ${matchScore}%.`,
       targetRoles,
-      { relatedId: registrationId, route: `/admin/approval/${registrationId}` }
+      { relatedId: registrationId, route: `/admin/dev/approval/${registrationId}` }
     );
   } else {
     await sendNotification(
@@ -115,7 +115,7 @@ export async function submitRegistration(payload: RegistrationPayload): Promise<
       '📋 Pendaftaran Warga Baru',
       `${payload.fullName} memerlukan persetujuan. Skor AI: ${matchScore}%.`,
       targetRoles,
-      { relatedId: registrationId, route: `/admin/approval/${registrationId}` }
+      { relatedId: registrationId, route: `/admin/dev/approval/${registrationId}` }
     );
   }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Menu, Search, Settings, LogOut, User as UserIcon } from 'lucide-react';
 import { User } from '../types';
 import NotificationBell from './NotificationBell';
@@ -19,16 +19,44 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
 
+  const [visible, setVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = (e: any) => {
+      const target = e.target;
+      if (!target) return;
+
+      const currentScrollY = target === document 
+        ? window.scrollY 
+        : (target.scrollTop !== undefined ? target.scrollTop : 0);
+
+      const scrollDiff = Math.abs(currentScrollY - lastScrollY.current);
+
+      if (currentScrollY <= 10) {
+        setVisible(true);
+      } else if (scrollDiff > 8) {
+        if (currentScrollY > lastScrollY.current) {
+          setVisible(false);
+        } else {
+          setVisible(true);
+        }
+        lastScrollY.current = currentScrollY;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, []);
+
   const initials = user?.name 
     ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() 
     : 'AD';
 
   // Map role for notifications
-  const notifRole = (user?.role === 'rw' || user?.role === 'developer') 
-    ? 'ketua_rw' 
-    : (user?.role === 'rt' || (user?.role && user.role.toUpperCase().includes('RT')))
-      ? `ketua_rt_${(user?.rt_id || user?.role?.split(' ').pop() || '01').slice(-2)}`
-      : 'warga';
+  const notifRole = (user?.accountType === 'admin') 
+    ? (user.adminRole === 'rw' || user.adminRole === 'developer' ? 'ketua_rw' : `ketua_rt_${(user.rt_id || '01').slice(-2)}`)
+    : 'warga';
 
   return (
     <>
@@ -69,7 +97,14 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
         )}
       </AnimatePresence>
 
-      <header className="navbar" style={{ zIndex: 2000 }}>
+      <header
+        className="navbar"
+        style={{
+          zIndex: 90,
+          transform: visible ? 'translateY(0)' : 'translateY(-100%)',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
         <div className="navbar-left" style={{ display: 'flex', alignItems: 'center' }}>
           {!hideToggle && (
             <button className="mobile-toggle" onClick={onToggleSidebar}>
@@ -82,13 +117,13 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
           </div>
         </div>
         <div className="navbar-right">
-          {user?.role === 'warga' && (
+          {user?.accountType === 'resident' && (
             <div className="navbar-search-resident">
               <Search size={16} />
               <input type="text" placeholder="Cari..." />
             </div>
           )}
-          <NotificationBell userRole={notifRole} />
+          <NotificationBell userRole={notifRole} userId={user?.id} />
           
           <div style={{ position: 'relative' }}>
             <div 
@@ -104,9 +139,11 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
                 )}
               </div>
               <div className="admin-info">
-                <div className="name">{user?.name || 'Admin RW'}</div>
+                <div className="name">{user?.name || 'User'}</div>
                 <div className="role">
-                  {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Administrator'}
+                  {user?.accountType === 'admin' 
+                    ? (user.adminRole?.toUpperCase() || 'ADMIN') 
+                    : (user?.communityPosition || 'Warga')}
                 </div>
               </div>
             </div>
@@ -131,10 +168,22 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
                   >
                     <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', marginBottom: 8 }}>
                        <div style={{ fontSize: 13, fontWeight: 900, color: '#1e293b' }}>{user?.name}</div>
-                       <div style={{ fontSize: 11, color: '#64748b' }}>{user?.role.toUpperCase()}</div>
+                       <div style={{ fontSize: 11, color: '#64748b' }}>
+                        {user?.accountType === 'admin' ? user.adminRole?.toUpperCase() : (user?.communityPosition || 'WARGA')}
+                       </div>
                     </div>
+                    {user?.accountType === 'resident' && (
+                      <button 
+                        onClick={() => { navigate('/warga/profile'); setShowMenu(false); }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 14, border: 'none', background: 'transparent', color: '#334155', fontSize: 14, fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <UserIcon size={18} color="#64748b" /> Lihat Profil
+                      </button>
+                    )}
                     <button 
-                      onClick={() => { navigate(user?.role === 'warga' ? '/warga/setting' : '/admin/setting'); setShowMenu(false); }}
+                      onClick={() => { navigate(user?.accountType === 'resident' ? '/warga/setting' : '/admin/dev/setting'); setShowMenu(false); }}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 14, border: 'none', background: 'transparent', color: '#334155', fontSize: 14, fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
