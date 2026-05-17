@@ -25,6 +25,7 @@ import ChatPage from './pages/ChatPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import FeedbackPage from './pages/FeedbackPage';
 import AccountActivationPage from './pages/AccountActivationPage';
+import ResidentAIAssistant from './pages/ResidentAIAssistant';
 import { MessageSquare } from 'lucide-react';
 import WaitingApprovalPage from './pages/WaitingApprovalPage';
 import RevisionPage from './pages/RevisionPage';
@@ -405,6 +406,7 @@ export default function App() {
                       <Route path="/warga/surat" element={<RoleGuard user={user} allowedRoles={['resident']}><SuratPage /></RoleGuard>} />
                       <Route path="/warga/keuangan" element={<RoleGuard user={user} allowedRoles={['resident']}><ResidentKeuangan user={user!} /></RoleGuard>} />
                       <Route path="/warga/iuran" element={<RoleGuard user={user} allowedRoles={['resident']}><ResidentKeuangan user={user!} /></RoleGuard>} />
+                      <Route path="/warga/ai" element={<RoleGuard user={user} allowedRoles={['resident']}><ResidentAIAssistant user={user!} /></RoleGuard>} />
                       <Route path="/warga/pengumuman" element={<RoleGuard user={user} allowedRoles={['resident']}><AnnouncementsPage isAdminView={false} user={user!} /></RoleGuard>} />
                       <Route path="/warga/feedback" element={<RoleGuard user={user} allowedRoles={['resident']}><FeedbackPage isAdminView={false} user={user!} /></RoleGuard>} />
 

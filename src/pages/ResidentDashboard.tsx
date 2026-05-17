@@ -6,7 +6,7 @@ import {
   FileCheck, AlertCircle, Clock, ChevronRight,
   MapPin, Calendar, Smartphone, Info, Settings,
   MessageCircle, ThumbsUp, Share2, Bookmark, MoreHorizontal,
-  Send, Image as ImageIcon, PlusCircle, Filter, TrendingUp,
+  Send, Sparkles, Image as ImageIcon, PlusCircle, Filter, TrendingUp,
   Plus, ArrowRight, ShieldCheck, Eye, EyeOff, CheckCircle,
   Lock as LockIcon, Fingerprint, XCircle, Loader2, Wifi
 } from 'lucide-react';
@@ -453,13 +453,102 @@ export default function ResidentDashboard({ user: initialUser }: ResidentDashboa
             </motion.div>
           )}
 
+          {/* INSIGHT DARI VIRA AI - PREMIUM WIDGET */}
+          <section className="section-vira-insight" style={{ marginBottom: '24px' }}>
+            <h3 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Insight dari Vira AI <Sparkles size={16} color="#fbbf24" className="pulse-yellow" />
+            </h3>
+            <div style={{
+              background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+              border: '1px solid #bfdbfe',
+              borderRadius: '24px',
+              padding: '20px',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 10px 15px -3px rgba(59, 130, 246, 0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
+            }}>
+              {/* Background avatar watermark */}
+              <div style={{
+                position: 'absolute',
+                right: '-10px',
+                bottom: '-15px',
+                width: '100px',
+                height: '100px',
+                opacity: 0.12,
+                backgroundImage: 'url(/vira_ai_avatar.png)',
+                backgroundSize: 'cover',
+                borderRadius: '24px',
+                transform: 'rotate(-10deg)'
+              }} />
+
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '14px',
+                  border: '2px solid #3b82f6',
+                  overflow: 'hidden',
+                  background: '#fff',
+                  flexShrink: 0,
+                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                }}>
+                  <img src="/vira_ai_avatar.png" alt="Vira AI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 900, color: '#1e3a8a' }}>Vira AI Community Companion</h4>
+                  <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#3b82f6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Saran & Pengingat Pintar
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ margin: 0, fontSize: '12px', color: '#1e293b', lineHeight: 1.6, position: 'relative', zIndex: 1 }}>
+                {stats.iuranStatus === 'BELUM BAYAR' ? (
+                  <span>⚠️ Halo Kak <strong>{user?.name}</strong>, Vira melihat Kakak memiliki <strong>tagihan iuran bulan ini yang belum terbayar</strong>. Segera selesaikan pembayaran di menu Kas-Mu agar operasional warga RT {user?.rt_id} tetap prima ya!</span>
+                ) : stats.suratActive > 0 ? (
+                  <span>📄 Halo Kak <strong>{user?.name}</strong>, ada <strong>{stats.suratActive} pengajuan surat</strong> Kakak yang sedang diverifikasi Ketua RT/RW. Pantau terus statusnya ya!</span>
+                ) : (
+                  <span>✨ Halo Kak <strong>{user?.name}</strong>! Vira melaporkan seluruh iuran Kakak bulan ini sudah Lunas, dan lingkungan RT {user?.rt_id || '011'} terpantau aman & harmonis. Tetap jaga kebersihan lingkungan ya Kak!</span>
+                )}
+              </div>
+
+              <button 
+                onClick={() => navigate('/warga/ai')}
+                style={{
+                  height: '38px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
+                  color: '#ffffff',
+                  fontSize: '11.5px',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+                  width: 'fit-content',
+                  padding: '0 16px',
+                  position: 'relative',
+                  zIndex: 1
+                }}
+              >
+                <Sparkles size={13} /> Diskusi dengan Vira AI <ArrowRight size={13} />
+              </button>
+            </div>
+          </section>
+
           {/* QUICK ACTIONS SECTION - No Container */}
           <section className="section-quick-actions">
             <h3 className="section-title">Layanan Cepat</h3>
             <div className="quick-actions-grid">
               {[
                 { label: 'Keluarga', icon: Users, color: '#8b5cf6', route: '/warga/keluarga' },
-                { label: 'Surat', icon: Plus, color: '#3b82f6', route: '/warga/surat' },
+                { label: 'Kas-Mu', icon: Wallet, color: '#3b82f6', route: '/warga/keuangan' },
                 { label: 'Lapor', icon: Megaphone, color: '#f59e0b', route: '/warga/report' },
                 { label: 'Kritik & Saran', icon: MessageSquare, color: '#10b981', route: '/warga/feedback' },
               ].map((act, i) => (
