@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   User as UserIcon, Calendar, MapPin, ShieldCheck, 
   Settings, LogOut, Eye, EyeOff, CreditCard, Users, 
-  ArrowRight, CheckCircle2, ChevronRight, Phone, MessageSquare
+  ArrowRight, CheckCircle2, ChevronRight, Phone, MessageSquare, Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User } from '../types';
@@ -297,17 +297,26 @@ export default function ResidentProfilePage({ user: initialUser, onLogout }: Res
               </div>
             </div>
             <div style={{ 
-              background: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(4px)',
-              padding: '6px 12px',
-              borderRadius: '10px',
-              fontSize: '10px',
-              fontWeight: 800,
+              background: 'linear-gradient(135deg, rgba(252, 211, 77, 0.2) 0%, rgba(245, 158, 11, 0.4) 100%)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(252, 211, 77, 0.5)',
+              padding: '5px 10px',
+              borderRadius: '14px',
+              fontSize: '8px',
+              fontWeight: 900,
               display: 'flex',
               alignItems: 'center',
-              gap: '4px'
+              justifyContent: 'center',
+              gap: '4px',
+              color: '#fef3c7',
+              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25), inset 0 1px 1px rgba(255,255,255,0.2)',
+              textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+              letterSpacing: '0.5px',
+              whiteSpace: 'nowrap',
+              lineHeight: 1
             }}>
-              <ShieldCheck size={12} /> VERIFIED RESIDENT
+              <ShieldCheck size={11} color="#fde68a" strokeWidth={2.5} /> 
+              <span style={{ paddingTop: '1px' }}>VERIFIED RESIDENT</span>
             </div>
           </div>
 
@@ -457,6 +466,31 @@ export default function ResidentProfilePage({ user: initialUser, onLogout }: Res
             </div>
             <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e0f2fe', color: '#0369a1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <MapPin size={16} />
+            </div>
+          </div>
+
+          {/* Email Field */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f8fafc', paddingTop: '12px' }}>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Alamat Email</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                {user.email || 'Belum Ditambahkan'}
+                {user.email && (
+                  <span style={{
+                    padding: '2px 6px',
+                    borderRadius: '6px',
+                    fontSize: '9px',
+                    fontWeight: 800,
+                    background: (user.emailVerified || user.email_verified) ? '#dcfce7' : '#fee2e2',
+                    color: (user.emailVerified || user.email_verified) ? '#15803d' : '#b91c1c',
+                  }}>
+                    {(user.emailVerified || user.email_verified) ? 'Email Terverifikasi' : 'Belum Verifikasi'}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Mail size={16} />
             </div>
           </div>
         </motion.div>
@@ -702,6 +736,11 @@ export default function ResidentProfilePage({ user: initialUser, onLogout }: Res
           0%, 100% { transform: translateX(0); }
           15%, 45%, 75% { transform: translateX(-8px); }
           30%, 60%, 90% { transform: translateX(8px); }
+        }
+        @media (max-width: 768px) {
+          .resident-profile-container {
+            padding: 12px 6px 120px !important;
+          }
         }
       `}</style>
     </motion.div>

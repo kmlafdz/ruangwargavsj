@@ -3,6 +3,7 @@ import { Lock, ShieldCheck, Delete, AlertCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../firebase/config';
 import { doc, updateDoc } from 'firebase/firestore';
+import { showAlert } from '../utils/alert';
 
 interface PinVerificationModalProps {
   isOpen: boolean;
@@ -121,7 +122,7 @@ export default function PinVerificationModal({
 
       setForgotSuccess(true);
       setTimeout(() => {
-        alert('🎉 PIN Keamanan Anda berhasil diperbarui! Silakan gunakan PIN baru Anda.');
+        showAlert('Berhasil', '🎉 PIN Keamanan Anda berhasil diperbarui! Silakan gunakan PIN baru Anda.', 'success');
         handleClose();
       }, 1000);
     } catch (err: any) {

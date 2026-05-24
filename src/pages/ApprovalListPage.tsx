@@ -9,6 +9,7 @@ import {
 import { collection, query, where, onSnapshot, updateDoc, doc, Timestamp, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { sendWhatsAppMessage } from '../services/notificationService';
+import { showAlert } from '../utils/alert';
 
 interface RegistrationRequest {
   id: string;
@@ -45,7 +46,7 @@ export default function ApprovalListPage() {
       let data = allData.filter(r => r.statusValidasi !== 'Terverifikasi');
       
       // Role-based filtering: RT can only see their own RT's residents
-      if (currentUser && (currentUser.role === 'rt' || currentUser.role?.toLowerCase().includes('rt'))) {
+      if (currentUser && (currentUser.adminRole === 'rt' || currentUser.role === 'rt' || currentUser.role?.toLowerCase().includes('rt'))) {
          data = data.filter(r => r.rt_id === currentUser.rt_id || r.rt === currentUser.rt_id);
       }
       // Sort in memory
@@ -77,13 +78,13 @@ export default function ApprovalListPage() {
       const msg = `Selamat ${req.nama}! Registrasi Anda di Ruang Warga VSJ telah DISETUJUI. Sekarang Anda dapat mengakses dashboard penuh.`;
       setLastActionPhone(req.nomorHP);
       setLastActionMsg(msg);
-      setSuccessMessage(`Warga ${req.nama} berhasil disetujui.`);
+      setSuccessMessage('Warga berhasil disetujui!');
       setShowSuccessModal(true);
       
       await sendWhatsAppMessage(req.nomorHP, msg);
     } catch (err) {
       console.error(err);
-      alert("Gagal menyetujui warga.");
+      showAlert('Gagal', "Gagal menyetujui warga.", 'error');
     }
   };
 
@@ -103,13 +104,13 @@ export default function ApprovalListPage() {
       const msg = `Mohon maaf ${req.nama}, registrasi Anda di Ruang Warga VSJ DITOLAK. Alasan: ${reason}. Silakan login kembali dan lengkapi ulang data Anda.`;
       setLastActionPhone(req.nomorHP);
       setLastActionMsg(msg);
-      setSuccessMessage(`Registrasi ${req.nama} telah ditolak.`);
+      setSuccessMessage('Registrasi warga telah ditolak.');
       setShowSuccessModal(true);
       
       await sendWhatsAppMessage(req.nomorHP, msg);
     } catch (err) {
       console.error(err);
-      alert("Gagal menolak warga.");
+      showAlert('Gagal', "Gagal menolak warga.", 'error');
     }
   };
 
@@ -199,7 +200,14 @@ export default function ApprovalListPage() {
                         </button>
                         <button 
                           className={`btn btn-sm ${req.statusValidasi === 'Ditolak' ? 'btn-secondary' : 'btn-primary'}`} 
-                          onClick={() => navigate(`/admin/dev/approval/${req.nik}`)}
+                          onClick={() => {
+                            const currentUserStr = localStorage.getItem('erw_user');
+                            const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+                            let scope = 'dev';
+                            if (currentUser?.adminRole === 'rw') scope = 'rw011';
+                            else if (currentUser?.adminRole === 'rt') scope = `rt${currentUser.rt_id || '001'}`;
+                            navigate(`/admin/${scope}/approval/${req.nik}`);
+                          }}
                         >
                           {req.statusValidasi === 'Ditolak' ? (
                             <><CheckCircle2 size={14} /> <span className="hide-mobile">Telah Ditinjau</span></>
@@ -219,11 +227,13 @@ export default function ApprovalListPage() {
 
       {/* SUCCESS MODAL WITH WA OPTION */}
       {showSuccessModal && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+        <div className="modal-overlay" style={{ zIndex: 2100 }}>
           <div className="card fade-in shadow-xl" style={{ maxWidth: 360, width: '100%', padding: 32, borderRadius: 24, textAlign: 'center' }}>
-            <div style={{ width: 64, height: 64, background: 'var(--green-50)', color: 'var(--green-600)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-              <CheckCircle2 size={32} />
-            </div>
+            <img 
+              src="/vira_ai_berhasil.png" 
+              alt="Vira AI" 
+              style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 20px' }} 
+            />
             <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--gray-800)', marginBottom: 12 }}>Berhasil!</h3>
             <p style={{ fontSize: 15, color: 'var(--gray-500)', marginBottom: 28, lineHeight: 1.5 }}>{successMessage}</p>
             

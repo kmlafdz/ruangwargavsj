@@ -38,7 +38,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ user, allowedRoles, childr
     let target = '/warga/dashboard';
     
     if (isAdmin) {
-      target = '/admin/dev/dashboard';
+      target = adminRole === 'rw' ? '/admin/rw011/dashboard' : '/admin/dev/dashboard';
     }
     
     if (location.pathname === target) {

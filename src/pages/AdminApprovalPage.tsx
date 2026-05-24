@@ -19,6 +19,12 @@ export default function AdminApprovalPage() {
   const [rejectNote, setRejectNote] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [lastActionPhone, setLastActionPhone] = useState('');
+  const [lastActionMsg, setLastActionMsg] = useState('');
+  const [isApproved, setIsApproved] = useState(false);
+
 
   useEffect(() => {
     async function fetchData() {
@@ -83,8 +89,8 @@ export default function AdminApprovalPage() {
                updatePayload.password = userData.pendingPassword;
                updatePayload.pendingPassword = deleteField();
            }
+           await updateDoc(userDocRef, updatePayload);
         }
-        await updateDoc(userDocRef, updatePayload);
         
         // --- Create Family Doc if Kepala Keluarga ---
         if (data.isKepalaKeluarga && data.noKK) {
@@ -106,36 +112,119 @@ export default function AdminApprovalPage() {
         }
         // --------------------------------------------
 
+        let targetUserId = data.nik;
+        let isFamilyMember = !data.isKepalaKeluarga;
+
+        if (isFamilyMember && data.noKK) {
+           const { doc: fDoc, getDoc: fGet } = await import('firebase/firestore');
+           const famDoc = await fGet(fDoc(db, 'families', data.noKK));
+           if (famDoc.exists() && famDoc.data().kepalaKeluargaId) {
+               targetUserId = famDoc.data().kepalaKeluargaId;
+           }
+        }
+
         // Send WhatsApp Approval
+        let msg = '';
         try {
-          const { sendWhatsAppMessage } = await import('../services/notificationService');
-          const msg = `Halo ${data.nama || data.fullName}, pengajuan akun Ruang Warga VSJ Anda telah DISETUJUI. Sekarang Anda dapat login dan mengakses layanan RW 011 secara penuh dengan password terbaru yang telah Anda buat. Terima kasih!`;
+          const { sendWhatsAppMessage, sendNotification } = await import('../services/notificationService');
+          msg = isFamilyMember 
+             ? `Halo, pengajuan penambahan anggota keluarga Anda atas nama ${data.nama || data.fullName} telah DISETUJUI oleh Admin.`
+             : `Halo ${data.nama || data.fullName}, pengajuan akun Ruang Warga VSJ Anda telah DISETUJUI. Sekarang Anda dapat login dan mengakses layanan RW 011 secara penuh dengan password terbaru yang telah Anda buat. Terima kasih!`;
           if (data.nomorHP) await sendWhatsAppMessage(data.nomorHP, msg);
+          
+          await sendNotification(
+            'approval',
+            isFamilyMember ? 'Anggota Keluarga Disetujui' : 'Pendaftaran Disetujui',
+            isFamilyMember 
+               ? `Penambahan anggota keluarga atas nama ${data.nama || data.fullName} telah DISETUJUI.`
+               : `Pengajuan pendaftaran warga Anda atas nama ${data.nama || data.fullName} telah DISETUJUI.`,
+            ['warga'],
+            { targetId: targetUserId, targetAccountType: 'resident', route: isFamilyMember ? '/warga/keluarga' : '/warga/dashboard' }
+          );
         } catch (waErr) { console.error("WA Error:", waErr); }
+
+        setIsApproved(true);
+        setSuccessMessage(isFamilyMember
+          ? `Penambahan anggota keluarga atas nama ${data.nama || data.fullName} telah disetujui.`
+          : `Pengajuan pendaftaran warga atas nama ${data.nama || data.fullName} telah disetujui.`
+        );
+        setLastActionPhone(data.nomorHP || '');
+        setLastActionMsg(msg);
+
 
       } else {
         // Reject Resident
+        let targetUserId = data.nik;
+        let isFamilyMember = !data.isKepalaKeluarga;
+        
+        if (isFamilyMember && data.noKK) {
+           const { doc: fDoc, getDoc: fGet } = await import('firebase/firestore');
+           const famDoc = await fGet(fDoc(db, 'families', data.noKK));
+           if (famDoc.exists() && famDoc.data().kepalaKeluargaId) {
+               targetUserId = famDoc.data().kepalaKeluargaId;
+           }
+        }
+
         await updateDoc(doc(db, 'residents', data.id), { 
           statusValidasi: 'Ditolak',
-          rejectionReason: rejectNote
+          rejectionReason: rejectNote,
+          ktpPhotoUrl: '',
+          kkPhotoUrl: '',
+          facePhotoBase64: '',
+          ktpUrl: '',
+          kkUrl: '',
+          fotoKK: ''
         });
         
-        // Reset User for re-registration
-        await updateDoc(doc(db, 'users', data.nik), { 
-          registrationStatus: 'pending_input',
-          accountStatus: 'rejected',
-          rejectionReason: rejectNote
-        });
+        const { getDoc, updateDoc: updateDocReject, doc: docReject } = await import('firebase/firestore');
+        const userDocRefRej = docReject(db, 'users', data.nik);
+        const userSnapRej = await getDoc(userDocRefRej);
+        if (userSnapRej.exists()) {
+          const userPayload: any = { 
+            rejectionReason: rejectNote,
+            ktpPhotoUrl: '',
+            kkPhotoUrl: '',
+            facePhotoBase64: '',
+            ktpUrl: '',
+            kkUrl: ''
+          };
+          if (!isFamilyMember) {
+            userPayload.registrationStatus = 'pending_input';
+            userPayload.accountStatus = 'rejected';
+          }
+          await updateDocReject(userDocRefRej, userPayload);
+        }
 
         // Send WhatsApp Rejection
+        let msg = '';
         try {
-          const { sendWhatsAppMessage } = await import('../services/notificationService');
-          const msg = `Halo ${data.nama || data.fullName}, pengajuan akun Ruang Warga VSJ Anda PERLU REVISI. Alasan: ${rejectNote}. Silakan login kembali ke aplikasi menggunakan akun yang sama untuk memperbaiki data. Terima kasih.`;
+          const { sendWhatsAppMessage, sendNotification } = await import('../services/notificationService');
+          msg = isFamilyMember 
+             ? `Halo, pengajuan penambahan anggota keluarga atas nama ${data.nama || data.fullName} DITOLAK karena: ${rejectNote}. Silakan cek aplikasi untuk memperbaikinya.`
+             : `Halo ${data.nama || data.fullName}, pengajuan akun Ruang Warga VSJ Anda PERLU REVISI. Alasan: ${rejectNote}. Silakan login kembali ke aplikasi menggunakan akun yang sama untuk memperbaiki data. Terima kasih.`;
           if (data.nomorHP) await sendWhatsAppMessage(data.nomorHP, msg);
+
+          await sendNotification(
+            'rejection',
+            isFamilyMember ? 'Anggota Keluarga Ditolak' : 'Pengajuan Ditolak',
+            isFamilyMember
+              ? `Penambahan anggota keluarga atas nama ${data.nama || data.fullName} ditolak. Alasan: ${rejectNote}`
+              : `Pengajuan pendaftaran Anda perlu direvisi. Alasan: ${rejectNote}`,
+            ['warga'],
+            { targetId: targetUserId, targetAccountType: 'resident', route: isFamilyMember ? '/warga/keluarga' : '/warga/aktivasi' }
+          );
         } catch (waErr) { console.error("WA Error:", waErr); }
+
+        setIsApproved(false);
+        setSuccessMessage(isFamilyMember
+          ? `Penambahan anggota keluarga atas nama ${data.nama || data.fullName} telah ditolak.`
+          : `Pengajuan pendaftaran warga atas nama ${data.nama || data.fullName} telah ditolak.`
+        );
+        setLastActionPhone(data.nomorHP || '');
+        setLastActionMsg(msg);
       }
       
-      navigate('/admin/dev/approvals'); 
+      setShowSuccessModal(true); 
     } catch (err) {
       console.error(err);
     } finally {
@@ -286,9 +375,9 @@ export default function AdminApprovalPage() {
               <div className="card" style={{ flex: 1 }}>
                 <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--gray-100)', fontWeight: 600, fontSize: 12, background: 'var(--gray-50)' }}>Foto Kartu Keluarga</div>
                 <div style={{ padding: 12 }}>
-                  {(data.kkPhotoUrl || data.kkUrl) ? (
+                  {(data.kkPhotoUrl || data.kkUrl || data.fotoKK) ? (
                     <div style={{ position: 'relative' }}>
-                      <img src={data.kkPhotoUrl || data.kkUrl} alt="KK" onClick={() => setZoomedImage(data.kkPhotoUrl || data.kkUrl)} style={{ width: '100%', borderRadius: 8, border: '1px solid var(--gray-200)', maxHeight: 200, objectFit: 'contain', cursor: 'zoom-in' }} />
+                      <img src={data.kkPhotoUrl || data.kkUrl || data.fotoKK} alt="KK" onClick={() => setZoomedImage(data.kkPhotoUrl || data.kkUrl || data.fotoKK)} style={{ width: '100%', borderRadius: 8, border: '1px solid var(--gray-200)', maxHeight: 200, objectFit: 'contain', cursor: 'zoom-in' }} />
                     </div>
                   ) : (
                     <div style={{ padding: 30, color: 'var(--gray-300)', textAlign: 'center', fontSize: 12 }}>Foto KK tidak tersedia</div>
@@ -418,6 +507,49 @@ export default function AdminApprovalPage() {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Success / Rejection Modal */}
+      {showSuccessModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2100 }}>
+          <div className="card fade-in shadow-xl" style={{ maxWidth: 360, width: '100%', padding: 32, borderRadius: 24, textAlign: 'center', background: '#fff' }}>
+            <img 
+              src="/vira_ai_berhasil.png" 
+              alt="Vira AI" 
+              style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 20px' }} 
+            />
+            <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--gray-800)', marginBottom: 12 }}>
+              {isApproved ? "Berhasil!" : "Pengajuan Ditolak"}
+            </h3>
+            <p style={{ fontSize: 15, color: 'var(--gray-500)', marginBottom: 28, lineHeight: 1.5 }}>{successMessage}</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                className="btn btn-secondary btn-block"
+                style={{ padding: '12px', fontSize: '14px', fontWeight: 600, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%' }}
+                onClick={() => {
+                  if (lastActionPhone) {
+                    const cleanPhone = lastActionPhone.replace(/^0/, '62');
+                    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(lastActionMsg)}`, '_blank');
+                  }
+                }}
+              >
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width={16} height={16} alt="WA" /> Kirim via WhatsApp
+              </button>
+              
+              <button
+                className="btn btn-primary btn-block"
+                style={{ padding: '14px', fontSize: '15px', fontWeight: 700, borderRadius: '12px', width: '100%' }}
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate('/admin/dev/approvals');
+                }}
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}

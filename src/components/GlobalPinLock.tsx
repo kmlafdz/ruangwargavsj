@@ -3,6 +3,7 @@ import { Lock, ShieldCheck, Delete, AlertCircle, Key } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../firebase/config';
 import { doc, updateDoc } from 'firebase/firestore';
+import { showAlert } from '../utils/alert';
 
 interface GlobalPinLockProps {
   correctPin: string;
@@ -104,7 +105,7 @@ export default function GlobalPinLock({
 
       setForgotSuccess(true);
       setTimeout(() => {
-        alert('🎉 PIN Keamanan Anda berhasil diperbarui! Silakan gunakan PIN baru Anda untuk masuk.');
+        showAlert('Berhasil', '🎉 PIN Keamanan Anda berhasil diperbarui! Silakan gunakan PIN baru Anda untuk masuk.', 'success');
         setForgotSuccess(false);
         setShowForgotModal(false);
         setPasswordInput('');

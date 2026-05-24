@@ -12,6 +12,7 @@ import {
 import { db } from '../firebase/config';
 import { User } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { showAlert } from '../utils/alert';
 
 interface FeedbackPageProps {
   isAdminView?: boolean;
@@ -79,7 +80,15 @@ export default function FeedbackPage({ isAdminView = false, user }: FeedbackPage
     const unsubscribe = onSnapshot(q, (snap) => {
       const items: Feedback[] = [];
       snap.forEach((doc) => {
-        items.push({ id: doc.id, ...doc.data() } as Feedback);
+        const data = doc.data() as any;
+        if (isAdminView && user?.adminRole === 'rt') {
+          // Filter by rt_id if present (or show all if feedback has no rt_id for backwards compatibility)
+          if (!data.rt_id || data.rt_id === user.rt_id) {
+            items.push({ id: doc.id, ...data } as Feedback);
+          }
+        } else {
+          items.push({ id: doc.id, ...data } as Feedback);
+        }
       });
       setFeedbacks(items);
       setLoading(false);
@@ -89,13 +98,13 @@ export default function FeedbackPage({ isAdminView = false, user }: FeedbackPage
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user, isAdminView]);
 
   // Submit Feedback
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFeedback.title.trim() || !newFeedback.content.trim()) {
-      alert("Harap lengkapi judul dan isi!");
+      showAlert('Peringatan', "Harap lengkapi judul dan isi!", 'warning');
       return;
     }
 
@@ -110,6 +119,7 @@ export default function FeedbackPage({ isAdminView = false, user }: FeedbackPage
         authorId: user.id,
         authorName: user.name,
         authorPhoto: user.photoUrl || null,
+        rt_id: user.rt_id || '',
         status: 'Terkirim',
         adminResponse: null,
         responseAuthor: null,
@@ -144,7 +154,7 @@ export default function FeedbackPage({ isAdminView = false, user }: FeedbackPage
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Gagal mengirim:", error);
-      alert("Gagal mengirim Kritik & Saran.");
+      showAlert('Gagal', "Gagal mengirim Kritik & Saran.", 'error');
     } finally {
       setSubmitLoading(false);
     }
@@ -187,7 +197,7 @@ export default function FeedbackPage({ isAdminView = false, user }: FeedbackPage
       setShowAdminSuccessModal(true);
     } catch (error) {
       console.error("Gagal menyimpan tanggapan:", error);
-      alert("Gagal menyimpan tanggapan.");
+      showAlert('Gagal', "Gagal menyimpan tanggapan.", 'error');
     } finally {
       setResponseLoading(false);
     }
@@ -230,9 +240,10 @@ export default function FeedbackPage({ isAdminView = false, user }: FeedbackPage
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
+      className={`feedback-page-container ${isAdminView ? 'is-admin' : 'is-resident'}`}
       style={{
-        padding: '24px',
-        maxWidth: '1200px',
+        padding: isAdminView ? '24px' : '16px 16px 100px',
+        maxWidth: isAdminView ? '1200px' : '500px',
         margin: '0 auto',
         fontFamily: 'system-ui, -apple-system, sans-serif'
       }}
@@ -1124,19 +1135,11 @@ export default function FeedbackPage({ isAdminView = false, user }: FeedbackPage
                 textAlign: 'center'
               }}
             >
-              <div style={{
-                width: '64px',
-                height: '64px',
-                background: '#eff6ff',
-                borderRadius: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 24px',
-                color: '#2563eb'
-              }}>
-                <CheckCircle size={32} style={{ color: '#2563eb' }} />
-              </div>
+              <img 
+                src="/vira_ai_berhasil.png" 
+                alt="Vira AI" 
+                style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 24px' }} 
+              />
 
               <h3 style={{ fontSize: '18px', fontWeight: 950, color: '#0f172a', marginBottom: 12 }}>
                 Kritik & Saran Dikirim!
@@ -1198,19 +1201,11 @@ export default function FeedbackPage({ isAdminView = false, user }: FeedbackPage
                 textAlign: 'center'
               }}
             >
-              <div style={{
-                width: '64px',
-                height: '64px',
-                background: '#ecfdf5',
-                borderRadius: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 24px',
-                color: '#10b981'
-              }}>
-                <CheckCircle size={32} style={{ color: '#10b981' }} />
-              </div>
+              <img 
+                src="/vira_ai_berhasil.png" 
+                alt="Vira AI" 
+                style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 24px' }} 
+              />
 
               <h3 style={{ fontSize: '18px', fontWeight: 950, color: '#0f172a', marginBottom: 12 }}>
                 Tanggapan Terkirim!
@@ -1241,6 +1236,13 @@ export default function FeedbackPage({ isAdminView = false, user }: FeedbackPage
           </div>
         )}
       </AnimatePresence>
+      <style>{`
+        @media (max-width: 768px) {
+          .feedback-page-container.is-resident {
+            padding: 12px 6px 100px !important;
+          }
+        }
+      `}</style>
     </motion.div>
   );
 }

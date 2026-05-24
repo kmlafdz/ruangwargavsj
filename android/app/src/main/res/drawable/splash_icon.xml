@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Outer circle background -->
+    <path
+        android:pathData="M100,100m-95,0a95,95 0,1 1,190 0a95,95 0,1 1,-190 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="100"
+                android:centerY="100"
+                android:gradientRadius="95"
+                android:startColor="#1D4ED8"
+                android:endColor="#0D9488" />
+        </aapt:attr>
+    </path>
+
+    <!-- Ring outline -->
+    <path
+        android:pathData="M100,100m-88,0a88,88 0,1 1,176 0a88,88 0,1 1,-176 0"
+        android:strokeColor="#60A5FA"
+        android:strokeWidth="3"
+        android:fillColor="#00000000" />
+
+    <!-- House roof -->
+    <path
+        android:pathData="M100,42 L58,78 L72,78 L72,120 L128,120 L128,78 L142,78 Z"
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- House door -->
+    <path
+        android:pathData="M88,120 L88,100 Q88,92 100,92 Q112,92 112,100 L112,120 Z"
+        android:fillColor="#93C5FD"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- House window left -->
+    <path
+        android:pathData="M76,88 L90,88 L90,102 L76,102 Z"
+        android:fillColor="#BAE6FD"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- House window right -->
+    <path
+        android:pathData="M110,88 L124,88 L124,102 L110,102 Z"
+        android:fillColor="#BAE6FD"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- Left person body -->
+    <path
+        android:pathData="M62,135 Q55,128 58,120 Q64,110 72,115 Q80,120 77,130 Q74,140 65,143 Z"
+        android:fillColor="#60A5FA"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- Left person head -->
+    <path
+        android:pathData="M65,112m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0"
+        android:fillColor="#93C5FD"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- Center person body -->
+    <path
+        android:pathData="M100,158 Q88,150 88,138 Q88,124 100,124 Q112,124 112,138 Q112,150 100,158 Z"
+        android:fillColor="#2DD4BF"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- Center person head -->
+    <path
+        android:pathData="M100,120m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0"
+        android:fillColor="#5EEAD4"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- Right person body -->
+    <path
+        android:pathData="M138,135 Q145,128 142,120 Q136,110 128,115 Q120,120 123,130 Q126,140 135,143 Z"
+        android:fillColor="#60A5FA"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- Right person head -->
+    <path
+        android:pathData="M135,112m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0"
+        android:fillColor="#93C5FD"
+        android:strokeColor="#00000000"
+        android:strokeWidth="1" />
+
+    <!-- Connecting arc / hands -->
+    <path
+        android:pathData="M62,138 Q80,155 100,158 Q120,155 138,138"
+        android:strokeColor="#7DD3FC"
+        android:strokeWidth="5"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round" />
+
+</vector>

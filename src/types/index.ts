@@ -16,7 +16,10 @@ export interface User {
   rw_id?: string; // e.g. "011"
   email?: string;
   emailVerified?: boolean;
+  email_verified?: boolean;
+  email_verified_at?: any;
   phone?: string;
+  phoneNumber?: string;
   status?: RegistrationStatus;
   registrationStatus?: 'pending_input' | 'pending_approval' | 'verified';
   accountStatus?: AccountStatus;
@@ -135,5 +138,27 @@ export interface RTData {
   name: string;
   count: number;
   residents: number;
+}
+
+export interface Kegiatan {
+  id: string;
+  title: string;
+  description: string;
+  date: string;       // Format YYYY-MM-DD
+  time: string;       // Format HH:MM
+  location: string;
+  createdAt?: any;
+  createdById?: string;
+  createdByRole?: string;
+}
+
+export interface FypLink {
+  id: string;
+  url: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  platform: 'instagram' | 'youtube' | 'facebook' | 'x' | 'threads' | 'article' | 'other';
+  createdAt?: any;
 }
 

@@ -8,6 +8,7 @@ import {
 import { collection, query, where, onSnapshot, updateDoc, doc, Timestamp, orderBy } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { sendWhatsAppMessage } from '../services/notificationService';
+import { showAlert } from '../utils/alert';
 
 interface RegistrationRequest {
   id: string;
@@ -58,14 +59,14 @@ export default function ApprovalPage() {
       const msg = `Selamat ${req.nama}! Registrasi Anda di Ruang Warga VSJ telah DISETUJUI. Sekarang Anda dapat mengakses dashboard penuh.`;
       setLastActionPhone(req.nomorHP);
       setLastActionMsg(msg);
-      setSuccessMessage(`Warga ${req.nama} berhasil disetujui.`);
+      setSuccessMessage('Warga berhasil diverifikasi!');
       setShowSuccessModal(true);
       
       // Try auto-send
       await sendWhatsAppMessage(req.nomorHP, msg);
-    } catch (err) {
-      console.error(err);
-      alert("Gagal menyetujui warga.");
+    } catch (error) {
+      console.error('Error approving user:', error);
+      showAlert('Gagal', "Gagal menyetujui warga.", 'error');
     }
   };
 
@@ -85,13 +86,13 @@ export default function ApprovalPage() {
       const msg = `Mohon maaf ${req.nama}, registrasi Anda di Ruang Warga VSJ DITOLAK. Alasan: ${reason}. Silakan login kembali dan lengkapi ulang data Anda.`;
       setLastActionPhone(req.nomorHP);
       setLastActionMsg(msg);
-      setSuccessMessage(`Registrasi ${req.nama} telah ditolak.`);
+      setSuccessMessage('Pendaftaran warga ditolak.');
       setShowSuccessModal(true);
       
       await sendWhatsAppMessage(req.nomorHP, msg);
-    } catch (err) {
-      console.error(err);
-      alert("Gagal menolak warga.");
+    } catch (error) {
+      console.error('Error rejecting user:', error);
+      showAlert('Gagal', "Gagal menolak warga.", 'error');
     }
   };
 
@@ -194,11 +195,13 @@ export default function ApprovalPage() {
 
       {/* SUCCESS MODAL WITH WA OPTION */}
       {showSuccessModal && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+        <div className="modal-overlay" style={{ zIndex: 2100 }}>
           <div className="card fade-in shadow-xl" style={{ maxWidth: 360, width: '100%', padding: 32, borderRadius: 24, textAlign: 'center' }}>
-            <div style={{ width: 64, height: 64, background: 'var(--green-50)', color: 'var(--green-600)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-              <CheckCircle2 size={32} />
-            </div>
+            <img 
+              src="/vira_ai_berhasil.png" 
+              alt="Vira AI" 
+              style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 20px' }} 
+            />
             <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--gray-800)', marginBottom: 12 }}>Berhasil!</h3>
             <p style={{ fontSize: 15, color: 'var(--gray-500)', marginBottom: 28, lineHeight: 1.5 }}>{successMessage}</p>
             

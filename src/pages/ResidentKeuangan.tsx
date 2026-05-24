@@ -6,7 +6,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Wallet, Search, Plus, Download, Filter, CreditCard, 
   History, Clock, CheckCircle, AlertCircle, ChevronRight, 
-  Smartphone, Send, Upload, FileText, Check, X, ShieldCheck
+  Smartphone, Send, Upload, FileText, Check, X, ShieldCheck,
+  Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../firebase/config';
@@ -18,6 +19,8 @@ import {
   payWithRuangPay, 
   submitPaymentProof, 
   topUpRuangPay,
+  getAdminPhoneNumber,
+  getPaymentSettings,
   FamilyBill,
   Payment 
 } from '../services/financeService';
@@ -41,13 +44,20 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
 
   // Payment Modal
   const [selectedBill, setSelectedBill] = useState<FamilyBill | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'RuangPay' | 'Transfer Bank' | 'QRIS' | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'RuangPay' | 'Transfer Bank' | 'QRIS' | 'E-wallet' | null>(null);
   const [proofImage, setProofImage] = useState<string>('');
   const [isPaymentSubmitting, setIsPaymentSubmitting] = useState(false);
 
+  // Dynamic Payment Settings
+  const [paymentSettings, setPaymentSettings] = useState<any>(null);
+  const [loadingSettings, setLoadingSettings] = useState(false);
+
+  // Success WhatsApp Confirmation Screen
+  const [lastUploadedPayment, setLastUploadedPayment] = useState<any>(null);
+
   // Toast
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
@@ -116,6 +126,49 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
     };
   }, [myFamily?.nomorKK]);
 
+  // Load dynamic payment settings when selected bill changes
+  useEffect(() => {
+    if (!selectedBill) {
+      setPaymentSettings(null);
+      return;
+    }
+    
+    const targetRegion = selectedBill.category === 'Setoran Kas RT ke RW' 
+      ? 'rw' 
+      : (myFamily?.rt || user?.rt_id || '001');
+
+    setLoadingSettings(true);
+    getPaymentSettings(targetRegion)
+      .then((settings) => {
+        setPaymentSettings(settings);
+      })
+      .catch((err) => {
+        console.error("Error loading payment settings for checkout:", err);
+      })
+      .finally(() => {
+        setLoadingSettings(false);
+      });
+  }, [selectedBill, myFamily?.rt, user?.rt_id]);
+
+  const handleWhatsAppRedirect = async (paymentInfo: { billTitle: string; amount: number; category: string; rt: string; kepalaKeluarga: string; nomorKK: string }) => {
+    const targetRole = paymentInfo.category === 'Setoran Kas RT ke RW' ? 'rw' : 'rt';
+    const adminPhone = await getAdminPhoneNumber(targetRole, paymentInfo.rt);
+    if (!adminPhone) {
+      showToast('Nomor WhatsApp admin tidak ditemukan. Silakan hubungi admin secara manual.', 'error');
+      return;
+    }
+    
+    const message = `Halo Admin, saya telah mengunggah bukti pembayaran untuk tagihan:\n*${paymentInfo.billTitle}*\nNominal: *Rp ${paymentInfo.amount.toLocaleString('id-ID')}*\nAtas Nama: *${paymentInfo.kepalaKeluarga}* (KK: ${paymentInfo.nomorKK})\n\nMohon bantuannya untuk mengecek bukti pembayaran saya di aplikasi Ruang Warga. Terima kasih!`;
+    
+    let formattedPhone = adminPhone.trim().replace(/[-+\s]/g, '');
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '62' + formattedPhone.substring(1);
+    }
+    
+    const waUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+  };
+
   const activeBills = familyBills.filter(b => b.status !== 'LUNAS');
   const paidBillsCount = familyBills.filter(b => b.status === 'LUNAS').length;
   const totalOutstanding = activeBills.reduce((acc, b) => acc + b.amount, 0);
@@ -166,22 +219,23 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
     setIsPaymentSubmitting(true);
     try {
       if (paymentMethod === 'RuangPay') {
-        const success = await payWithRuangPay(selectedBill.id, userData.id, {
-          id: myFamily.id,
-          nomorKK: myFamily.nomorKK,
-          kepalaKeluarga: myFamily.kepalaKeluarga || userData.name,
-          rt: myFamily.rt || '001'
-        });
-        if (success) {
-          showToast(`Pembayaran ${selectedBill.title} lunas seketika ditenagai RuangPay!`, 'success');
-          setSelectedBill(null);
-        }
+        showToast('Metode pembayaran RuangPay Instan segera hadir (Coming Soon)!', 'info');
+        setIsPaymentSubmitting(false);
+        return;
       } else {
         if (!proofImage) {
           showToast('Silakan unggah bukti transfer/pembayaran Anda', 'error');
           setIsPaymentSubmitting(false);
           return;
         }
+        const uploadedPayment = {
+          billTitle: selectedBill.title,
+          amount: selectedBill.amount,
+          category: selectedBill.category,
+          rt: myFamily?.rt || user?.rt_id || '001',
+          kepalaKeluarga: myFamily?.kepalaKeluarga || userData.name,
+          nomorKK: myFamily?.nomorKK || ''
+        };
         await submitPaymentProof(selectedBill.id, paymentMethod, proofImage, {
           id: myFamily.id,
           nomorKK: myFamily.nomorKK,
@@ -189,6 +243,7 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
           rt: myFamily.rt || '001'
         });
         showToast('Bukti pembayaran berhasil diunggah. Menunggu verifikasi admin.', 'success');
+        setLastUploadedPayment(uploadedPayment);
         setSelectedBill(null);
       }
     } catch (error: any) {
@@ -208,6 +263,34 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
     return titleMatch && catMatch;
   });
 
+  const isBankAvailable = paymentSettings ? (paymentSettings.bank?.active ?? false) : true;
+  const isEwalletAvailable = paymentSettings ? (paymentSettings.ewallet?.active ?? false) : false;
+  const isQrisAvailable = paymentSettings ? (paymentSettings.qris?.active ?? false) : true;
+
+  const bankInfo = paymentSettings?.bank?.active ? {
+    name: paymentSettings.bank.bankName,
+    number: paymentSettings.bank.accountNumber,
+    owner: paymentSettings.bank.accountName
+  } : {
+    name: 'Transfer Bank Mandiri',
+    number: '131-00-1234567-8',
+    owner: 'Kas RW 011 VSJ'
+  };
+
+  const ewalletInfo = paymentSettings?.ewallet?.active ? {
+    provider: paymentSettings.ewallet.provider,
+    phone: paymentSettings.ewallet.phoneNumber,
+    owner: paymentSettings.ewallet.accountName
+  } : null;
+
+  const qrisInfo = paymentSettings?.qris?.active ? {
+    name: paymentSettings.qris.qrisName,
+    image: paymentSettings.qris.qrisImage
+  } : {
+    name: 'QRIS Mandiri VSJ',
+    image: ''
+  };
+
   return (
     <div className="resident-keuangan-container">
       <style>{`
@@ -220,56 +303,138 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
           color: #0f172a;
         }
         .ruangpay-card {
-          background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+          background: linear-gradient(135deg, #090e1a 0%, #1e1b4b 50%, #0a0a0c 100%);
           border-radius: 24px;
-          padding: 24px;
+          padding: 26px;
           color: #fff;
           position: relative;
           overflow: hidden;
-          box-shadow: 0 20px 40px rgba(59, 130, 246, 0.25);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+                      0 0 40px rgba(99, 102, 241, 0.15), 
+                      inset 0 1px 1px rgba(255, 255, 255, 0.15);
           margin-bottom: 24px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(212, 175, 55, 0.25);
         }
         .ruangpay-card::before {
           content: '';
           position: absolute;
+          width: 250px;
+          height: 250px;
+          background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+          top: -80px;
+          right: -80px;
+          border-radius: 50%;
+          z-index: 1;
+        }
+        .ruangpay-card::after {
+          content: '';
+          position: absolute;
           width: 300px;
           height: 300px;
-          background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
-          top: -100px;
-          right: -100px;
+          background: radial-gradient(circle, rgba(212, 175, 55, 0.06) 0%, transparent 70%);
+          bottom: -150px;
+          left: -100px;
           border-radius: 50%;
+          z-index: 1;
+        }
+        .card-chip {
+          width: 38px;
+          height: 28px;
+          background: linear-gradient(135deg, #ffe066 0%, #f5b041 50%, #d4af37 100%);
+          border-radius: 6px;
+          position: absolute;
+          top: 26px;
+          right: 26px;
+          box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 4px 10px rgba(0,0,0,0.3);
+          display: flex;
+          flex-wrap: wrap;
+          padding: 3px;
+          gap: 2px;
+          opacity: 0.95;
+          z-index: 3;
+        }
+        .card-chip-inner {
+          flex: 1 1 40%;
+          border: 1px solid rgba(0,0,0,0.12);
+          border-radius: 2px;
+        }
+        .shimmer-effect {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            120deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.06) 40%,
+            rgba(255, 255, 255, 0.12) 50%,
+            rgba(255, 255, 255, 0.06) 60%,
+            transparent 70%
+          );
+          background-size: 200% 100%;
+          animation: cardShimmer 6s infinite linear;
+          pointer-events: none;
+          z-index: 2;
+        }
+        @keyframes cardShimmer {
+          0% { background-position: 150% 0; }
+          100% { background-position: -50% 0; }
+        }
+        .gold-badge {
+          background: linear-gradient(135deg, #f5b041 0%, #d4af37 100%);
+          color: #000;
+          font-weight: 900;
+          font-size: 8px;
+          padding: 2px 6px;
+          border-radius: 4px;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          box-shadow: 0 2px 4px rgba(212,175,55,0.3);
         }
         .tagline {
           font-size: 11px;
           font-weight: 800;
           letter-spacing: 0.15em;
           text-transform: uppercase;
-          opacity: 0.8;
           display: flex;
           align-items: center;
           gap: 6px;
-          margin-bottom: 12px;
+          margin-bottom: 16px;
+          position: relative;
+          z-index: 3;
+          color: #d4af37;
+          text-shadow: 0 0 8px rgba(212,175,55,0.2);
         }
         .balance-label {
-          font-size: 12px;
-          opacity: 0.7;
-          font-weight: 500;
+          font-size: 11px;
+          opacity: 0.6;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          position: relative;
+          z-index: 3;
+          color: #94a3b8;
         }
         .balance-val {
-          font-size: 32px;
+          font-size: 36px;
           font-weight: 900;
           letter-spacing: -0.5px;
-          margin: 4px 0 20px;
+          margin: 4px 0 24px;
+          position: relative;
+          z-index: 3;
+          background: linear-gradient(to right, #ffffff 0%, #e2e8f0 50%, #ffffff 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
         }
         .pay-actions {
           display: flex;
           gap: 12px;
+          position: relative;
+          z-index: 3;
         }
         .pay-btn {
           flex: 1;
-          background: rgba(255, 255, 255, 0.15);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 14px;
           padding: 12px;
           display: flex;
@@ -280,12 +445,15 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
           font-size: 13px;
           font-weight: 700;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           backdrop-filter: blur(10px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         .pay-btn:hover {
-          background: rgba(255, 255, 255, 0.25);
+          background: rgba(255, 255, 255, 0.09);
+          border-color: rgba(212, 175, 55, 0.4);
           transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(212,175,55,0.15);
         }
         .metric-cards-grid {
           display: grid;
@@ -466,7 +634,7 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
           background: #fff;
           border-radius: 32px 32px 0 0;
           padding: 24px 24px 42px;
-          z-index: 5001;
+          z-index: 11001;
           max-height: 95vh;
           overflow-y: auto;
           box-shadow: 0 -20px 40px rgba(0,0,0,0.1);
@@ -476,7 +644,7 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
           inset: 0;
           background: rgba(15,23,42,0.4);
           backdrop-filter: blur(8px);
-          z-index: 5000;
+          z-index: 11000;
         }
         .method-selector {
           display: flex;
@@ -540,7 +708,7 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
           top: 24px;
           left: 50%;
           transform: translateX(-50%);
-          z-index: 10000;
+          z-index: 12000;
           background: #0f172a;
           color: #fff;
           border-radius: 16px;
@@ -551,6 +719,14 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
           font-size: 13px;
           font-weight: 700;
+        }
+        @media (max-width: 768px) {
+          .resident-keuangan-container {
+            padding: 12px 6px 100px !important;
+          }
+          .ruangpay-card {
+            padding: 20px !important;
+          }
         }
       `}</style>
 
@@ -563,7 +739,13 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
             exit={{ y: -20, opacity: 0, x: '-50%' }}
             className="toast-premium"
           >
-            {toast.type === 'success' ? <CheckCircle size={16} style={{ color: '#22c55e' }} /> : <AlertCircle size={16} style={{ color: '#ef4444' }} />}
+            {toast.type === 'success' ? (
+              <CheckCircle size={16} style={{ color: '#22c55e' }} />
+            ) : toast.type === 'error' ? (
+              <AlertCircle size={16} style={{ color: '#ef4444' }} />
+            ) : (
+              <Info size={16} style={{ color: '#3b82f6' }} />
+            )}
             <span>{toast.message}</span>
           </motion.div>
         )}
@@ -572,18 +754,38 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         {/* RuangPay E-Wallet Card */}
         <div className="ruangpay-card">
+          <div className="shimmer-effect" />
+          <div className="card-chip">
+            <div className="card-chip-inner" />
+            <div className="card-chip-inner" />
+            <div className="card-chip-inner" />
+            <div className="card-chip-inner" />
+          </div>
           <div className="tagline">
-            <Smartphone size={16} />
+            <Smartphone size={16} style={{ color: '#d4af37' }} />
             <span>RUANGPAY WALLET</span>
+            <span className="gold-badge" style={{ marginLeft: 50 }}>PREMIUM</span>
           </div>
           <div className="balance-label">Saldo Aktif Anda</div>
           <div className="balance-val">
             Rp {(userData.ruangPayBalance || 0).toLocaleString('id-ID')}
           </div>
           <div className="pay-actions">
-            <button className="pay-btn" onClick={() => setShowTopUpModal(true)}>
+            <button 
+              className="pay-btn" 
+              onClick={() => showToast('Fitur Isi Saldo RuangPay Instan segera hadir (Coming Soon)!', 'info')}
+            >
               <Plus size={18} />
               <span>Isi Saldo</span>
+              <span style={{ 
+                background: 'linear-gradient(135deg, #f5b041 0%, #d4af37 100%)', 
+                color: '#000', 
+                fontSize: 8, 
+                fontWeight: 900, 
+                padding: '1px 4px', 
+                borderRadius: 3,
+                marginLeft: 2
+              }}>SOON</span>
             </button>
             <button className="pay-btn" onClick={() => {
               if (activeBills.length > 0) {
@@ -667,6 +869,22 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
                       Bayar Sekarang <ChevronRight size={14} />
                     </button>
                   )}
+                  {bill.status === 'MENUNGGU VERIFIKASI' && (
+                    <button 
+                      className="btn-pay-now" 
+                      style={{ background: '#25d366', color: '#fff' }}
+                      onClick={() => handleWhatsAppRedirect({
+                        billTitle: bill.title,
+                        amount: bill.amount,
+                        category: bill.category,
+                        rt: myFamily?.rt || user?.rt_id || '001',
+                        kepalaKeluarga: myFamily?.kepalaKeluarga || userData.name,
+                        nomorKK: myFamily?.nomorKK || ''
+                      })}
+                    >
+                      <Send size={14} style={{ marginRight: 6 }} /> Kirim Bukti via WhatsApp
+                    </button>
+                  )}
                 </div>
               );
             })}
@@ -712,24 +930,62 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
               const statusColor = p.status === 'APPROVED' ? '#dcfce7' : p.status === 'REJECTED' ? '#fef2f2' : '#fff7ed';
               const iconColor = p.status === 'APPROVED' ? '#22c55e' : p.status === 'REJECTED' ? '#ef4444' : '#f59e0b';
               return (
-                <div key={p.id} className="history-card" onClick={() => p.status === 'APPROVED' && setActiveReceipt(p)} style={{ cursor: p.status === 'APPROVED' ? 'pointer' : 'default' }}>
-                  <div className="h-left">
-                    <div className="h-icon" style={{ background: statusColor, color: iconColor }}>
-                      {p.status === 'APPROVED' ? <CheckCircle size={18} /> : p.status === 'REJECTED' ? <X size={18} /> : <Clock size={18} />}
+                <div key={p.id} className="history-card" onClick={() => p.status === 'APPROVED' && setActiveReceipt(p)} style={{ cursor: p.status === 'APPROVED' ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <div className="h-left">
+                      <div className="h-icon" style={{ background: statusColor, color: iconColor }}>
+                        {p.status === 'APPROVED' ? <CheckCircle size={18} /> : p.status === 'REJECTED' ? <X size={18} /> : <Clock size={18} />}
+                      </div>
+                      <div>
+                        <div className="h-title">{bill?.title || 'Iuran Bulanan'}</div>
+                        <div className="h-date">{p.paymentDate?.toDate ? p.paymentDate.toDate().toLocaleDateString('id-ID') : 'Baru saja'} • {p.paymentMethod}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="h-title">{bill?.title || 'Iuran Bulanan'}</div>
-                      <div className="h-date">{p.paymentDate?.toDate ? p.paymentDate.toDate().toLocaleDateString('id-ID') : 'Baru saja'} • {p.paymentMethod}</div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div className="h-amount" style={{ color: iconColor }}>
+                        Rp {p.amount.toLocaleString('id-ID')}
+                      </div>
+                      <span className={`badge-finance ${p.status === 'APPROVED' ? 'paid' : p.status === 'REJECTED' ? 'overdue' : 'pending'}`}>
+                        {p.status}
+                      </span>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div className="h-amount" style={{ color: iconColor }}>
-                      Rp {p.amount.toLocaleString('id-ID')}
-                    </div>
-                    <span className={`badge-finance ${p.status === 'APPROVED' ? 'paid' : p.status === 'REJECTED' ? 'overdue' : 'pending'}`}>
-                      {p.status}
-                    </span>
-                  </div>
+                  {p.status === 'PENDING' && (
+                    <button
+                      className="btn-pay-now"
+                      style={{ 
+                        background: '#25d366', 
+                        color: '#fff', 
+                        fontSize: 11, 
+                        height: 32, 
+                        padding: '0 12px', 
+                        borderRadius: 8, 
+                        marginTop: 4, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: 6, 
+                        border: 'none', 
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        width: 'fit-content',
+                        alignSelf: 'flex-end'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWhatsAppRedirect({
+                          billTitle: bill?.title || 'Iuran Bulanan',
+                          amount: p.amount,
+                          category: bill?.category || 'Iuran Bulanan',
+                          rt: myFamily?.rt || user?.rt_id || '001',
+                          kepalaKeluarga: myFamily?.kepalaKeluarga || userData.name,
+                          nomorKK: myFamily?.nomorKK || ''
+                        });
+                      }}
+                    >
+                      <Send size={12} /> Hubungi Admin via WhatsApp
+                    </button>
+                  )}
                 </div>
               );
             })}
@@ -813,59 +1069,133 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
                 <div className="method-selector">
                   {/* RuangPay Method */}
                   <div 
-                    className={`method-card ${paymentMethod === 'RuangPay' ? 'selected' : ''}`}
-                    onClick={() => setPaymentMethod('RuangPay')}
+                    className="method-card"
+                    style={{ 
+                      opacity: 0.65, 
+                      cursor: 'not-allowed', 
+                      background: '#f8fafc',
+                      borderColor: '#cbd5e1',
+                      position: 'relative'
+                    }}
+                    onClick={() => showToast('Metode pembayaran RuangPay Instan segera hadir (Coming Soon)!', 'info')}
                   >
                     <div className="method-info">
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#cbd5e1', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Smartphone size={20} />
                       </div>
                       <div>
-                        <div className="method-title">RuangPay Instan</div>
-                        <div className="method-desc">Saldo Aktif: Rp {(userData.ruangPayBalance || 0).toLocaleString('id-ID')} (Auto-Verifikasi)</div>
+                        <div className="method-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          RuangPay Instan
+                          <span style={{ 
+                            background: 'linear-gradient(135deg, #f5b041 0%, #d4af37 100%)', 
+                            color: '#000', 
+                            fontSize: 9, 
+                            fontWeight: 800, 
+                            padding: '2px 6px', 
+                            borderRadius: 4,
+                            boxShadow: '0 2px 4px rgba(212,175,55,0.2)'
+                          }}>SOON</span>
+                        </div>
+                        <div className="method-desc">Metode bayar otomatis & instan tanpa upload struk</div>
                       </div>
                     </div>
-                    {paymentMethod === 'RuangPay' && <Check size={18} style={{ color: '#2563eb' }} />}
                   </div>
 
                   {/* Transfer Bank Method */}
-                  <div 
-                    className={`method-card ${paymentMethod === 'Transfer Bank' ? 'selected' : ''}`}
-                    onClick={() => setPaymentMethod('Transfer Bank')}
-                  >
-                    <div className="method-info">
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f0fdf4', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Wallet size={20} />
+                  {isBankAvailable && (
+                    <div 
+                      className={`method-card ${paymentMethod === 'Transfer Bank' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('Transfer Bank')}
+                    >
+                      <div className="method-info">
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f0fdf4', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Wallet size={20} />
+                        </div>
+                        <div>
+                          <div className="method-title">{bankInfo.name}</div>
+                          <div className="method-desc">No. Rek: {bankInfo.number}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="method-title">Transfer Bank Mandiri</div>
-                        <div className="method-desc">Rek: 131-00-1234567-8 a.n. Kas RW 011 VSJ</div>
-                      </div>
+                      {paymentMethod === 'Transfer Bank' && <Check size={18} style={{ color: '#2563eb' }} />}
                     </div>
-                    {paymentMethod === 'Transfer Bank' && <Check size={18} style={{ color: '#2563eb' }} />}
-                  </div>
+                  )}
+
+                  {/* E-wallet Method */}
+                  {isEwalletAvailable && ewalletInfo && (
+                    <div 
+                      className={`method-card ${paymentMethod === 'E-wallet' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('E-wallet')}
+                    >
+                      <div className="method-info">
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f0fdf2', color: '#0d9488', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Wallet size={20} />
+                        </div>
+                        <div>
+                          <div className="method-title">{ewalletInfo.provider}</div>
+                          <div className="method-desc">No. HP: {ewalletInfo.phone}</div>
+                        </div>
+                      </div>
+                      {paymentMethod === 'E-wallet' && <Check size={18} style={{ color: '#2563eb' }} />}
+                    </div>
+                  )}
 
                   {/* QRIS Method */}
-                  <div 
-                    className={`method-card ${paymentMethod === 'QRIS' ? 'selected' : ''}`}
-                    onClick={() => setPaymentMethod('QRIS')}
-                  >
-                    <div className="method-info">
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <CreditCard size={20} />
+                  {isQrisAvailable && (
+                    <div 
+                      className={`method-card ${paymentMethod === 'QRIS' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('QRIS')}
+                    >
+                      <div className="method-info">
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <CreditCard size={20} />
+                        </div>
+                        <div>
+                          <div className="method-title">{qrisInfo.name}</div>
+                          <div className="method-desc">Pindai QRIS Merchant</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="method-title">QRIS Mandiri VSJ</div>
-                        <div className="method-desc">Scan barcode untuk bayar via dompet digital</div>
-                      </div>
+                      {paymentMethod === 'QRIS' && <Check size={18} style={{ color: '#2563eb' }} />}
                     </div>
-                    {paymentMethod === 'QRIS' && <Check size={18} style={{ color: '#2563eb' }} />}
-                  </div>
+                  )}
                 </div>
 
-                {/* Bank / QRIS Receipt Upload */}
-                {(paymentMethod === 'Transfer Bank' || paymentMethod === 'QRIS') && (
-                  <div style={{ marginTop: 20 }}>
+                {/* Bank Details Box */}
+                {paymentMethod === 'Transfer Bank' && (
+                  <div style={{ background: '#f8fafc', padding: 14, borderRadius: 14, border: '1px solid #e2e8f0', marginTop: -8, marginBottom: 16, fontSize: 12 }}>
+                    <div style={{ fontWeight: 700, color: '#475569', marginBottom: 4 }}>Detail Rekening Tujuan:</div>
+                    <div>Bank: <strong>{bankInfo.name}</strong></div>
+                    <div>No. Rekening: <strong style={{ color: '#2563eb', fontSize: 14, fontFamily: 'monospace' }}>{bankInfo.number}</strong></div>
+                    <div>Nama Pemilik: <strong>{bankInfo.owner}</strong></div>
+                  </div>
+                )}
+
+                {/* E-wallet Details Box */}
+                {paymentMethod === 'E-wallet' && ewalletInfo && (
+                  <div style={{ background: '#f8fafc', padding: 14, borderRadius: 14, border: '1px solid #e2e8f0', marginTop: -8, marginBottom: 16, fontSize: 12 }}>
+                    <div style={{ fontWeight: 700, color: '#475569', marginBottom: 4 }}>Detail E-wallet Tujuan:</div>
+                    <div>Layanan: <strong>{ewalletInfo.provider}</strong></div>
+                    <div>No. HP / ID: <strong style={{ color: '#2563eb', fontSize: 14, fontFamily: 'monospace' }}>{ewalletInfo.phone}</strong></div>
+                    <div>Nama Akun: <strong>{ewalletInfo.owner}</strong></div>
+                  </div>
+                )}
+
+                {/* QRIS Image Preview */}
+                {paymentMethod === 'QRIS' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '-8px 0 16px 0', padding: 16, background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 10 }}>Pindai QRIS Merchant: {qrisInfo.name}</div>
+                    {qrisInfo.image ? (
+                      <img src={qrisInfo.image} alt="QRIS Merchant Barcode" style={{ width: 180, height: 180, objectFit: 'contain' }} />
+                    ) : (
+                      <div style={{ padding: 24, fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
+                        Gambar QRIS belum dikonfigurasi oleh admin.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Bank / E-wallet / QRIS Receipt Upload */}
+                {(paymentMethod === 'Transfer Bank' || paymentMethod === 'E-wallet' || paymentMethod === 'QRIS') && (
+                  <div style={{ marginTop: 12 }}>
                     <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 8 }}>Upload Bukti Pembayaran</label>
                     
                     {proofImage ? (
@@ -966,6 +1296,75 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Success Bottom Sheet (WhatsApp Redirect) */}
+      <AnimatePresence>
+        {lastUploadedPayment && (
+          <>
+            <div className="sheet-overlay" onClick={() => setLastUploadedPayment(null)} />
+            <motion.div 
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="modal-sheet"
+              style={{ paddingBottom: 32 }}
+            >
+              <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                  <CheckCircle size={36} />
+                </div>
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#1e3a8a', margin: '0 0 8px 0' }}>Bukti Berhasil Diunggah!</h3>
+                <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 24px 0', lineHeight: 1.5 }}>
+                  Bukti pembayaran untuk tagihan <strong>{lastUploadedPayment.billTitle}</strong> sebesar <strong>Rp {lastUploadedPayment.amount.toLocaleString('id-ID')}</strong> telah berhasil diunggah dan sedang menunggu verifikasi dari admin.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <button 
+                    onClick={() => {
+                      handleWhatsAppRedirect(lastUploadedPayment);
+                      setLastUploadedPayment(null);
+                    }}
+                    style={{ 
+                      width: '100%', 
+                      height: 50, 
+                      background: '#25d366', 
+                      color: '#fff', 
+                      border: 'none', 
+                      borderRadius: 16, 
+                      fontSize: 14, 
+                      fontWeight: 800, 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      gap: 8,
+                      boxShadow: '0 10px 15px -3px rgba(37, 211, 102, 0.2)' 
+                    }}
+                  >
+                    <Send size={16} /> Hubungi Admin via WhatsApp
+                  </button>
+
+                  <button 
+                    onClick={() => setLastUploadedPayment(null)}
+                    style={{ 
+                      width: '100%', 
+                      height: 48, 
+                      background: '#f1f5f9', 
+                      color: '#475569', 
+                      border: 'none', 
+                      borderRadius: 16, 
+                      fontSize: 14, 
+                      fontWeight: 700, 
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>

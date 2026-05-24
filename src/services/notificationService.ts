@@ -8,7 +8,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
-export type NotifType = 'registration' | 'approval' | 'rejection' | 'surat' | 'pengaduan' | 'system';
+export type NotifType = 'registration' | 'approval' | 'rejection' | 'surat' | 'pengaduan' | 'system' | 'like' | 'comment';
 
 export interface Notification {
   id: string;
@@ -20,6 +20,7 @@ export interface Notification {
   route?: string;        // where to navigate on click
   isRead: boolean;
   createdAt: Date;
+  userPhotoUrl?: string;
 }
 
 /**
@@ -30,7 +31,7 @@ export async function sendNotification(
   title: string,
   message: string,
   targetRoles: string[],
-  options?: { relatedId?: string; route?: string }
+  options?: { relatedId?: string; route?: string; targetId?: string; targetAccountType?: string }
 ): Promise<string> {
   const docRef = await addDoc(collection(db, 'notifications'), {
     type,
@@ -39,6 +40,8 @@ export async function sendNotification(
     targetRoles,
     relatedId: options?.relatedId ?? null,
     route: options?.route ?? null,
+    targetId: options?.targetId ?? null,
+    targetAccountType: options?.targetAccountType ?? null,
     isRead: false,
     createdAt: Timestamp.now(),
   });
@@ -126,4 +129,36 @@ export async function sendWhatsAppMessage(phone: string, message: string): Promi
   
   // Open whatsapp link
   window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
+}
+
+/**
+ * Log sensitive data view and notify resident
+ */
+export async function logSensitiveDataView(
+  adminId: string,
+  adminName: string,
+  residentId: string,
+  residentName: string,
+  dataType: string,
+  reason: string
+): Promise<void> {
+  // 1. Log the view
+  await addDoc(collection(db, 'sensitive_data_logs'), {
+    adminId,
+    adminName,
+    residentId,
+    residentName,
+    dataType,
+    reason,
+    timestamp: Timestamp.now()
+  });
+
+  // 2. Notify the resident
+  await sendNotification(
+    'system',
+    'Akses Data Sensitif',
+    `Data ${dataType} Anda telah dilihat oleh Admin (${adminName}) dengan alasan: "${reason}".`,
+    ['warga'], // Targeting warga role
+    { relatedId: residentId }
+  );
 }

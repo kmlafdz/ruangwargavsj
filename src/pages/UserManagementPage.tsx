@@ -9,8 +9,13 @@ import { User, AdminRole } from '../types';
 import { subscribeToUsers, updateAdminRole, updateUserStatus, deleteUser } from '../services/userService';
 import { db } from '../firebase/config';
 import { collection, query, onSnapshot, orderBy, where, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { showAlert, showConfirm } from '../utils/alert';
 
-export default function UserManagementPage() {
+interface UserManagementPageProps {
+  currentUser: User;
+}
+
+export default function UserManagementPage({ currentUser }: UserManagementPageProps) {
   const [admins, setAdmins] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,6 +58,10 @@ export default function UserManagementPage() {
   }, []);
 
   const filteredAdmins = admins.filter(u => {
+    // Hide developer admin from RW Admin
+    if (currentUser.adminRole === 'rw' && u.adminRole === 'developer') {
+      return false;
+    }
     const nameMatch = (u.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const usernameMatch = (u.username || '').toLowerCase().includes(searchTerm.toLowerCase());
     const emailMatch = (u.email || '').toLowerCase().includes(searchTerm.toLowerCase());
@@ -62,19 +71,46 @@ export default function UserManagementPage() {
     return matchesSearch && matchesRole;
   });
 
+  const checkAdminLimits = (role: AdminRole, rtId: string, excludeUserId?: string) => {
+    if (role === 'rw') {
+      const existingRW = admins.find(a => a.adminRole === 'rw' && a.id !== excludeUserId);
+      if (existingRW) {
+        return {
+          valid: false,
+          message: `Batas maksimal RW Admin adalah 1 user. Akun RW Admin sudah ada (@${existingRW.username}).`
+        };
+      }
+    } else if (role === 'rt') {
+      const existingRT = admins.find(a => a.adminRole === 'rt' && a.rt_id === rtId && a.id !== excludeUserId);
+      if (existingRT) {
+        return {
+          valid: false,
+          message: `Batas maksimal Ketua RT ${rtId} adalah 1 user. Akun Ketua RT ${rtId} sudah ada (@${existingRT.username}).`
+        };
+      }
+    }
+    return { valid: true };
+  };
+
   const handleRoleUpdate = async (userId: string, newRole: AdminRole) => {
     try {
       await updateAdminRole(userId, newRole);
-      alert('Role admin berhasil diperbarui.');
+      showAlert('Berhasil', 'Role admin berhasil diperbarui.', 'success');
     } catch (error) {
-      alert('Gagal memperbarui role.');
+      showAlert('Gagal', 'Gagal memperbarui role.', 'error');
     }
   };
 
   const handleCreateAdmin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.username || !formData.password) {
-      return alert('Mohon lengkapi semua field.');
+      showAlert('Peringatan', 'Mohon lengkapi semua field.', 'warning');
+      return;
+    }
+    const limitCheck = checkAdminLimits(formData.adminRole, formData.rt_id);
+    if (!limitCheck.valid) {
+      showAlert('Batas Terlampaui', limitCheck.message, 'warning');
+      return;
     }
     setShowConfirmAdd(true);
   };
@@ -93,7 +129,7 @@ export default function UserManagementPage() {
       setShowAddModal(false);
       setShowSuccessAdd(true);
     } catch (err) {
-      alert('Gagal membuat akun admin.');
+      showAlert('Gagal', 'Gagal membuat akun admin.', 'error');
     }
   };
 
@@ -118,6 +154,11 @@ export default function UserManagementPage() {
   const handleUpdateAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editAdmin) return;
+    const limitCheck = checkAdminLimits(editFormData.adminRole, editFormData.rt_id, editAdmin.id);
+    if (!limitCheck.valid) {
+      showAlert('Batas Terlampaui', limitCheck.message, 'warning');
+      return;
+    }
     try {
       const updateData: any = {
         username: editFormData.username,
@@ -138,7 +179,7 @@ export default function UserManagementPage() {
       setShowEditModal(false);
       setShowSuccessEdit(true);
     } catch (err) {
-      alert('Gagal memperbarui akun admin.');
+      showAlert('Gagal', 'Gagal memperbarui akun admin.', 'error');
     }
   };
 
@@ -148,12 +189,12 @@ export default function UserManagementPage() {
   };
 
   const handleDelete = async (userId: string) => {
-    if (confirm('Hapus akun admin ini secara permanen?')) {
+    if (await showConfirm('Hapus Admin?', 'Hapus akun admin ini secara permanen?')) {
       try {
         await deleteUser(userId);
-        alert('Admin berhasil dihapus.');
+        showAlert('Berhasil', 'Admin berhasil dihapus.', 'success');
       } catch (error: any) {
-        alert('Gagal menghapus admin.');
+        showAlert('Gagal', 'Gagal menghapus admin.', 'error');
       }
     }
   };
@@ -195,7 +236,7 @@ export default function UserManagementPage() {
             onChange={e => setFilterRole(e.target.value)}
           >
             <option value="all">Semua Role</option>
-            <option value="developer">Developer</option>
+            {currentUser.adminRole !== 'rw' && <option value="developer">Developer</option>}
             <option value="rw">RW Admin</option>
             <option value="rt">RT Admin</option>
           </select>
@@ -335,24 +376,26 @@ export default function UserManagementPage() {
                   >
                     <Edit3 size={13} /> Edit
                   </button>
-                  <button 
-                    className="btn btn-secondary btn-sm" 
-                    onClick={() => handleDelete(admin.id)}
-                    style={{ 
-                      borderRadius: '12px', 
-                      height: '36px', 
-                      padding: '0 12px', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '6px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      color: 'var(--red-500)',
-                      border: '1px solid rgba(239, 68, 68, 0.15)'
-                    }}
-                  >
-                    <Trash2 size={13} /> Hapus
-                  </button>
+                  {!(admin.adminRole === 'rw' && currentUser.adminRole === 'rw') && (
+                    <button 
+                      className="btn btn-secondary btn-sm" 
+                      onClick={() => handleDelete(admin.id)}
+                      style={{ 
+                        borderRadius: '12px', 
+                        height: '36px', 
+                        padding: '0 12px', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: 'var(--red-500)',
+                        border: '1px solid rgba(239, 68, 68, 0.15)'
+                      }}
+                    >
+                      <Trash2 size={13} /> Hapus
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -394,8 +437,8 @@ export default function UserManagementPage() {
                       <label>Level Role</label>
                       <select className="form-input" value={formData.adminRole} onChange={e => setFormData({...formData, adminRole: e.target.value as AdminRole})}>
                         <option value="rt">RT Admin</option>
-                        <option value="rw">RW Admin</option>
-                        <option value="developer">Developer</option>
+                        {currentUser.adminRole !== 'rw' && <option value="rw">RW Admin</option>}
+                        {currentUser.adminRole !== 'rw' && <option value="developer">Developer</option>}
                       </select>
                     </div>
                     {formData.adminRole === 'rt' && (
@@ -440,6 +483,7 @@ export default function UserManagementPage() {
                       value={editFormData.username} 
                       onChange={e => setEditFormData({...editFormData, username: e.target.value})} 
                       required 
+                      disabled={editAdmin?.adminRole === 'rw' && currentUser.adminRole === 'rw'}
                     />
                   </div>
                   <div className="form-group">
@@ -470,10 +514,11 @@ export default function UserManagementPage() {
                         className="form-input" 
                         value={editFormData.adminRole} 
                         onChange={e => setEditFormData({...editFormData, adminRole: e.target.value as AdminRole})}
+                        disabled={editAdmin?.adminRole === 'rw' && currentUser.adminRole === 'rw'}
                       >
                         <option value="rt">RT Admin</option>
-                        <option value="rw">RW Admin</option>
-                        <option value="developer">Developer</option>
+                        {(currentUser.adminRole !== 'rw' || editAdmin?.adminRole === 'rw') && <option value="rw">RW Admin</option>}
+                        {currentUser.adminRole !== 'rw' && <option value="developer">Developer</option>}
                       </select>
                     </div>
                     {editFormData.adminRole === 'rt' && (
@@ -505,7 +550,7 @@ export default function UserManagementPage() {
       )}
 
       {showConfirmAdd && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+        <div className="modal-overlay" style={{ zIndex: 2100 }}>
           <div className="modal" style={{ maxWidth: 400, textAlign: 'center' }}>
             <div className="modal-body" style={{ padding: '32px 24px' }}>
               <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 20px' }}>
@@ -543,22 +588,14 @@ export default function UserManagementPage() {
       )}
 
       {showSuccessAdd && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+        <div className="modal-overlay" style={{ zIndex: 2100 }}>
           <div className="modal" style={{ maxWidth: 400, textAlign: 'center' }}>
             <div className="modal-body" style={{ padding: '32px 24px' }}>
-              <div style={{ 
-                width: 64, 
-                height: 64, 
-                background: 'var(--green-100)', 
-                color: 'var(--green-600)', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                margin: '0 auto 20px' 
-              }}>
-                <CheckCircle size={30} />
-              </div>
+              <img 
+                src="/vira_ai_berhasil.png" 
+                alt="Vira AI" 
+                style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 20px' }} 
+              />
               <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--gray-800)', marginBottom: 12 }}>
                 Akun Berhasil Dibuat!
               </h3>
@@ -578,22 +615,14 @@ export default function UserManagementPage() {
       )}
 
       {showSuccessEdit && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+        <div className="modal-overlay" style={{ zIndex: 2100 }}>
           <div className="modal" style={{ maxWidth: 400, textAlign: 'center' }}>
             <div className="modal-body" style={{ padding: '32px 24px' }}>
-              <div style={{ 
-                width: 64, 
-                height: 64, 
-                background: 'var(--green-100)', 
-                color: 'var(--green-600)', 
-                borderRadius: '50%', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                margin: '0 auto 20px' 
-              }}>
-                <CheckCircle size={30} />
-              </div>
+              <img 
+                src="/vira_ai_berhasil.png" 
+                alt="Vira AI" 
+                style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 20px' }} 
+              />
               <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--gray-800)', marginBottom: 12 }}>
                 Perubahan Disimpan!
               </h3>

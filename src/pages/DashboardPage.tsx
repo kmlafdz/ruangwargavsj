@@ -12,7 +12,7 @@ import {
   AreaChart, Area
 } from 'recharts';
 import { db } from '../firebase/config';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { User } from '../types';
 
 interface DashboardPageProps { user?: User | null; }
@@ -40,56 +40,78 @@ export default function DashboardPage({ user }: DashboardPageProps) {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  const fetch = async () => {
+  useEffect(() => {
     setLoading(true);
-    try {
-      const [usersSnap, familiesSnap, suratSnap, financeSnap, pengaduanSnap] = await Promise.all([
-        getDocs(collection(db, 'users')),
-        getDocs(collection(db, 'families')),
-        getDocs(collection(db, 'suratRequests')),
-        getDocs(collection(db, 'keuangan')),
-        getDocs(collection(db, 'pengaduan')),
-      ]);
+    
+    let usersData: any[] = [];
+    let familiesData: any[] = [];
+    let suratRequestsData: any[] = [];
+    let keuanganData: any[] = [];
+    let pengaduanData: any[] = [];
+    let paymentsData: any[] = [];
+    let residentsData: any[] = [];
 
-      let wargaDocs = usersSnap.docs.filter(d => d.data().role === 'warga');
-      let familyDocs = familiesSnap.docs;
-      let suratDocs = suratSnap.docs;
-      let pengaduanDocs = pengaduanSnap.docs;
-      let financeDocs = financeSnap.docs;
+    const isInitialLoaded = {
+      users: false,
+      families: false,
+      surat: false,
+      keuangan: false,
+      pengaduan: false,
+      payments: false,
+      residents: false
+    };
+
+    const updateStats = () => {
+      let wargaDocs = usersData.filter(d => d.accountType === 'resident' || d.role === 'warga');
+      let familyDocs = familiesData;
+      let suratDocs = suratRequestsData;
+      let pengaduanDocs = pengaduanData;
+      let financeDocs = keuanganData;
+      let approvedPayments = paymentsData.filter(d => d.status === 'APPROVED');
+      let residentsDocs = residentsData;
 
       // Filter by RT if role is 'rt'
       if (user?.adminRole === 'rt') {
-        wargaDocs = wargaDocs.filter(d => d.data().rt_id === user.rt_id);
-        familyDocs = familyDocs.filter(d => d.data().rt_id === user.rt_id);
-        suratDocs = suratDocs.filter(d => d.data().rt_id === user.rt_id);
-        pengaduanDocs = pengaduanDocs.filter(d => d.data().rt_id === user.rt_id);
-        financeDocs = financeDocs.filter(d => d.data().rt_id === user.rt_id);
+        const normalizeRT = (rtVal: any) => rtVal ? String(rtVal).replace(/[^0-9]/g, '') : '';
+        const adminRT = normalizeRT(user.rt_id);
+        const matchRT = (val1?: any, val2?: any) => normalizeRT(val1) === adminRT || normalizeRT(val2) === adminRT;
+
+        wargaDocs = wargaDocs.filter(d => matchRT(d.rt_id, d.rt));
+        familyDocs = familyDocs.filter(d => matchRT(d.rt_id, d.rt));
+        suratDocs = suratDocs.filter(d => matchRT(d.rt_id, d.rt));
+        pengaduanDocs = pengaduanDocs.filter(d => matchRT(d.rt_id, d.rt));
+        financeDocs = financeDocs.filter(d => matchRT(d.rt_id, d.rt));
+        approvedPayments = approvedPayments.filter(d => matchRT(d.rt_id, d.rt));
+        residentsDocs = residentsDocs.filter(d => matchRT(d.rt_id, d.rt));
       }
 
       // Stats
+      const incoming = financeDocs.filter(d => d.type === 'Masuk').reduce((a, d) => a + (d.amount || 0), 0) +
+                       approvedPayments.reduce((a, d) => a + (d.amount || 0), 0);
+      const outgoing = financeDocs.filter(d => d.type === 'Keluar').reduce((a, d) => a + (d.amount || 0), 0);
       setStats({
-        totalWarga: wargaDocs.length,
+        totalWarga: residentsDocs.length,
         totalKK: familyDocs.length,
-        pendingApproval: wargaDocs.filter(d => d.data().accountStatus === 'waiting_admin_approval').length,
-        suratPending: suratDocs.filter(d => d.data().status === 'Pending').length,
-        pemasukan: financeDocs.filter(d => d.data().type === 'Masuk').reduce((a, d) => a + (d.data().amount || 0), 0),
-        pengeluaran: financeDocs.filter(d => d.data().type === 'Keluar').reduce((a, d) => a + (d.data().amount || 0), 0),
+        pendingApproval: wargaDocs.filter(d => d.accountStatus === 'waiting_admin_approval').length,
+        suratPending: suratDocs.filter(d => d.status === 'Pending').length,
+        pemasukan: incoming,
+        pengeluaran: outgoing,
         pengaduan: pengaduanDocs.length,
-        pendingPengaduan: pengaduanDocs.filter(d => d.data().status === 'Baru').length,
+        pendingPengaduan: pengaduanDocs.filter(d => d.status === 'Baru').length,
       });
 
       // RT Bar Chart
       const rtMap: Record<string, number> = {};
-      wargaDocs.forEach(d => {
-        const rt = d.data().rt_id || 'N/A';
+      residentsDocs.forEach(d => {
+        const rt = d.rt || d.rt_id || 'N/A';
         rtMap[rt] = (rtMap[rt] || 0) + 1;
       });
-      setRtChartData(Object.entries(rtMap).sort(([a],[b]) => a.localeCompare(b)).map(([rt, count]) => ({ name: `RT ${rt}`, warga: count })));
+      setRtChartData(Object.entries(rtMap).sort(([a],[b]) => a.localeCompare(b)).map(([rt, count]) => ({ name: `RT ${rt.replace(/[^0-9]/g, '')}`, warga: count })));
 
       // Status Pie Chart
       const statusMap: Record<string, number> = {};
       wargaDocs.forEach(d => {
-        const s = d.data().accountStatus || 'unknown';
+        const s = d.accountStatus || 'unknown';
         statusMap[s] = (statusMap[s] || 0) + 1;
       });
       const statusLabel: Record<string, string> = { active: 'Aktif', waiting_admin_approval: 'Menunggu', rejected: 'Ditolak', pending_registration: 'Registrasi' };
@@ -98,8 +120,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
       // Monthly Finance Chart
       const monthlyMap: Record<number, { masuk: number; keluar: number }> = {};
       for (let i = 0; i < 6; i++) monthlyMap[i] = { masuk: 0, keluar: 0 };
-      financeSnap.docs.forEach(d => {
-        const data = d.data();
+      keuanganData.forEach(data => {
         const date = data.date ? new Date(data.date) : null;
         if (!date) return;
         const monthsAgo = (new Date().getMonth() - date.getMonth() + 12) % 12;
@@ -107,6 +128,15 @@ export default function DashboardPage({ user }: DashboardPageProps) {
           const idx = 5 - monthsAgo;
           if (data.type === 'Masuk') monthlyMap[idx].masuk += data.amount || 0;
           else monthlyMap[idx].keluar += data.amount || 0;
+        }
+      });
+      approvedPayments.forEach(data => {
+        const date = data.paymentDate?.toDate ? data.paymentDate.toDate() : (data.paymentDate ? new Date(data.paymentDate) : null);
+        if (!date) return;
+        const monthsAgo = (new Date().getMonth() - date.getMonth() + 12) % 12;
+        if (monthsAgo < 6) {
+          const idx = 5 - monthsAgo;
+          monthlyMap[idx].masuk += data.amount || 0;
         }
       });
       const now = new Date();
@@ -118,16 +148,69 @@ export default function DashboardPage({ user }: DashboardPageProps) {
 
       // Activities
       const acts: any[] = [];
-      wargaDocs.filter(d => d.data().createdAt).sort((a, b) => (b.data().createdAt?.toMillis?.() || 0) - (a.data().createdAt?.toMillis?.() || 0)).slice(0, 4).forEach(d => {
-        acts.push({ id: d.id, type: 'warga', text: `Pendaftaran: ${d.data().name}`, time: timeAgo(d.data().createdAt), status: d.data().accountStatus });
+      wargaDocs.filter(d => d.createdAt).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).slice(0, 4).forEach(d => {
+        acts.push({ id: d.id, type: 'warga', text: `Pendaftaran: ${d.name}`, time: timeAgo(d.createdAt), status: d.accountStatus });
       });
       setActivities(acts);
       setLastUpdated(new Date());
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  };
 
-  useEffect(() => { fetch(); const t = setInterval(fetch, 60000); return () => clearInterval(t); }, []);
+      if (isInitialLoaded.users && isInitialLoaded.families && isInitialLoaded.surat && isInitialLoaded.keuangan && isInitialLoaded.pengaduan && isInitialLoaded.payments && isInitialLoaded.residents) {
+        setLoading(false);
+      }
+    };
+
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snap) => {
+      usersData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      isInitialLoaded.users = true;
+      updateStats();
+    }, (err) => console.error("Error loading users stats:", err));
+
+    const unsubFamilies = onSnapshot(collection(db, 'families'), (snap) => {
+      familiesData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      isInitialLoaded.families = true;
+      updateStats();
+    }, (err) => console.error("Error loading families stats:", err));
+
+    const unsubSurat = onSnapshot(collection(db, 'surat_requests'), (snap) => {
+      suratRequestsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      isInitialLoaded.surat = true;
+      updateStats();
+    }, (err) => console.error("Error loading letters stats:", err));
+
+    const unsubKeuangan = onSnapshot(collection(db, 'keuangan'), (snap) => {
+      keuanganData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      isInitialLoaded.keuangan = true;
+      updateStats();
+    }, (err) => console.error("Error loading finance stats:", err));
+
+    const unsubPengaduan = onSnapshot(collection(db, 'pengaduan'), (snap) => {
+      pengaduanData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      isInitialLoaded.pengaduan = true;
+      updateStats();
+    }, (err) => console.error("Error loading complaints stats:", err));
+
+    const unsubPayments = onSnapshot(collection(db, 'payments'), (snap) => {
+      paymentsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      isInitialLoaded.payments = true;
+      updateStats();
+    }, (err) => console.error("Error loading payments stats:", err));
+
+    const unsubResidents = onSnapshot(collection(db, 'residents'), (snap) => {
+      residentsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      isInitialLoaded.residents = true;
+      updateStats();
+    }, (err) => console.error("Error loading residents stats:", err));
+
+    return () => {
+      unsubUsers();
+      unsubFamilies();
+      unsubSurat();
+      unsubKeuangan();
+      unsubPengaduan();
+      unsubPayments();
+      unsubResidents();
+    };
+  }, [user?.adminRole, user?.rt_id]);
 
   const fmt = (n: number) => n >= 1e6 ? `Rp ${(n/1e6).toFixed(1)}Jt` : n >= 1e3 ? `Rp ${(n/1e3).toFixed(0)}K` : `Rp ${n}`;
   const saldo = stats.pemasukan - stats.pengeluaran;
@@ -143,7 +226,14 @@ export default function DashboardPage({ user }: DashboardPageProps) {
             Diperbarui: {lastUpdated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
-        <button onClick={fetch} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, background: 'var(--gray-50)', border: '1px solid var(--gray-200)', fontSize: 13, fontWeight: 700, color: 'var(--gray-600)', cursor: 'pointer' }}>
+        <button 
+          onClick={() => {
+            setLoading(true);
+            setTimeout(() => setLoading(false), 500);
+          }} 
+          disabled={loading} 
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, background: 'var(--gray-50)', border: '1px solid var(--gray-200)', fontSize: 13, fontWeight: 700, color: 'var(--gray-600)', cursor: 'pointer' }}
+        >
           <RefreshCw size={14} style={{ transform: loading ? 'rotate(45deg)' : 'none' }} />
           Perbarui
         </button>
@@ -346,7 +436,12 @@ export default function DashboardPage({ user }: DashboardPageProps) {
                 <span style={{ fontSize: 14, fontWeight: 800, color: '#92400e' }}>{stats.pendingApproval} Persetujuan Menunggu</span>
               </div>
               <p style={{ fontSize: 12, color: '#78350f', margin: '0 0 12px', lineHeight: 1.5 }}>Ada warga yang perlu diverifikasi segera.</p>
-              <button onClick={() => window.location.href = '/admin/dev/approvals'} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, background: '#d97706', color: '#fff', border: 'none', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
+              <button onClick={() => {
+                let scope = 'dev';
+                if (user?.adminRole === 'rw') scope = 'rw011';
+                else if (user?.adminRole === 'rt') scope = `rt${user.rt_id || '001'}`;
+                window.location.href = `/admin/${scope}/approvals`;
+              }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, background: '#d97706', color: '#fff', border: 'none', fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
                 Tinjau Sekarang <ArrowUpRight size={13} />
               </button>
             </div>
@@ -357,7 +452,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
       <style>{`
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        .dash-card { background:#fff; border-radius:20px; padding:20px; border:1px solid var(--gray-100); box-shadow:0 2px 12px rgba(0,0,0,.04); margin-bottom:0; }
+        .dash-card { background:#fff; border-radius:20px; padding:20px; border:1px solid var(--gray-100); box-shadow:0 2px 12px rgba(0,0,0,.04); margin-bottom:0; min-width:0; }
         .dash-stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
         .dash-charts-grid { display:grid; grid-template-columns:1.4fr 1fr; gap:20px; margin-bottom:20px; }
         .dash-bottom-grid { display:grid; grid-template-columns:1.4fr 1fr; gap:20px; }

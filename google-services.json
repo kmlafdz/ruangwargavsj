@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "574180261299",
+    "project_id": "ruang-warga-011-2607a",
+    "storage_bucket": "ruang-warga-011-2607a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:574180261299:android:2f88cb1f722ce902595fc6",
+        "android_client_info": {
+          "package_name": "com.rw011.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtZdZOWpYflqkM27aNGltGjvhadtYSis0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   LayoutDashboard, Users, UserCheck,
   FileText, Wallet, MessageSquare,
-  Calendar, PieChart, Shield,
+  Calendar, PieChart, Shield, Compass,
   Settings, LogOut, ChevronDown, ChevronRight,
   User as UserIcon, Bell, HelpCircle, Megaphone
 } from 'lucide-react';
@@ -23,10 +23,20 @@ const NAV_ITEMS = (user: User | null): NavItem[] => {
   let dashboardPath = '/warga/dashboard';
 
   if (isAdmin) {
-    dashboardPath = '/admin/dev/dashboard';
+    let scope = 'dev';
+    if (user?.adminRole === 'rw') scope = 'rw011';
+    else if (user?.adminRole === 'rt') scope = `rt${user.rt_id || '001'}`;
+    dashboardPath = `/admin/${scope}/dashboard`;
   }
 
-  const prefix = isAdmin ? '/admin/dev' : '/warga';
+  const getPrefix = () => {
+    if (!isAdmin) return '/warga';
+    let scope = 'dev';
+    if (user?.adminRole === 'rw') scope = 'rw011';
+    else if (user?.adminRole === 'rt') scope = `rt${user.rt_id || '001'}`;
+    return `/admin/${scope}`;
+  };
+  const prefix = getPrefix();
 
   return [
     {
@@ -39,19 +49,19 @@ const NAV_ITEMS = (user: User | null): NavItem[] => {
     {
       icon: Users,
       label: 'Manajemen Warga',
-      path: '/admin/dev/warga-group',
+      path: `${prefix}/warga-group`,
       allowedTypes: ['admin'],
       adminRoles: ['developer', 'rw', 'rt'],
       subItems: [
-        { label: 'Persetujuan Warga', path: '/admin/dev/approvals', adminRoles: ['developer', 'rw', 'rt'] },
-        { label: 'Data Warga', path: '/admin/dev/warga', adminRoles: ['developer', 'rw', 'rt'] },
-        { label: 'Data Keluarga / KK', path: '/admin/dev/keluarga', adminRoles: ['developer', 'rw', 'rt'] }
+        { label: 'Persetujuan Warga', path: `${prefix}/approvals`, adminRoles: ['developer', 'rw', 'rt'] },
+        { label: 'Data Warga', path: `${prefix}/warga`, adminRoles: ['developer', 'rw', 'rt'] },
+        { label: 'Data Keluarga / KK', path: `${prefix}/keluarga`, adminRoles: ['developer', 'rw', 'rt'] }
       ]
     },
     {
       icon: Shield,
       label: 'Manajemen Admin',
-      path: '/admin/dev/users',
+      path: `${prefix}/users`,
       allowedTypes: ['admin'],
       adminRoles: ['developer', 'rw']
     },
@@ -76,8 +86,10 @@ const NAV_ITEMS = (user: User | null): NavItem[] => {
       label: isAdmin ? 'Keuangan RW/RT' : 'Keuangan & Iuran',
       path: `${prefix}/keuangan`,
     },
-    { icon: MessageSquare, label: 'Pengaduan', path: `${prefix}/pengaduan` },
+    { icon: MessageSquare, label: 'Pengaduan', path: isAdmin ? `${prefix}/pengaduan` : '/warga/report' },
     { icon: Megaphone, label: 'Pengumuman', path: `${prefix}/pengumuman` },
+    { icon: Calendar, label: 'Kegiatan Warga', path: `${prefix}/kegiatan`, allowedTypes: ['admin'] },
+    { icon: Compass, label: 'Kelola FYP Warga', path: `${prefix}/fyp`, allowedTypes: ['admin'] },
     { icon: HelpCircle, label: 'Kritik & Saran', path: `${prefix}/feedback` },
 
     // RESIDENT ONLY

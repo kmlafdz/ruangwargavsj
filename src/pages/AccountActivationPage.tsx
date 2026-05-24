@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { User as UserType } from '../types';
 import { extractKTPData } from '../services/ocrService';
+import { showAlert } from '../utils/alert';
 import logo from '../assets/login/logo.png';
 import { db } from '../firebase/config';
 import { doc, updateDoc, collection, query, where, getDocs, setDoc, Timestamp } from 'firebase/firestore';
@@ -282,10 +283,13 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
         const targetRt = extractedData?.rt || user.rt_id;
         if (targetRt) targetRoles.push(`ketua_rt_${targetRt.slice(-2)}`);
         
+        const isResubmission = user.accountStatus === 'rejected';
         await sendNotification(
           'registration',
-          'Pendaftaran Warga Baru',
-          `${user.name} telah menyelesaikan registrasi. Mohon tinjau data KTP & KK.`,
+          isResubmission ? '🔄 Pengajuan Ulang Pendaftaran' : 'Pendaftaran Warga Baru',
+          isResubmission 
+            ? `${user.name} telah memperbaiki data dan mengajukan ulang pendaftaran akun. Mohon tinjau data KTP & KK.`
+            : `${user.name} telah menyelesaikan registrasi. Mohon tinjau data KTP & KK.`,
           targetRoles,
           { relatedId: user.nik, route: `/admin/dev/approval/${user.nik}` }
         );
@@ -834,9 +838,11 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
 
             {currentStep === 'final' && (
               <motion.div key="final" {...stepVariants} style={{ textAlign: 'center' }}>
-                <div style={{ width: '100px', height: '100px', background: '#f0fdf4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px', color: '#22c55e' }}>
-                  <CheckCircle2 size={56} />
-                </div>
+                <img 
+                  src="/vira_ai_berhasil.png" 
+                  alt="Vira AI" 
+                  style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 32px' }} 
+                />
                 <h2 style={{ fontSize: '26px', fontWeight: 900, marginBottom: '12px', color: '#16a34a' }}>Aktivasi Selesai!</h2>
                 <p style={{ color: '#64748b', lineHeight: 1.6, marginBottom: '40px' }}>Data Anda telah berhasil dikirim. Saat ini status akun Anda adalah <strong>Menunggu Persetujuan Admin</strong>.</p>
                 
@@ -873,11 +879,12 @@ export default function AccountActivationPage({ user, onComplete }: ActivationPa
                           window.open(`https://wa.me/${formattedPhone}?text=Halo Bapak/Ibu Ketua RT ${targetRtId}, saya ${user.name} baru saja melakukan registrasi aplikasi Ruang Warga dan menunggu persetujuan. Mohon bantuannya.`, '_blank');
                           return;
                         }
+                      } else {
+                        showAlert('Info', `Nomor Ketua RT ${targetRtId} belum terdaftar di sistem.`, 'info');
                       }
-                      alert(`Nomor Ketua RT ${targetRtId} belum terdaftar di sistem.`);
                     } catch(e) {
                       console.error(e);
-                      alert('Gagal mengambil kontak RT.');
+                      showAlert('Error', 'Gagal mengambil kontak RT.', 'error');
                     }
                   }}>
                     Hubungi Ketua RT {user.rt_id || extractedData?.rt || ''} (WhatsApp)

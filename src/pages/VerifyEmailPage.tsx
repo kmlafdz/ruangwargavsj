@@ -58,7 +58,9 @@ export default function VerifyEmailPage() {
         // Update user document
         batch.update(doc(db, 'users', userId), {
           email: verificationData.email,
-          emailVerified: true
+          emailVerified: true,
+          email_verified: true,
+          email_verified_at: new Date()
         });
 
         // Try to update residents collection too if they exist
@@ -71,7 +73,9 @@ export default function VerifyEmailPage() {
               if (!resSnap.empty) {
                 batch.update(doc(db, 'residents', resSnap.docs[0].id), {
                   email: verificationData.email,
-                  emailVerified: true
+                  emailVerified: true,
+                  email_verified: true,
+                  email_verified_at: new Date()
                 });
               }
             }

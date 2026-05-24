@@ -80,6 +80,10 @@
     padding: 16px;
   }
   
+  .app-layout.is-resident .page-content {
+    padding: 0px;
+  }
+  
   .navbar h1 {
     font-size: 18px;
   }

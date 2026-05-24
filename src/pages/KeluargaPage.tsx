@@ -12,6 +12,7 @@ import FamilyFormModal from '../components/FamilyFormModal';
 import MemberFormModal from '../components/MemberFormModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Toast from '../components/Toast';
+import SensitiveDataViewer from '../components/SensitiveDataViewer';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const PAGE_SIZE = 5;
@@ -71,7 +72,7 @@ function StatCard({ icon, colorClass, value, label, change, loading }: StatCardP
 }
 
 // ── Detail wrapper ──
-function FamilyDetailModal({ family, onClose, showToast }: { family: any; onClose: () => void; showToast: any }) {
+function FamilyDetailModal({ family, onClose, showToast, adminUser }: { family: any; onClose: () => void; showToast: any; adminUser: any }) {
   const HIERARCHY_OPTIONS = [
     'Kepala Keluarga', 'Suami', 'Istri', 'Anak', 'Orang Tua', 'Menantu', 'Cucu', 'Saudara', 'Lainnya'
   ];
@@ -178,7 +179,7 @@ function FamilyDetailModal({ family, onClose, showToast }: { family: any; onClos
   });
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100 }}>
+    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 2100 }}>
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -196,7 +197,9 @@ function FamilyDetailModal({ family, onClose, showToast }: { family: any; onClos
           </button>
           
           <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1.5, opacity: 0.7, marginBottom: 4 }}>Detail Kartu Keluarga</div>
-          <h2 style={{ fontSize: 22, fontWeight: 900, margin: '0 0 12px', letterSpacing: -0.5 }}>{family.nomorKK}</h2>
+          <h2 style={{ fontSize: 22, fontWeight: 900, margin: '0 0 12px', letterSpacing: -0.5 }}>
+            <SensitiveDataViewer value={family.nomorKK} type="No. KK" residentId={family.id} residentName={family.kepalaKeluarga} adminUser={adminUser} style={{ color: '#fff' }} />
+          </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, opacity: 0.9 }}>
             <div><b>Kepala Keluarga:</b> {family.kepalaKeluarga}</div>
             <div><b>Alamat:</b> {family.blok ? `Blok ${family.blok} No. ${family.nomorRumah}` : family.alamat} &nbsp;·&nbsp; RT {family.rt}/RW {family.rw}</div>
@@ -235,7 +238,12 @@ function FamilyDetailModal({ family, onClose, showToast }: { family: any; onClos
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 800, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
-                      <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', marginTop: 1 }}>NIK: {m.nik}</div>
+                      <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', marginTop: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span>NIK:</span>
+                          <SensitiveDataViewer value={m.nik} type="NIK" residentId={m.id} residentName={m.nama} adminUser={adminUser} />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -321,8 +329,14 @@ function FamilyDetailModal({ family, onClose, showToast }: { family: any; onClos
   );
 }
 
+import { User } from '../types';
+
+interface KeluargaPageProps {
+  user?: User | null;
+}
+
 // ── Main Page ──
-export default function KeluargaPage() {
+export default function KeluargaPage({ user = null }: KeluargaPageProps) {
   const [familiesData, setFamiliesData] = useState<any[]>([]);
   const [residents, setResidents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -360,14 +374,20 @@ export default function KeluargaPage() {
     // Fetch Families
     const qFamilies = query(collection(db, 'families'), orderBy('updatedAt', 'desc'));
     const unsubscribeFamilies = onSnapshot(qFamilies, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (user?.adminRole === 'rt') {
+        data = data.filter((fam: any) => fam.rt === user.rt_id);
+      }
       setFamiliesData(data);
     });
 
     // Fetch Residents
     const qResidents = query(collection(db, 'residents'), orderBy('nama', 'asc'));
     const unsubscribeResidents = onSnapshot(qResidents, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (user?.adminRole === 'rt') {
+        data = data.filter((res: any) => res.rt_id === user.rt_id);
+      }
       setResidents(data);
       setLoading(false);
     });
@@ -376,7 +396,7 @@ export default function KeluargaPage() {
       unsubscribeFamilies();
       unsubscribeResidents();
     };
-  }, []);
+  }, [user]);
 
   // Group residents into families based on the real families collection
   const families = useMemo(() => {
@@ -564,10 +584,12 @@ export default function KeluargaPage() {
             />
           </div>
           <div className="filters-premium">
-            <select value={filterRT} onChange={e => { setFilterRT(e.target.value); setPage(1); }}>
-              <option value="">Semua RT</option>
-              {['001', '002', '003', '004', '005'].map(r => <option key={r} value={r}>RT {r}</option>)}
-            </select>
+            {user?.adminRole !== 'rt' && (
+              <select value={filterRT} onChange={e => { setFilterRT(e.target.value); setPage(1); }}>
+                <option value="">Semua RT</option>
+                {['001', '002', '003', '004', '005'].map(r => <option key={r} value={r}>RT {r}</option>)}
+              </select>
+            )}
             <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}>
               <option value="">Semua Status</option>
               <option value="Aktif">Aktif</option>
@@ -604,7 +626,7 @@ export default function KeluargaPage() {
                     <td><span className="row-number">{(page - 1) * PAGE_SIZE + idx + 1}</span></td>
                     <td>
                       <div className="kk-number-badge">
-                        {fam.nomorKK}
+                        <SensitiveDataViewer value={fam.nomorKK} type="No. KK" residentId={fam.id} residentName={fam.kepalaKeluarga} adminUser={user} />
                       </div>
                     </td>
                     <td><div className="cell-main-text">{fam.kepalaKeluarga}</div></td>
@@ -639,7 +661,9 @@ export default function KeluargaPage() {
               ) : paginated.map((fam, idx) => (
                 <div className={`mobile-kk-card ${fam.status === 'Non-Aktif' ? 'inactive' : ''}`} key={fam.id} onClick={() => openDetail(fam)}>
                   <div className="m-card-header">
-                    <div className="m-kk-badge">{fam.nomorKK}</div>
+                    <div className="m-kk-badge">
+                      <SensitiveDataViewer value={fam.nomorKK} type="No. KK" residentId={fam.id} residentName={fam.kepalaKeluarga} adminUser={user} />
+                    </div>
                     <span className={`status-dot ${fam.status === 'Non-Aktif' ? 'inactive' : 'active'}`} />
                   </div>
                   <div className="m-card-body">
@@ -693,6 +717,7 @@ export default function KeluargaPage() {
           family={activeFamily}
           onClose={backToList}
           showToast={showToast}
+          adminUser={user}
         />
       )}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}

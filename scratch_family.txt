@@ -1,0 +1,38 @@
+Created At: 2026-05-23T04:45:26Z
+Completed At: 2026-05-23T04:45:27Z
+File Path: `file:///c:/Users/ThinkPad/.gemini/antigravity/scratch/rw-project/src/pages/ResidentFamilyPage.tsx`
+Total Lines: 909
+Total Bytes: 41028
+Showing lines 880 to 909
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+880:                   onClick={handleDeleteMember}
+881:                   style={{ flex: 1, height: 50, borderRadius: 14, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+882:                 >
+883:                   Hapus
+884:                 </button>
+885:               </div>
+886:             </motion.div>
+887:           </motion.div>
+888:         )}
+889:       </AnimatePresence>
+890: 
+891:       {user && (
+892:         <PinVerificationModal
+893:           isOpen={isPinModalOpen}
+894:           correctPin={user.pin || ''}
+895:           userName={user.name || 'Warga'}
+896:           userId={user.id}
+897:           userPassword={user.password}
+898:           title="Verifikasi PIN untuk Data Keluarga"
+899:           onSuccess={() => setShowSensitive(true)}
+900:           onClose={() => setIsPinModalOpen(false)}
+901:         />
+902:       )}
+903: 
+904:       {/* CUSTOM ALERT MODAL */}
+905:       <AnimatePresence>
+906:         {customAlert && (
+907:           <motion.div
+908:             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+909: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

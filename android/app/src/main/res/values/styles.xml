@@ -15,8 +15,14 @@
         <item name="android:background">@null</item>
     </style>
 
-
+    <!-- Splash screen theme using Android 12+ SplashScreen API -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">#0f172a</item>
+        <!-- Dark background color -->
+        <item name="windowSplashScreenBackground">#0D1117</item>
+        <!-- Icon in the center (must be 288dp or smaller for Android 12 circle) -->
+        <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <!-- Post-splash theme -->
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
+
 </resources>

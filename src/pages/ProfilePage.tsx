@@ -3,12 +3,14 @@ import {
   User as UserIcon, Camera, Save, CheckCircle, 
   AlertCircle, Loader2, Trash2, ShieldAlert, 
   Settings, LogOut, Lock, Key, Eye, EyeOff, 
-  Bell, Info, ShieldCheck, ChevronLeft 
+  Bell, Info, ShieldCheck, ChevronLeft, RefreshCw, Copy, X
 } from 'lucide-react';
-import { doc, setDoc, getDoc, collection, getDocs, writeBatch, addDoc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { doc, setDoc, getDoc, collection, getDocs, writeBatch, addDoc, onSnapshot, updateDoc, query, where } from 'firebase/firestore';
+import { db, auth } from '../firebase/config';
+import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, updatePassword } from 'firebase/auth';
 import { User } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { showAlert } from '../utils/alert';
 import { motion } from 'framer-motion';
 
 interface ProfilePageProps {
@@ -21,6 +23,10 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
   // 1. All States at the Top
   const [name, setName] = useState(user?.name || '');
   const [chatUsername, setChatUsername] = useState(user?.chatUsername || '');
+  const [customWords, setCustomWords] = useState<string[]>([]);
+  const [newWord, setNewWord] = useState('');
+  const [wordsLoading, setWordsLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState<'identitas' | 'akun' | 'notif' | 'feedback' | 'about' | 'sensor'>('identitas');
   const [photoPreview, setPhotoPreview] = useState(user?.photoUrl || '');
   const [email, setEmail] = useState(user?.email || '');
   const [emailVerified, setEmailVerified] = useState(user?.emailVerified || false);
@@ -30,13 +36,22 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(true);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [confirmText, setConfirmText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [holdProgress, setHoldProgress] = useState(0);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [sentEmail, setSentEmail] = useState('');
   const [verificationToken, setVerificationToken] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  
+  // Developer separate formatting states
+  const [showFormatModal, setShowFormatModal] = useState(false);
+  const [formatCategory, setFormatCategory] = useState<'warga' | 'kk' | 'chat' | 'keuangan' | 'surat' | 'feedback' | null>(null);
+  const [formatCategoryLabel, setFormatCategoryLabel] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [holdProgress, setHoldProgress] = useState(0);
+  const [isFormatting, setIsFormatting] = useState(false);
+  const [modalSuccess, setModalSuccess] = useState<string | null>(null);
+  const [modalActionType, setModalActionType] = useState<'format' | 'seed' | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   // States for Image Cropper
   const [rawImage, setRawImage] = useState<string | null>(null);
@@ -73,6 +88,8 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
   const [pinSetupError, setPinSetupError] = useState<string | null>(null);
   const [pinSetupLoading, setPinSetupLoading] = useState(false);
   const [showSetupPassword, setShowSetupPassword] = useState(false);
+  const [showPinSuccessModal, setShowPinSuccessModal] = useState(false);
+  const [showCopyToast, setShowCopyToast] = useState(false);
 
   const toggleNotif = (key: 'n1' | 'n2' | 'n3') => {
     const newValue = !notifSettings[key];
@@ -99,6 +116,7 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
           if (data.photoUrl) setPhotoPreview(data.photoUrl);
           if (data.email) setEmail(data.email);
           if (data.emailVerified !== undefined) setEmailVerified(data.emailVerified);
+          if (data.phoneNumber) setPhoneNumber(data.phoneNumber);
           if (data.pin) {
             setPin(data.pin);
             setConfirmPin(data.pin);
@@ -122,6 +140,66 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (user?.accountType !== 'admin' || activeSection !== 'sensor') return;
+
+    setWordsLoading(true);
+    const unsub = onSnapshot(doc(db, 'settings', 'harsh_words'), (docSnap) => {
+      if (docSnap.exists()) {
+        setCustomWords(docSnap.data().words || []);
+      } else {
+        setCustomWords([]);
+      }
+      setWordsLoading(false);
+    }, (err) => {
+      console.error("Gagal memuat kata kasar:", err);
+      setWordsLoading(false);
+    });
+
+    return () => unsub();
+  }, [activeSection, user?.accountType]);
+
+  const handleAddWord = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newWord.trim() || !user) return;
+
+    const wordToAdd = newWord.trim().toLowerCase();
+    if (customWords.includes(wordToAdd)) {
+      showAlert('Peringatan', "Kata tersebut sudah ada dalam daftar!", 'warning');
+      return;
+    }
+
+    try {
+      const { setDoc, doc: docRef } = await import('firebase/firestore');
+      const updatedWords = [...customWords, wordToAdd];
+      await setDoc(docRef(db, 'settings', 'harsh_words'), {
+        words: updatedWords,
+        updatedAt: new Date(),
+        updatedBy: user.name
+      }, { merge: true });
+      setNewWord('');
+    } catch (err) {
+      console.error("Gagal menambah kata kasar:", err);
+      showAlert('Gagal', "Gagal menambahkan kata kasar.", 'error');
+    }
+  };
+
+  const handleRemoveWord = async (wordToRemove: string) => {
+    if (!user) return;
+    try {
+      const { setDoc, doc: docRef } = await import('firebase/firestore');
+      const updatedWords = customWords.filter(w => w !== wordToRemove);
+      await setDoc(docRef(db, 'settings', 'harsh_words'), {
+        words: updatedWords,
+        updatedAt: new Date(),
+        updatedBy: user.name
+      }, { merge: true });
+    } catch (err) {
+      console.error("Gagal menghapus kata kasar:", err);
+      showAlert('Gagal', "Gagal menghapus kata kasar.", 'error');
+    }
+  };
+
   // 4. Handlers
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,16 +211,82 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
     try {
       const { updateDoc, query, where, getDocs, collection } = await import('firebase/firestore');
 
+      // Check if password change is requested
+      let updatedPasswordObj = {};
+      if (newPasswordState) {
+        if (newPasswordState.length < 6) {
+          throw new Error('Password baru minimal 6 karakter.');
+        }
+        if (newPasswordState !== confirmNewPassword) {
+          throw new Error('Konfirmasi password baru tidak cocok.');
+        }
+        updatedPasswordObj = { password: newPasswordState };
+      }
+
+      // Check if email has changed or is new
+      const emailChanged = email !== user.email;
+      let emailRegSent = false;
+      if (emailChanged && email) {
+        // Check for duplicate email
+        const emailQ = query(
+          collection(db, 'users'),
+          where('email', '==', email)
+        );
+        const emailSnap = await getDocs(emailQ);
+        const duplicate = emailSnap.docs.some(d => d.id !== user.id);
+        if (duplicate) {
+          throw new Error('Alamat email ini sudah terdaftar pada akun warga lain.');
+        }
+
+        // Register or sign in via Firebase Authentication
+        let userCredential;
+        const targetPassword = newPasswordState || user.password || '';
+        if (!targetPassword) {
+          throw new Error('Password akun diperlukan untuk mendaftarkan email ke Firebase Auth.');
+        }
+        try {
+          userCredential = await createUserWithEmailAndPassword(auth, email, targetPassword);
+        } catch (authErr: any) {
+          if (authErr.code === 'auth/email-already-in-use') {
+            try {
+              userCredential = await signInWithEmailAndPassword(auth, email, targetPassword);
+            } catch (signInErr: any) {
+              throw new Error('Email ini sudah terdaftar di Firebase Auth dengan password berbeda.');
+            }
+          } else {
+            throw authErr;
+          }
+        }
+
+        if (userCredential.user) {
+          await sendEmailVerification(userCredential.user);
+          emailRegSent = true;
+        }
+      }
+
+      // Sync password change to Firebase Auth if email is already registered and not changed
+      if (!emailChanged && user.email && newPasswordState) {
+        try {
+          const oldPassword = user.password || '';
+          const userCredential = await signInWithEmailAndPassword(auth, user.email, oldPassword);
+          await updatePassword(userCredential.user, newPasswordState);
+        } catch (authErr: any) {
+          console.error("Gagal sinkronisasi password baru ke Firebase Auth:", authErr);
+        }
+      }
+
       // 1. Update Users collection
       await setDoc(doc(db, 'users', user.id), {
         name,
         photoUrl: photoPreview,
         chatUsername,
         email,
-        emailVerified,
+        emailVerified: emailChanged ? false : emailVerified,
+        phoneNumber,
         biometricEnabled: false,
         biometricCredentialId: null,
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        ...updatedPasswordObj
       }, { merge: true });
 
       // 2. Sync with Residents collection (important for visibility to others/admin)
@@ -181,13 +325,21 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
         photoUrl: photoPreview, 
         chatUsername,
         email,
-        emailVerified,
+        emailVerified: emailChanged ? false : emailVerified,
+        phoneNumber,
         pin,
         pinSet: !!pin,
         biometricEnabled: false,
-        biometricCredentialId: null
+        biometricCredentialId: null,
+        ...(newPasswordState ? { password: newPasswordState } : {})
       });
-      setMessage({ text: 'Profil berhasil diperbarui dan disinkronkan!', type: 'success' });
+      setNewPasswordState('');
+      setConfirmNewPassword('');
+      if (emailRegSent) {
+        setMessage({ text: 'Profil berhasil diperbarui! Link verifikasi email telah dikirim ke alamat email baru Anda.', type: 'success' });
+      } else {
+        setMessage({ text: 'Profil berhasil diperbarui dan disinkronkan!', type: 'success' });
+      }
     } catch (err: any) {
       setMessage({ text: 'Gagal sinkronisasi: ' + err.message, type: 'error' });
     } finally {
@@ -197,62 +349,91 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
 
   const handleVerifyEmail = async () => {
     if (!email) {
-      alert("Harap isi alamat email terlebih dahulu.");
+      showAlert('Peringatan', "Harap isi alamat email terlebih dahulu.", 'warning');
       return;
     }
     setVerifying(true);
     try {
       if (user?.id) {
-        // 1. Generate unique verification token
-        const tokenVal = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        setVerificationToken(tokenVal);
-        
-        // 2. Create verification doc in Firestore
-        const verificationRef = doc(collection(db, 'email_verifications'));
-        await setDoc(verificationRef, {
-          userId: user.id,
-          email,
-          token: tokenVal,
-          verified: false,
-          createdAt: new Date()
-        });
+        // Check for duplicate email
+        const emailQ = query(
+          collection(db, 'users'),
+          where('email', '==', email)
+        );
+        const emailSnap = await getDocs(emailQ);
+        const duplicate = emailSnap.docs.some(d => d.id !== user.id);
+        if (duplicate) {
+          showAlert('Gagal', "Alamat email ini sudah terdaftar pada akun warga lain.", 'error');
+          setVerifying(false);
+          return;
+        }
 
-        // 3. Queue verification email
-        const verifyLink = `${window.location.origin}/verify-email?token=${tokenVal}&userId=${user.id}`;
-        await addDoc(collection(db, 'email_queue'), {
-          to: email,
-          subject: '[Ruang Warga 011] Verifikasi Alamat Email Anda',
-          body: `Halo ${name || user.name},\n\nTerima kasih telah melengkapi alamat email Anda di platform Ruang Warga 011 VSJ.\n\nSesuai standar keamanan kependudukan, mohon verifikasi alamat email Anda dengan mengeklik tautan di bawah ini:\n\n${verifyLink}\n\nTautan ini hanya dapat digunakan satu kali.\n\nSalam Hangat,\nPengurus RW 011 VSJ`,
-          createdAt: new Date()
-        });
-
-        setSentEmail(email);
-        setShowVerificationModal(true);
-
-        // 4. Listen for real-time verification changes
-        const unsubscribe = onSnapshot(verificationRef, (docSnap) => {
-          if (docSnap.exists() && docSnap.data().verified === true) {
-            // Success! Update local states and alert user
-            setEmailVerified(true);
-            onUpdateUser({
-              ...user,
-              email,
-              emailVerified: true
-            });
-            setShowVerificationModal(false);
-            alert("Email Anda berhasil diverifikasi secara real-time!");
-            unsubscribe();
+        // Register or sign in via Firebase Authentication
+        let userCredential;
+        try {
+          userCredential = await createUserWithEmailAndPassword(auth, email, user.password || '');
+        } catch (authErr: any) {
+          if (authErr.code === 'auth/email-already-in-use') {
+            userCredential = await signInWithEmailAndPassword(auth, email, user.password || '');
+          } else {
+            throw authErr;
           }
+        }
+
+        if (userCredential.user) {
+          await sendEmailVerification(userCredential.user);
+        }
+
+        // Update Firestore user document
+        await updateDoc(doc(db, 'users', user.id), {
+          email,
+          emailVerified: false,
+          email_verified: false
         });
+
+        showAlert('Berhasil', "Link verifikasi telah dikirim ke email Anda secara native. Silakan periksa inbox/spam dan verifikasi email tersebut, lalu klik 'Cek Status Verifikasi' di sini.", 'success');
       }
     } catch (err: any) {
-      alert("Gagal mengirim email verifikasi: " + err.message);
+      showAlert('Gagal', "Gagal memproses verifikasi email: " + err.message, 'error');
     } finally {
       setVerifying(false);
     }
   };
 
-
+  const handleCheckVerificationStatus = async () => {
+    if (!email) return;
+    setVerifying(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, user?.password || '');
+      await userCredential.user.reload();
+      const isVerified = auth.currentUser?.emailVerified;
+      
+      if (isVerified) {
+        setEmailVerified(true);
+        if (user?.id) {
+          await updateDoc(doc(db, 'users', user.id), {
+            emailVerified: true,
+            email_verified: true,
+            email_verified_at: new Date()
+          });
+          
+          onUpdateUser({
+            ...user,
+            email,
+            emailVerified: true,
+            email_verified: true
+          });
+        }
+        showAlert('Berhasil', "Email Anda berhasil terverifikasi!", 'success');
+      } else {
+        showAlert('Info', "Email belum terverifikasi. Harap cek kotak masuk email Anda dan klik link verifikasi terlebih dahulu.", 'info');
+      }
+    } catch (err: any) {
+      showAlert('Gagal', "Gagal memverifikasi status email: " + err.message, 'error');
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -454,7 +635,7 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
       setSetupPassword('');
       setSetupPin('');
       setSetupConfirmPin('');
-      alert("🎉 PIN Keamanan Anda berhasil dikonfigurasi!");
+      setShowPinSuccessModal(true);
     } catch (err: any) {
       console.error("Gagal menyimpan PIN:", err);
       setPinSetupError("Terjadi kesalahan sistem, silakan coba lagi.");
@@ -463,61 +644,125 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
     }
   };
 
-  const startHold = () => {
-    if (confirmText.trim().toUpperCase() !== 'HAPUS SEMUA DATA' || isDeleting) return;
+  const handleFormatCategory = (category: 'warga' | 'kk' | 'chat' | 'keuangan' | 'surat' | 'feedback', label: string) => {
+    setFormatCategory(category);
+    setFormatCategoryLabel(label);
+    setConfirmPassword('');
+    setHoldProgress(0);
+    setModalError(null);
+    setModalSuccess(null);
+    setModalActionType('format');
+    setShowFormatModal(true);
+  };
+
+  const startFormatHold = () => {
+    if (!confirmPassword.trim() || isFormatting || !formatCategory) return;
     const start = Date.now();
     holdIntervalRef.current = setInterval(() => {
-      const p = Math.min(((Date.now() - start) / 3000) * 100, 100);
+      const p = Math.min(((Date.now() - start) / 3000) * 100, 100); // 3 seconds hold is faster & premium
       setHoldProgress(p);
       if (p >= 100) {
         clearInterval(holdIntervalRef.current);
-        executeDeleteAll();
+        executeFormatWithPassword();
       }
     }, 50);
   };
 
-  const stopHold = () => {
+  const stopFormatHold = () => {
     if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
     setHoldProgress(0);
   };
 
-  const executeDeleteAll = async () => {
-    setIsDeleting(true);
+  const executeFormatWithPassword = async () => {
+    if (!user || !formatCategory) return;
+    setIsFormatting(true);
+    setModalError(null);
     try {
-      // 1. Common collections
-      const colls = ['residents', 'families', 'messages', 'registrations'];
-      for (const c of colls) {
-        const snap = await getDocs(collection(db, c));
-        const batch = writeBatch(db);
-        snap.docs.forEach(d => batch.delete(d.ref));
-        await batch.commit();
+      // 1. Verify Password (including bypass for developers)
+      let isAuthorized = false;
+      const isDevBypass = 
+        (user.username === 'kemaldev' || user.username === 'kemal dev' || user.username === 'kmlafdz') && 
+        (confirmPassword === '1234' || confirmPassword === 'kemaldev123' || confirmPassword === 'devpass' || confirmPassword === 'admin');
+
+      if (isDevBypass) {
+        isAuthorized = true;
+      } else {
+        const userRef = doc(db, 'users', user.id);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          const actualPassword = userData.password || userData.pendingPassword;
+          if (confirmPassword === actualPassword) {
+            isAuthorized = true;
+          }
+        }
       }
 
-      // 2. Delete resident user accounts
-      const userSnap = await getDocs(collection(db, 'users'));
-      const userBatch = writeBatch(db);
-      let userCount = 0;
-      userSnap.docs.forEach(d => {
-        if (d.data().accountType === 'resident') {
-          userBatch.delete(d.ref);
-          userCount++;
-        }
-      });
-      if (userCount > 0) await userBatch.commit();
+      if (!isAuthorized) {
+        setModalError("Otorisasi Ditolak: Password yang Anda masukkan salah!");
+        setIsFormatting(false);
+        setHoldProgress(0);
+        return;
+      }
 
-      setMessage({ text: 'SELURUH DATA WARGA & AKUN BERHASIL DIHAPUS!', type: 'success' });
-      setShowDeleteModal(false);
-      setConfirmText('');
-    } catch (e: any) {
-      alert("Error saat menghapus: " + e.message);
+      // 2. Execute deletion based on category
+      const batch = writeBatch(db);
+      
+      if (formatCategory === 'warga') {
+        // Clear residents
+        const residentsSnap = await getDocs(collection(db, 'residents'));
+        residentsSnap.docs.forEach(d => batch.delete(d.ref));
+        
+        // Clear resident users
+        const usersSnap = await getDocs(collection(db, 'users'));
+        usersSnap.docs.forEach(d => {
+          if (d.data().accountType === 'resident') {
+            batch.delete(d.ref);
+          }
+        });
+      } else if (formatCategory === 'kk') {
+        const familiesSnap = await getDocs(collection(db, 'families'));
+        familiesSnap.docs.forEach(d => batch.delete(d.ref));
+      } else if (formatCategory === 'chat') {
+        const messagesSnap = await getDocs(collection(db, 'messages'));
+        messagesSnap.docs.forEach(d => batch.delete(d.ref));
+      } else if (formatCategory === 'keuangan') {
+        const keuanganSnap = await getDocs(collection(db, 'keuangan'));
+        keuanganSnap.docs.forEach(d => batch.delete(d.ref));
+        
+        const billsSnap = await getDocs(collection(db, 'bills'));
+        billsSnap.docs.forEach(d => batch.delete(d.ref));
+        
+        const fbSnap = await getDocs(collection(db, 'family_bills'));
+        fbSnap.docs.forEach(d => batch.delete(d.ref));
+
+        const paymentsSnap = await getDocs(collection(db, 'payments'));
+        paymentsSnap.docs.forEach(d => batch.delete(d.ref));
+      } else if (formatCategory === 'surat') {
+        const snap1 = await getDocs(collection(db, 'surat_requests'));
+        snap1.docs.forEach(d => batch.delete(d.ref));
+        
+        const snap2 = await getDocs(collection(db, 'suratRequests'));
+        snap2.docs.forEach(d => batch.delete(d.ref));
+      } else if (formatCategory === 'feedback') {
+        const feedbackSnap = await getDocs(collection(db, 'feedbacks'));
+        feedbackSnap.docs.forEach(d => batch.delete(d.ref));
+      }
+
+      await batch.commit();
+      
+      // Success! Clear password & show success in modal
+      setConfirmPassword('');
+      setModalSuccess(`🎉 Sukses: Seluruh data ${formatCategoryLabel} telah berhasil di-reset dan dibersihkan dari database secara bersih.`);
+    } catch (err: any) {
+      console.error("Reset data error:", err);
+      setModalError(`❌ Gagal mereset data: ${err.message}`);
     } finally {
-      setIsDeleting(false);
+      setIsFormatting(false);
       setHoldProgress(0);
     }
   };
 
-
-  const [activeSection, setActiveSection] = useState<'identitas' | 'akun' | 'notif' | 'feedback' | 'about'>('identitas');
 
   // 5. Render
   if (!user) return null;
@@ -543,19 +788,21 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
                     <UserIcon size={40} color="var(--gray-300)" />
                   )}
                 </div>
-                <button
-                  className="btn-icon"
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{
-                    position: 'absolute', bottom: 0, right: 0,
-                    background: '#2563eb', color: '#fff',
-                    borderRadius: '50%', border: '2px solid #fff',
-                    width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Camera size={14} />
-                </button>
+                {user.adminRole !== 'rw' && (
+                  <button
+                    className="btn-icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      position: 'absolute', bottom: 0, right: 0,
+                      background: '#2563eb', color: '#fff',
+                      borderRadius: '50%', border: '2px solid #fff',
+                      width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Camera size={14} />
+                  </button>
+                )}
                 <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handlePhotoUpload} />
               </div>
             </div>
@@ -569,7 +816,7 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
                   onChange={e => setName(e.target.value.toUpperCase())}
                   placeholder="Masukkan nama sesuai KK"
                   required
-                  disabled={user.accountType === 'resident'}
+                  disabled={user.accountType === 'resident' || user.adminRole === 'rw'}
                   style={{ 
                     height: 52, 
                     borderRadius: 14, 
@@ -578,14 +825,19 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
                     textTransform: 'uppercase', 
                     fontSize: 14, 
                     fontWeight: 700,
-                    background: user.accountType === 'resident' ? '#f8fafc' : '#fff',
-                    color: user.accountType === 'resident' ? '#64748b' : '#0f172a',
-                    cursor: user.accountType === 'resident' ? 'not-allowed' : 'text'
+                    background: (user.accountType === 'resident' || user.adminRole === 'rw') ? '#f8fafc' : '#fff',
+                    color: (user.accountType === 'resident' || user.adminRole === 'rw') ? '#64748b' : '#0f172a',
+                    cursor: (user.accountType === 'resident' || user.adminRole === 'rw') ? 'not-allowed' : 'text'
                   }}
                 />
                 {user.accountType === 'resident' && (
                   <p style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.5, textAlign: 'left' }}>
                     * Nama warga tidak dapat diubah secara mandiri demi validitas data kependudukan. Hubungi admin atau pengurus RT Anda jika terdapat kesalahan penulisan nama.
+                  </p>
+                )}
+                {user.adminRole === 'rw' && (
+                  <p style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.5, textAlign: 'left' }}>
+                    * Nama RW Admin tidak dapat diubah secara mandiri demi konsistensi data kepengurusan.
                   </p>
                 )}
               </div>
@@ -598,6 +850,33 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
                   onChange={e => setChatUsername(e.target.value.slice(0, 10))}
                   placeholder="Buat username untuk forum chat..."
                   maxLength={10}
+                  disabled={user.adminRole === 'rw'}
+                  style={{ 
+                    height: 52, 
+                    borderRadius: 14, 
+                    border: '1px solid #e2e8f0', 
+                    padding: '0 16px', 
+                    fontSize: 14, 
+                    fontWeight: 700,
+                    background: user.adminRole === 'rw' ? '#f8fafc' : '#fff',
+                    color: user.adminRole === 'rw' ? '#64748b' : '#0f172a',
+                    cursor: user.adminRole === 'rw' ? 'not-allowed' : 'text'
+                  }}
+                />
+                <p style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.5, textAlign: 'left' }}>
+                  * Username ini akan ditampilkan pada forum obrolan warga (maksimal 10 karakter). {user.adminRole === 'rw' && "RW Admin tidak diperkenankan mengubah username forum."}
+                </p>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 800, color: '#64748b', marginBottom: 8, textTransform: 'uppercase' }}>Nomor WhatsApp (Aktif)</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={phoneNumber}
+                  onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Contoh: 08123456789 atau 628123456789"
+                  required
                   style={{ 
                     height: 52, 
                     borderRadius: 14, 
@@ -608,7 +887,7 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
                   }}
                 />
                 <p style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.5, textAlign: 'left' }}>
-                  * Username ini akan ditampilkan pada forum obrolan warga (maksimal 10 karakter).
+                  * Nomor WhatsApp aktif yang digunakan untuk koordinasi kependudukan dan pesan otomatis.
                 </p>
               </div>
 
@@ -774,35 +1053,67 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
                           }}
                         />
                         {!emailVerified && email && (
-                          <button
-                            type="button"
-                            onClick={handleVerifyEmail}
-                            disabled={verifying}
-                            style={{
-                              height: 52,
-                              borderRadius: 14,
-                              border: 'none',
-                              background: '#2563eb',
-                              color: '#ffffff',
-                              fontSize: 12,
-                              fontWeight: 800,
-                              padding: '0 16px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 6,
-                              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
-                            }}
-                          >
-                            {verifying ? (
-                              <>
-                                <Loader2 size={14} className="animate-spin" /> Memproses...
-                              </>
-                            ) : (
-                              "Verifikasi"
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button
+                              type="button"
+                              onClick={handleVerifyEmail}
+                              disabled={verifying}
+                              style={{
+                                height: 52,
+                                borderRadius: 14,
+                                border: 'none',
+                                background: '#2563eb',
+                                color: '#ffffff',
+                                fontSize: 12,
+                                fontWeight: 800,
+                                padding: '0 16px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 6,
+                                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
+                              }}
+                            >
+                              {verifying ? (
+                                <>
+                                  <Loader2 size={14} className="animate-spin" /> Memproses...
+                                </>
+                              ) : (
+                                "Verifikasi"
+                              )}
+                            </button>
+                            {email === user?.email && (
+                              <button
+                                type="button"
+                                onClick={handleCheckVerificationStatus}
+                                disabled={verifying}
+                                style={{
+                                  height: 52,
+                                  borderRadius: 14,
+                                  border: '1px solid #cbd5e1',
+                                  background: '#ffffff',
+                                  color: '#334155',
+                                  fontSize: 12,
+                                  fontWeight: 800,
+                                  padding: '0 16px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 6,
+                                }}
+                              >
+                                {verifying ? (
+                                  <>
+                                    <Loader2 size={14} className="animate-spin" /> Memproses...
+                                  </>
+                                ) : (
+                                  "Cek Status"
+                                )}
+                              </button>
                             )}
-                          </button>
+                          </div>
                         )}
                       </div>
                       <p style={{ marginTop: 8, fontSize: 11, color: '#94a3b8', lineHeight: 1.5, textAlign: 'left' }}>
@@ -889,10 +1200,77 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
                           </>
                         )}
                       </button>
-
                       <p style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.5, textAlign: 'left', margin: 0 }}>
                         * PIN digunakan untuk memverifikasi transaksi kas, pengajuan surat, atau aktivitas penting warga.
                       </p>
+                    </div>
+
+                    {/* Forgot Password Setup status */}
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 20, textAlign: 'left', width: '100%' }}>
+                      <h5 style={{ fontSize: 13, fontWeight: 800, color: '#475569', marginBottom: 8 }}>Forgot Password Setup</h5>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{
+                          padding: '3px 8px',
+                          borderRadius: 8,
+                          fontSize: 11,
+                          fontWeight: 800,
+                          background: emailVerified ? '#dcfce7' : '#fee2e2',
+                          color: emailVerified ? '#15803d' : '#b91c1c',
+                        }}>
+                          {emailVerified ? 'Pemulihan Email Aktif' : 'Pemulihan Email Nonaktif'}
+                        </span>
+                        <span style={{ fontSize: 12, color: '#64748b' }}>
+                          {emailVerified ? 'Anda dapat menyetel ulang password melalui email.' : 'Gunakan email terverifikasi untuk mengaktifkan fitur ini.'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Ubah Password */}
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 20, width: '100%' }}>
+                      <h5 style={{ fontSize: 13, fontWeight: 800, color: '#475569', marginBottom: 12, textAlign: 'left' }}>Ubah Password Akun</h5>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 4 }}>
+                        <div className="form-group" style={{ textAlign: 'left' }}>
+                          <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#64748b', marginBottom: 6, textTransform: 'uppercase' }}>Password Baru</label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type={showNewPw ? 'text' : 'password'}
+                              className="form-input"
+                              value={newPasswordState}
+                              onChange={e => setNewPasswordState(e.target.value)}
+                              placeholder="Minimal 6 karakter"
+                              style={{ height: 48, borderRadius: 12, border: '1px solid #e2e8f0', padding: '0 44px 0 16px', fontSize: 14, width: '100%', boxSizing: 'border-box' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPw(!showNewPw)}
+                              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              {showNewPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="form-group" style={{ textAlign: 'left' }}>
+                          <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: '#64748b', marginBottom: 6, textTransform: 'uppercase' }}>Konfirmasi Password</label>
+                          <div style={{ position: 'relative' }}>
+                            <input
+                              type={showConfirmPw ? 'text' : 'password'}
+                              className="form-input"
+                              value={confirmNewPassword}
+                              onChange={e => setConfirmNewPassword(e.target.value)}
+                              placeholder="Ulangi password baru"
+                              style={{ height: 48, borderRadius: 12, border: '1px solid #e2e8f0', padding: '0 44px 0 16px', fontSize: 14, width: '100%', boxSizing: 'border-box' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPw(!showConfirmPw)}
+                              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              {showConfirmPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {message && activeSection === 'akun' && (
@@ -1119,8 +1497,8 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
         return (
           <div className="section-content fade-in">
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <div style={{ width: 80, height: 80, background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', borderRadius: 20, margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                <Settings size={40} />
+              <div style={{ width: 80, height: 80, margin: '0 auto 20px', borderRadius: 20, overflow: 'hidden', background: '#fff', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}>
+                <img src="/logo.png" alt="Ruang Warga VSJ Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
               <h3 style={{ fontSize: 18, fontWeight: 900, color: '#1e3a8a' }}>Ruang Warga VSJ</h3>
               <p style={{ fontSize: 13, color: '#64748b', marginTop: 8, lineHeight: 1.6 }}>
@@ -1131,18 +1509,182 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
               <div style={{ marginTop: 40, borderTop: '1px solid #f1f5f9', paddingTop: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
                   <span style={{ fontSize: 13, color: '#64748b' }}>Versi Aplikasi</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#1e293b' }}>v1.0.0-gold</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#1e293b' }}>v2.0.0 (Beta)</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
                   <span style={{ fontSize: 13, color: '#64748b' }}>Terakhir Diperbarui</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#1e293b' }}>16 Mei 2026</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#1e293b' }}>24 Mei 2026</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0' }}>
                   <span style={{ fontSize: 13, color: '#64748b' }}>Developer</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#2563eb' }}>Tim Digital VSJ</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#2563eb' }}>Muhammad Kemal</span>
+                </div>
+              </div>
+
+              {/* Support Developer Section */}
+              <div style={{ marginTop: 24, padding: '20px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                <h4 style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>Dukung Pengembang</h4>
+                <p style={{ fontSize: 12, color: '#64748b', marginBottom: 16, lineHeight: 1.5 }}>
+                  Bantu apresiasi kerja keras pengembang dengan donasi sukarela agar aplikasi terus dikembangkan & bebas iklan.
+                </p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText('901796951684');
+                    setShowCopyToast(true);
+                    setTimeout(() => setShowCopyToast(false), 2000);
+                  }}
+                  style={{
+                    width: '100%',
+                    height: '46px',
+                    background: '#10b981',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <span style={{ 
+                    background: '#ff6b00', 
+                    color: '#ffffff', 
+                    padding: '3px 8px', 
+                    borderRadius: '6px', 
+                    fontSize: '10px', 
+                    fontWeight: 900, 
+                    display: 'inline-flex', 
+                    alignItems: 'center',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}>
+                    SeaBank
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    Salin Rekening <Copy size={13} style={{ opacity: 0.9 }} />
+                  </span>
+                </button>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', marginTop: 12 }}>
+                  901796951684 a/n Muhammad Kemal Afrilidzi
                 </div>
               </div>
             </div>
+          </div>
+        );
+      case 'sensor':
+        return (
+          <div className="section-content fade-in">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+              <ShieldAlert size={20} color="#dc2626" />
+              <div>
+                <h4 style={{ fontSize: 15, fontWeight: 800, color: '#1e3a8a', margin: 0 }}>Filter Kata Kasar (Forum Chat)</h4>
+                <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Kelola kata-kata yang akan disensor otomatis oleh sistem kecerdasan Vira AI</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleAddWord} style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+              <input
+                type="text"
+                className="form-input"
+                value={newWord}
+                onChange={e => setNewWord(e.target.value)}
+                placeholder="Tambah kata kasar baru..."
+                required
+                style={{ 
+                  height: 46, 
+                  borderRadius: 12, 
+                  border: '1px solid #e2e8f0', 
+                  padding: '0 14px', 
+                  fontSize: 13,
+                  flex: 1
+                }}
+              />
+              <button
+                type="submit"
+                style={{
+                  padding: '0 20px',
+                  height: 46,
+                  borderRadius: 12,
+                  background: '#1e3a8a',
+                  color: '#fff',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(30, 58, 138, 0.15)'
+                }}
+              >
+                Tambah
+              </button>
+            </form>
+
+            {wordsLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+                <Loader2 className="spin" color="#1e3a8a" size={24} />
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#64748b', marginBottom: 12, textTransform: 'uppercase' }}>Daftar Kata Kasar Tambahan ({customWords.length})</div>
+                {customWords.length === 0 ? (
+                  <div style={{ 
+                    textAlign: 'center', 
+                    padding: '30px 16px', 
+                    background: '#f8fafc', 
+                    borderRadius: 16, 
+                    border: '1px dashed #cbd5e1',
+                    color: '#94a3b8',
+                    fontSize: 13
+                  }}>
+                    Belum ada kata kasar tambahan manual. Gunakan form di atas untuk menambahkan.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, maxHeight: 240, overflowY: 'auto', padding: 4 }}>
+                    {customWords.map(word => (
+                      <span 
+                        key={word}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          background: '#fef2f2',
+                          color: '#b91c1c',
+                          border: '1px solid #fee2e2',
+                          padding: '6px 12px',
+                          borderRadius: 10,
+                          fontSize: 12,
+                          fontWeight: 700
+                        }}
+                      >
+                        {word}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveWord(word)}
+                          style={{
+                            border: 'none',
+                            background: 'none',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       default: return null;
@@ -1193,6 +1735,7 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
             { id: 'identitas', label: 'Identitas', icon: UserIcon },
             { id: 'akun', label: 'Akun', icon: ShieldAlert },
             { id: 'notif', label: 'Notifikasi', icon: AlertCircle },
+            ...(user.accountType === 'admin' ? [{ id: 'sensor', label: 'Kata Kasar', icon: ShieldAlert }] : []),
             { id: 'feedback', label: 'Feedback', icon: Save },
             { id: 'about', label: 'Tentang', icon: Settings }
           ].map(s => (
@@ -1218,39 +1761,289 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
           {renderSection()}
         </div>
 
-        {/* DANGER ZONE FOR ADMIN ONLY - MOVING TO BOTTOM AS BUTTON */}
+        {/* DANGER ZONE FOR DEVELOPER/RW - SEPARATE FORMAT CONTROL PANEL */}
         {user.accountType === 'admin' && ['developer', 'rw'].includes(user.adminRole || '') && activeSection === 'akun' && (
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            style={{ width: '100%', padding: '16px', borderRadius: 18, border: '1px solid #fee2e2', background: '#fef2f2', color: '#ef4444', fontWeight: 800, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
-          >
-            <Trash2 size={18} /> Hapus Seluruh Database Warga
-          </button>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 28,
+            padding: 24,
+            border: '1px solid #fee2e2',
+            boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20,
+            marginTop: 16
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              <div style={{ 
+                width: 44, 
+                height: 44, 
+                borderRadius: 14, 
+                background: '#fef2f2', 
+                color: '#ef4444', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <ShieldAlert size={22} />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <h4 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#991b1b' }}>Pusat Kendali Pengembang (Reset Data Terpisah)</h4>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: '#64748b', lineHeight: 1.4 }}>
+                  Kosongkan dan reset data kependudukan secara terpisah. Klik kategori untuk membuka modul verifikasi password dan tahan tombol selama 3 detik untuk mereset data.
+                </p>
+              </div>
+            </div>
+
+            {/* Grid of 6 format buttons */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', 
+              gap: 12 
+            }}>
+              {[
+                { category: 'warga', label: 'Data Warga', desc: 'Identitas & Akun Warga' },
+                { category: 'kk', label: 'Data KK', desc: 'Hubungan Kartu Keluarga' },
+                { category: 'chat', label: 'Data Chat', desc: 'Riwayat Obrolan Forum' },
+                { category: 'keuangan', label: 'Data Keuangan', desc: 'Transaksi Kas & Iuran' },
+                { category: 'surat', label: 'Data Administrasi Surat', desc: 'Pengajuan Surat Warga' },
+                { category: 'feedback', label: 'Data Kritik & Saran', desc: 'Kotak Saran & Umpan Balik' }
+              ].map(item => {
+                return (
+                  <button
+                    key={item.category}
+                    onClick={() => handleFormatCategory(item.category as any, item.label)}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      padding: '14px 16px',
+                      borderRadius: 16,
+                      background: '#fff',
+                      border: '1px solid #fee2e2',
+                      boxShadow: '0 2px 8px rgba(239, 68, 68, 0.02)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.2s',
+                      width: '100%'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = '#fef2f2';
+                      e.currentTarget.style.borderColor = '#fca5a5';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = '#fff';
+                      e.currentTarget.style.borderColor = '#fee2e2';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
+                      <RefreshCw size={15} color="#ef4444" style={{ flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, fontWeight: 900, color: '#991b1b', flex: 1 }}>
+                        {item.label}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 10, color: '#7f1d1d', opacity: 0.6, marginTop: 4, fontWeight: 600 }}>
+                      Reset {item.desc}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
 
-      {/* DELETE MODAL (Restored logic) */}
-      {showDeleteModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div style={{ background: '#fff', width: '100%', maxWidth: 450, borderRadius: 28, padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
-            <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ width: 64, height: 64, background: '#fef2f2', color: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}><ShieldAlert size={32} /></div>
-              <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Konfirmasi Hapus Total</h3>
-              <p style={{ fontSize: 13, color: '#64748b', marginTop: 8 }}>Ketik frasa di bawah untuk menghapus seluruh data permanen:</p>
-              <div style={{ marginTop: 12, padding: 10, background: '#f8fafc', borderRadius: 10, fontWeight: 900, fontSize: 12, letterSpacing: 1 }}>HAPUS SEMUA DATA</div>
-            </div>
-            <input className="form-input" value={confirmText} onChange={e => setConfirmText(e.target.value)} style={{ width: '100%', textAlign: 'center', textTransform: 'uppercase', height: 48, borderRadius: 14, border: '2px solid #f1f5f9' }} placeholder="..." />
-            <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button
-                onMouseDown={startHold} onMouseUp={stopHold} onMouseLeave={stopHold}
-                disabled={confirmText.toUpperCase() !== 'HAPUS SEMUA DATA' || isDeleting}
-                style={{ height: 52, borderRadius: 14, background: '#ef4444', color: '#fff', border: 'none', fontWeight: 800, position: 'relative', overflow: 'hidden' }}
-              >
-                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${holdProgress}%`, background: 'rgba(255,255,255,0.3)' }} />
-                <span style={{ position: 'relative' }}>{isDeleting ? 'Menghapus...' : 'Tahan 3 Detik untuk Hapus'}</span>
-              </button>
-              <button onClick={() => setShowDeleteModal(false)} style={{ height: 52, borderRadius: 14, border: 'none', background: '#f1f5f9', color: '#64748b', fontWeight: 700 }}>Batalkan</button>
-            </div>
+      {/* CATEGORY RESET POPUP MODAL */}
+      {showFormatModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(10px)', zIndex: 8000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', width: '100%', maxWidth: 460, borderRadius: 28, padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #fee2e2' }}>
+            {modalSuccess ? (
+              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+                <img 
+                  src="/vira_ai_berhasil.png"
+                  alt="Vira AI Success"
+                  style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 20px' }}
+                />
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#16a34a', margin: 0, fontFamily: 'system-ui, sans-serif' }}>Reset Berhasil!</h3>
+                <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                  {modalSuccess}
+                </p>
+                <button
+                  onClick={() => {
+                    setShowFormatModal(false);
+                    setFormatCategory(null);
+                    setFormatCategoryLabel('');
+                    setConfirmPassword('');
+                    setModalSuccess(null);
+                    setModalActionType(null);
+                  }}
+                  style={{
+                    width: '100%',
+                    height: 48,
+                    borderRadius: 14,
+                    background: '#16a34a',
+                    color: '#fff',
+                    border: 'none',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    marginTop: 16,
+                    boxShadow: '0 4px 14px rgba(22, 163, 74, 0.25)',
+                    fontFamily: 'system-ui, sans-serif'
+                  }}
+                >
+                  Selesai
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                  <div style={{ 
+                    width: 56, 
+                    height: 56, 
+                    background: '#fef2f2', 
+                    color: '#ef4444', 
+                    borderRadius: '50%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    margin: '0 auto 12px' 
+                  }}>
+                    <ShieldAlert size={28} />
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 900, color: '#991b1b', margin: 0 }}>
+                    Reset {formatCategoryLabel}
+                  </h3>
+                  <p style={{ fontSize: 12, color: '#475569', marginTop: 6, lineHeight: 1.4 }}>
+                    Anda akan mengosongkan dan menghapus seluruh data pada kategori <strong>{formatCategoryLabel}</strong> secara permanen. Setelah data di-reset, data akan kosong dan Anda dapat menginput kembali data baru melalui fitur aplikasi.
+                  </p>
+                </div>
+
+                {/* Custom error banner in modal */}
+                {modalError && (
+                  <div style={{
+                    background: '#fef2f2',
+                    border: '1px solid #fee2e2',
+                    borderRadius: '14px',
+                    padding: '12px 16px',
+                    color: '#dc2626',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 16,
+                    textAlign: 'left'
+                  }}>
+                    <ShieldAlert size={16} />
+                    <span style={{ lineHeight: 1.3 }}>{modalError}</span>
+                  </div>
+                )}
+
+                {/* Password input */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'left', marginBottom: 20 }}>
+                  <label style={{ fontSize: '10px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>Password Administrator</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={e => {
+                        setConfirmPassword(e.target.value);
+                        if (modalError) setModalError(null);
+                      }}
+                      placeholder="Masukkan password admin Anda..."
+                      style={{ width: '100%', height: 46, borderRadius: 12, border: '2px solid #f1f5f9', padding: '0 40px 0 14px', fontSize: 13, outline: 'none' }}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Hold Button & Batal */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <button
+                    onMouseDown={startFormatHold}
+                    onMouseUp={stopFormatHold}
+                    onMouseLeave={stopFormatHold}
+                    onTouchStart={startFormatHold}
+                    onTouchEnd={stopFormatHold}
+                    disabled={!confirmPassword.trim() || isFormatting}
+                    style={{
+                      height: 50,
+                      borderRadius: 12,
+                      background: !confirmPassword.trim() ? '#cbd5e1' : '#ef4444',
+                      color: '#fff',
+                      border: 'none',
+                      fontWeight: 800,
+                      position: 'relative',
+                      overflow: 'hidden',
+                      cursor: !confirmPassword.trim() ? 'not-allowed' : 'pointer',
+                      boxShadow: !confirmPassword.trim() ? 'none' : '0 4px 14px rgba(239, 68, 68, 0.25)',
+                      transition: 'all 0.2s',
+                      outline: 'none',
+                      fontFamily: 'system-ui, sans-serif'
+                    }}
+                  >
+                    {/* holdProgress bar */}
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: `${holdProgress}%`,
+                      background: 'rgba(255,255,255,0.3)',
+                      transition: 'width 0.05s linear'
+                    }} />
+                    
+                    <span style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13 }}>
+                      {isFormatting ? (
+                        <>
+                          <Loader2 size={15} className="spin" /> Memproses...
+                        </>
+                      ) : !confirmPassword.trim() ? (
+                        'Masukkan Password untuk Mengaktifkan'
+                      ) : (
+                        <>
+                          <RefreshCw size={15} /> Tahan Tombol 3 Detik untuk Reset Data
+                        </>
+                      )}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowFormatModal(false);
+                      setFormatCategory(null);
+                      setFormatCategoryLabel('');
+                      setConfirmPassword('');
+                      setHoldProgress(0);
+                      setModalError(null);
+                      setModalActionType(null);
+                    }}
+                    disabled={isFormatting}
+                    style={{
+                      height: 48,
+                      borderRadius: 12,
+                      border: 'none',
+                      background: '#f1f5f9',
+                      color: '#64748b',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontFamily: 'system-ui, sans-serif',
+                      fontSize: 13
+                    }}
+                  >
+                    Batal
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1672,6 +2465,85 @@ export default function ProfilePage({ user, onUpdateUser }: ProfilePageProps) {
           </motion.div>
         </div>
       )}
+
+      {showPinSuccessModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', backdropFilter: 'blur(10px)', zIndex: 8000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={{ background: '#fff', width: '100%', maxWidth: 400, borderRadius: 28, padding: 32, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0', textAlign: 'center' }}
+          >
+            <div style={{ 
+              width: 64, 
+              height: 64, 
+              background: '#f0fdf4', 
+              color: '#16a34a', 
+              borderRadius: '50%', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              margin: '0 auto 16px',
+              boxShadow: '0 8px 16px rgba(22, 163, 74, 0.1)'
+            }}>
+              <CheckCircle size={32} />
+            </div>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', margin: 0, fontFamily: 'system-ui, sans-serif' }}>
+              PIN Berhasil Diubah!
+            </h3>
+            <p style={{ fontSize: 13, color: '#475569', marginTop: 10, lineHeight: 1.5 }}>
+              PIN Keamanan transaksi Anda telah berhasil dikonfigurasi dan aktif. Sekarang Anda dapat menggunakan PIN ini untuk verifikasi kas, pengajuan surat, dan aktivitas penting warga lainnya.
+            </p>
+            <button
+              onClick={() => setShowPinSuccessModal(false)}
+              style={{
+                width: '100%',
+                height: 48,
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 800,
+                cursor: 'pointer',
+                marginTop: 24,
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)',
+                transition: 'all 0.2s',
+                fontSize: '14px'
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              Selesai & Tutup
+            </button>
+          </motion.div>
+        </div>
+      )}
+
+      {showCopyToast && (
+        <div style={{ position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 9000 }}>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ 
+              background: '#0f172a', 
+              color: '#fff', 
+              padding: '12px 24px', 
+              borderRadius: '16px', 
+              fontSize: '13px', 
+              fontWeight: 800, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              fontFamily: 'system-ui, sans-serif'
+            }}
+          >
+            <CheckCircle size={16} color="#10b981" />
+            <span>Nomor rekening berhasil disalin!</span>
+          </motion.div>
+        </div>
+      )}
+
 
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }

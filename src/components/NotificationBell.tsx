@@ -17,7 +17,6 @@ interface Props {
 export default function NotificationBell({ userRole, userId }: Props) {
   const [notifs, setNotifs] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
   const dropRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -197,7 +196,7 @@ export default function NotificationBell({ userRole, userId }: Props) {
                   </button>
                 )}
                 {notifs.length > 0 && (
-                  <button onClick={() => setShowConfirmDelete(true)}
+                  <button onClick={() => deleteAllNotifications(userRole)}
                     style={{ 
                       background: 'none', 
                       border: 'none', 
@@ -238,13 +237,27 @@ export default function NotificationBell({ userRole, userId }: Props) {
                   onMouseEnter={e => (e.currentTarget.style.background = 'var(--gray-50)')}
                   onMouseLeave={e => (e.currentTarget.style.background = n.isRead ? '#fff' : 'var(--blue-50)')}
                 >
-                  <div style={{
-                    width: 34, height: 34, borderRadius: 10, background: n.isRead ? 'var(--gray-100)' : 'var(--blue-100)',
-                    color: n.isRead ? 'var(--gray-500)' : 'var(--blue-600)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                  }}>
-                    {getIcon(n.type)}
-                  </div>
+                  {n.userPhotoUrl ? (
+                    <img 
+                      src={n.userPhotoUrl} 
+                      alt="Avatar" 
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        flexShrink: 0
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: 34, height: 34, borderRadius: 10, background: n.isRead ? 'var(--gray-100)' : 'var(--blue-100)',
+                      color: n.isRead ? 'var(--gray-500)' : 'var(--blue-600)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                    }}>
+                      {getIcon(n.type)}
+                    </div>
+                  )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: n.isRead ? 500 : 700, fontSize: 13, color: 'var(--gray-800)', marginBottom: 2 }}>{n.title}</div>
                     <div style={{ fontSize: 12, color: 'var(--gray-500)', lineHeight: 1.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.message}</div>
@@ -259,71 +272,6 @@ export default function NotificationBell({ userRole, userId }: Props) {
           </div>
         </div>
       )}
-
-      {/* Custom Confirmation Modal */}
-      <AnimatePresence>
-        {showConfirmDelete && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 9999,
-              background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              style={{
-                background: '#ffffff', width: '100%', maxWidth: 360,
-                borderRadius: 24, padding: 24, textAlign: 'center',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                border: '1px solid rgba(255, 255, 255, 0.8)'
-              }}
-            >
-              <div style={{
-                width: 56, height: 56, background: '#fef2f2', color: '#ef4444',
-                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 16px', fontSize: 24
-              }}>
-                ⚠️
-              </div>
-              <h4 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>Hapus Semua Notifikasi</h4>
-              <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5, marginBottom: 24 }}>
-                Apakah Anda yakin ingin menghapus semua notifikasi Anda secara permanen? Tindakan ini tidak dapat dibatalkan.
-              </p>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmDelete(false)}
-                  style={{
-                    flex: 1, height: 44, borderRadius: 12, border: '1px solid #e2e8f0',
-                    background: '#ffffff', color: '#64748b', fontWeight: 700, fontSize: 13,
-                    cursor: 'pointer', transition: 'background 0.2s'
-                  }}
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setShowConfirmDelete(false);
-                    await deleteAllNotifications(userRole);
-                  }}
-                  style={{
-                    flex: 1, height: 44, borderRadius: 12, border: 'none',
-                    background: '#ef4444', color: '#ffffff', fontWeight: 700, fontSize: 13,
-                    cursor: 'pointer', transition: 'background 0.2s'
-                  }}
-                >
-                  Ya, Hapus
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

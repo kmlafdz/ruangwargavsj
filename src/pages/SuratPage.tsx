@@ -5,15 +5,17 @@ import {
   Eye, Download, Filter, Loader2, Send, AlertCircle,
   ChevronRight, ArrowLeft, MoreVertical,
   Calendar, Info, FileStack, BadgeCheck, UploadCloud,
-  FileCheck, ShieldCheck, RefreshCw, Sparkles, Printer, User as UserIcon
+  FileCheck, ShieldCheck, RefreshCw, Sparkles, Printer, User as UserIcon, Trash2
 } from 'lucide-react';
 import { db } from '../firebase/config';
 import { 
   collection, query, where, onSnapshot, 
-  addDoc, updateDoc, doc, orderBy, serverTimestamp, getDoc, getDocs
+  addDoc, updateDoc, doc, orderBy, serverTimestamp, getDoc, getDocs, deleteDoc
 } from 'firebase/firestore';
+import { showAlert, showConfirm } from '../utils/alert';
 import { User } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import SensitiveDataViewer from '../components/SensitiveDataViewer';
 
 // Dynamic default names of administrators
 const ADMIN_OFFICIALS = {
@@ -281,10 +283,22 @@ const compressImage = (base64Str: string, maxWidth = 800, maxHeight = 800, quali
 };
 
 export default function SuratPage() {
-  const [user] = useState<User | null>(() => {
+  const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('erw_user');
     return saved ? JSON.parse(saved) : null;
   });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const unsub = onSnapshot(doc(db, 'users', user.id), (docSnap) => {
+      if (docSnap.exists()) {
+        const updatedUser = { id: docSnap.id, ...docSnap.data() } as User;
+        setUser(updatedUser);
+        localStorage.setItem('erw_user', JSON.stringify(updatedUser));
+      }
+    });
+    return () => unsub();
+  }, [user?.id]);
 
   const isAdmin = user?.accountType === 'admin';
 
@@ -398,6 +412,11 @@ export default function SuratPage() {
         collection(db, 'surat_requests'),
         where('wargaId', '==', user.id)
       );
+    } else if (user.adminRole === 'rt') {
+      q = query(
+        collection(db, 'surat_requests'),
+        where('rt_id', '==', user.rt_id)
+      );
     }
 
     const unsub = onSnapshot(q, (snap) => {
@@ -510,11 +529,18 @@ export default function SuratPage() {
     };
   }, [selectedRequest?.signedLetterDoc]);
 
-  // Fetch dynamic officials (warga terpilih who have ketua_rt / ketua_rw badges)
+  // Fetch dynamic officials (warga terpilih who have ketua_rt_X / ketua_rw badges)
   useEffect(() => {
     const q = query(
       collection(db, 'residents'),
-      where('communityPosition', 'in', ['ketua_rt', 'ketua_rw'])
+      where('communityPosition', 'in', [
+        'ketua_rw',
+        'ketua_rt_001',
+        'ketua_rt_002',
+        'ketua_rt_003',
+        'ketua_rt_004',
+        'ketua_rt_005'
+      ])
     );
     const unsub = onSnapshot(q, (snap) => {
       const newRt: Record<string, string> = {
@@ -528,15 +554,16 @@ export default function SuratPage() {
         const data = doc.data();
         const pos = data.communityPosition;
         const name = data.nama;
-        const rt = String(data.rt_id);
+        const rt = String(data.rt_id || data.rt || '');
         
-        if (pos === 'ketua_rt' && rt) {
-          const rtNum = parseInt(rt, 10);
-          if (!isNaN(rtNum)) {
-            const formattedKey = String(rtNum).padStart(3, '0');
-            newRt[formattedKey] = name;
-            newRt[rt] = name;
-          } else {
+        if (pos && pos.startsWith('ketua_rt_')) {
+          const rtNumStr = pos.split('_')[2];
+          if (rtNumStr) {
+            newRt[rtNumStr] = name;
+          }
+          if (rt) {
+            const rtFormatted = formatRtId(rt);
+            newRt[rtFormatted] = name;
             newRt[rt] = name;
           }
         } else if (pos === 'ketua_rw') {
@@ -589,17 +616,17 @@ export default function SuratPage() {
     const reqs = getFileRequirements(formData.jenis);
     
     if (reqs.req1 && !formData.ktpDoc) {
-      alert(`PENGIRIMAN GAGAL: Dokumen "${reqs.label1}" wajib diunggah.`);
+      showAlert('Gagal', `PENGIRIMAN GAGAL: Dokumen "${reqs.label1}" wajib diunggah.`, 'error');
       return;
     }
 
     if (reqs.req2 && !formData.kkDoc) {
-      alert(`PENGIRIMAN GAGAL: Dokumen "${reqs.label2}" wajib diunggah.`);
+      showAlert('Gagal', `PENGIRIMAN GAGAL: Dokumen "${reqs.label2}" wajib diunggah.`, 'error');
       return;
     }
 
     if (reqs.req3 && !formData.supportDoc) {
-      alert(`PENGIRIMAN GAGAL: Dokumen "${reqs.label3}" wajib diunggah.`);
+      showAlert('Gagal', `PENGIRIMAN GAGAL: Dokumen "${reqs.label3}" wajib diunggah.`, 'error');
       return;
     }
 
@@ -657,7 +684,7 @@ export default function SuratPage() {
           setShowSuccessModal(true);
         } catch (err) {
           console.error("Error submitting letter:", err);
-          alert("Terjadi kesalahan, gagal mengirim pengajuan!");
+          showAlert('Gagal', "Terjadi kesalahan, gagal mengirim pengajuan!", 'error');
         } finally {
           setIsSubmitting(false);
         }
@@ -680,7 +707,7 @@ export default function SuratPage() {
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      alert("Mohon pilih berkas dengan format PDF saja!");
+      showAlert('Format Salah', "Mohon pilih berkas dengan format PDF saja!", 'warning');
       return;
     }
 
@@ -715,7 +742,7 @@ export default function SuratPage() {
         try {
           let nextStatus = 'Selesai';
           if (user?.adminRole === 'rt' && req.tujuan === 'RT') {
-            const forward = window.confirm("Apakah Anda ingin meneruskan pengajuan ini ke tingkat RW terlebih dahulu?");
+            const forward = await showConfirm('Teruskan ke RW?', "Apakah Anda ingin meneruskan pengajuan ini ke tingkat RW terlebih dahulu?");
             if (forward) nextStatus = 'Pending RW';
           }
 
@@ -843,6 +870,29 @@ export default function SuratPage() {
     setShowForm(true);
   };
 
+  // 7.5. Warga Delete History Request
+  const handleDeleteRequest = async (req: any) => {
+    if (!user) return;
+
+    const isActive = ['Pending RT', 'Pending RW', 'Diproses', 'Revisi'].includes(req.status);
+    const confirmMsg = isActive
+      ? `Perhatian: Pengajuan ini berstatus "${req.status}" dan sedang diproses. Jika Anda menghapusnya, pengajuan ini akan DIBATALKAN secara permanen.\n\nApakah Anda yakin ingin menghapus dan membatalkan pengajuan ini?`
+      : `Apakah Anda yakin ingin menghapus riwayat pengajuan surat "${req.jenis}" ini dari akun Anda secara permanen?`;
+
+    if (await showConfirm('Konfirmasi Hapus', confirmMsg)) {
+      setLoading(true);
+      try {
+        await deleteDoc(doc(db, 'surat_requests', req.id));
+        showAlert('Berhasil', "Riwayat pengajuan berhasil dihapus secara permanen.", 'success');
+      } catch (err) {
+        console.error("Error deleting letter request:", err);
+        showAlert('Gagal', "Gagal menghapus riwayat pengajuan. Silakan coba lagi.", 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   // 8. Stats Computations
   const stats = {
     total: requests.length,
@@ -894,7 +944,7 @@ export default function SuratPage() {
   };
 
   return (
-    <div className="surat-page-container">
+    <div className={`surat-page-container ${isAdmin ? 'is-admin' : 'is-resident'}`}>
       {/* 1. ADMIN DOMAIN PANELS */}
       {isAdmin ? (
         <div className="admin-surat-layout fade-in">
@@ -985,17 +1035,19 @@ export default function SuratPage() {
               </select>
             </div>
 
-            <div className="web-filter">
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Wilayah RT</span>
-              <select value={filterRt} onChange={e => setFilterRt(e.target.value)} style={{ fontWeight: 800 }}>
-                <option value="Semua">Semua RT</option>
-                <option value="001">RT 001</option>
-                <option value="002">RT 002</option>
-                <option value="003">RT 003</option>
-                <option value="004">RT 004</option>
-                <option value="005">RT 005</option>
-              </select>
-            </div>
+            {user?.adminRole !== 'rt' && (
+              <div className="web-filter">
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Wilayah RT</span>
+                <select value={filterRt} onChange={e => setFilterRt(e.target.value)} style={{ fontWeight: 800 }}>
+                  <option value="Semua">Semua RT</option>
+                  <option value="001">RT 001</option>
+                  <option value="002">RT 002</option>
+                  <option value="003">RT 003</option>
+                  <option value="004">RT 004</option>
+                  <option value="005">RT 005</option>
+                </select>
+              </div>
+            )}
 
             <div className="web-filter">
               <span style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Tujuan</span>
@@ -1046,7 +1098,10 @@ export default function SuratPage() {
                               </div>
                               <div>
                                 <div style={{ fontWeight: 800, color: '#0f172a', fontSize: 14 }}>{req.wargaName}</div>
-                                <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>NIK: {req.nik}</div>
+                                <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  <span>NIK:</span>
+                                  <SensitiveDataViewer value={req.nik} type="NIK" residentId={req.wargaId || req.id} residentName={req.wargaName} adminUser={user} />
+                                </div>
                               </div>
                             </div>
                           </td>
@@ -1336,6 +1391,26 @@ export default function SuratPage() {
                         <div className="card-bottom" style={{ display: 'flex', gap: 8, marginTop: 'auto', borderTop: '1px solid #f1f5f9', paddingTop: 14 }}>
                           <button 
                             className="btn-card-action"
+                            style={{ 
+                              flex: '0 0 38px', 
+                              width: 38, 
+                              height: 38, 
+                              padding: 0, 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              color: '#ef4444', 
+                              borderColor: '#fee2e2',
+                              background: '#fef2f2'
+                            }}
+                            onClick={() => handleDeleteRequest(req)}
+                            title="Hapus Riwayat Pengajuan"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                          
+                          <button 
+                            className="btn-card-action"
                             style={{ flex: 1 }}
                             onClick={() => setSelectedRequest(req)}
                           >
@@ -1375,7 +1450,7 @@ export default function SuratPage() {
       {/* 3. RESIDENT SUBMISSION FORM MODAL */}
       <AnimatePresence>
         {showForm && (
-          <div className="modal-overlay" style={{ zIndex: 6000 }}>
+          <div className="modal-overlay" style={{ zIndex: 16000 }}>
             <motion.div 
               initial={{ y: '100%', opacity: 0 }} 
               animate={{ y: 0, opacity: 1 }} 
@@ -1449,15 +1524,15 @@ export default function SuratPage() {
                   </div>
 
                   {/* Dynamic Official Information Card */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: '#eff6ff', border: '1px solid #dbeafe', borderRadius: 12 }}>
-                    <div style={{ width: 36, height: 36, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb', fontWeight: 800 }}>
-                      {formData.tujuan === 'RT' ? '🛡️' : '👑'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: '#f0f7ff', border: '1px solid #dbeafe', borderRadius: 16 }}>
+                    <div style={{ width: 38, height: 38, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb', boxShadow: '0 2px 8px rgba(37,99,235,0.08)' }}>
+                      {formData.tujuan === 'RT' ? <ShieldCheck size={18} /> : <Sparkles size={18} />}
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, fontWeight: 800, color: '#2563eb', textTransform: 'uppercase' }}>
-                        Penerima: Ketua {formData.tujuan} {formData.tujuan === 'RT' ? formatRtId(user?.rt_id) : '011'}
+                      <div style={{ fontSize: 11, fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        PENERIMA: KETUA {formData.tujuan} {formData.tujuan === 'RT' ? formatRtId(user?.rt_id) : '011'}
                       </div>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: '#1e3a8a' }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: '#1e3a8a', marginTop: 2 }}>
                         {formData.tujuan === 'RT' 
                           ? (officials.rt[formatRtId(user?.rt_id)] || officials.rt[user?.rt_id || ''] || 'Pengurus RT Setempat') 
                           : officials.rw}
@@ -1767,7 +1842,7 @@ export default function SuratPage() {
       {/* 4. DETAIL VIEW / TRACK TIMELINE MODAL */}
       <AnimatePresence>
         {selectedRequest && (
-          <div className="modal-overlay" style={{ zIndex: 6100 }}>
+          <div className="modal-overlay" style={{ zIndex: 16100 }}>
             <motion.div 
               initial={{ y: '100%', opacity: 0 }} 
               animate={{ y: 0, opacity: 1 }} 
@@ -2074,8 +2149,12 @@ export default function SuratPage() {
 
                         <div style={{ margin: '0 0 12px 30px', display: 'grid', gridTemplateColumns: '120px 10px 1fr', gap: '4px 0' }}>
                           <span>Nama Lengkap</span><span>:</span><strong style={{ textTransform: 'uppercase' }}>{selectedRequest.wargaName}</strong>
-                          <span>NIK</span><span>:</span><span style={{ fontFamily: 'monospace' }}>{selectedRequest.nik}</span>
-                          <span>No. Kartu Keluarga</span><span>:</span><span style={{ fontFamily: 'monospace' }}>{selectedRequest.noKK}</span>
+                          <span>NIK</span><span>:</span><span style={{ fontFamily: 'monospace' }}>
+                            <SensitiveDataViewer value={selectedRequest.nik} type="NIK" residentId={selectedRequest.wargaId || selectedRequest.id} residentName={selectedRequest.wargaName} adminUser={user} />
+                          </span>
+                          <span>No. Kartu Keluarga</span><span>:</span><span style={{ fontFamily: 'monospace' }}>
+                            <SensitiveDataViewer value={selectedRequest.noKK} type="No. KK" residentId={selectedRequest.wargaId || selectedRequest.id} residentName={selectedRequest.wargaName} adminUser={user} />
+                          </span>
                           <span>Tempat, Tgl Lahir</span><span>:</span><span>Bandung, 12 Agustus 1996</span>
                           <span>Pekerjaan</span><span>:</span><span>Karyawan Swasta</span>
                           <span>Alamat Domisili</span><span>:</span><span>{formatAddress({ name: selectedRequest.wargaName, alamat: selectedRequest.alamat, blok: selectedRequest.blok || selectedWargaProfile?.blok, nomorRumah: selectedRequest.nomorRumah || selectedWargaProfile?.nomorRumah || selectedWargaProfile?.noRumah, rt_id: selectedRequest.rt_id || selectedWargaProfile?.rt_id || selectedWargaProfile?.rt, rw_id: selectedRequest.rw_id || selectedWargaProfile?.rw_id || selectedWargaProfile?.rw })}</span>
@@ -2184,7 +2263,7 @@ export default function SuratPage() {
       {/* 5. ADMIN ACTION ACTIONABLE POPUP (REVISION OR REJECTION INPUTS) */}
       <AnimatePresence>
         {showActionModal && (
-          <div className="modal-overlay" style={{ zIndex: 6500 }}>
+          <div className="modal-overlay" style={{ zIndex: 16500 }}>
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
@@ -2237,7 +2316,7 @@ export default function SuratPage() {
       {/* 6. SUCCESS SUBMISSION MODAL */}
       <AnimatePresence>
         {showSuccessModal && (
-          <div className="modal-overlay" style={{ zIndex: 7000 }}>
+          <div className="modal-overlay" style={{ zIndex: 17000 }}>
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }} 
               animate={{ scale: 1, opacity: 1, y: 0 }} 
@@ -2247,15 +2326,11 @@ export default function SuratPage() {
                 textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' 
               }}
             >
-              {/* Glowing animated check mark */}
-              <div style={{
-                position: 'relative', width: 72, height: 72, background: '#eff6ff', 
-                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 20px', border: '2px solid #3b82f6',
-                boxShadow: '0 0 20px rgba(59, 130, 246, 0.25)'
-              }}>
-                <Sparkles size={36} color="#3b82f6" />
-              </div>
+              <img 
+                src="/vira_ai_berhasil.png" 
+                alt="Vira AI" 
+                style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 20px' }} 
+              />
 
               <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1e3a8a', marginBottom: 12 }}>
                 Pengajuan Surat Berhasil!
@@ -2285,7 +2360,7 @@ export default function SuratPage() {
       {/* 6.1 ADMIN UPLOAD SIGNED PDF MODAL */}
       <AnimatePresence>
         {showUploadPdfModal && (
-          <div className="modal-overlay" style={{ zIndex: 7500 }}>
+          <div className="modal-overlay" style={{ zIndex: 17500 }}>
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }} 
               animate={{ scale: 1, opacity: 1, y: 0 }} 
@@ -2463,7 +2538,7 @@ export default function SuratPage() {
       {/* 7. ADMIN ACTION CONFIRMATION MODAL */}
       <AnimatePresence>
         {adminConfirm.isOpen && (
-          <div className="modal-overlay" style={{ zIndex: 8000 }}>
+          <div className="modal-overlay" style={{ zIndex: 18000 }}>
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
@@ -2521,7 +2596,7 @@ export default function SuratPage() {
       {/* 8. ADMIN ACTION SUCCESS MODAL */}
       <AnimatePresence>
         {adminSuccess.isOpen && (
-          <div className="modal-overlay" style={{ zIndex: 9000 }}>
+          <div className="modal-overlay" style={{ zIndex: 19000 }}>
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }} 
               animate={{ scale: 1, opacity: 1, y: 0 }} 
@@ -2531,15 +2606,11 @@ export default function SuratPage() {
                 textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' 
               }}
             >
-              {/* Glowing animated green check circle */}
-              <div style={{
-                position: 'relative', width: 72, height: 72, background: '#eff6ff', 
-                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 20px', border: '2px solid #3b82f6',
-                boxShadow: '0 0 20px rgba(59, 130, 246, 0.25)'
-              }}>
-                <Sparkles size={36} color="#3b82f6" />
-              </div>
+              <img 
+                src="/vira_ai_berhasil.png" 
+                alt="Vira AI" 
+                style={{ width: 140, height: 140, objectFit: 'contain', display: 'block', margin: '0 auto 20px' }} 
+              />
 
               <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1e3a8a', marginBottom: 12 }}>
                 {adminSuccess.title}
@@ -2569,7 +2640,7 @@ export default function SuratPage() {
       {/* 9. CITIZEN SUBMISSION CONFIRMATION MODAL */}
       <AnimatePresence>
         {wargaConfirm.isOpen && (
-          <div className="modal-overlay" style={{ zIndex: 9500 }}>
+          <div className="modal-overlay" style={{ zIndex: 19500 }}>
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
@@ -2634,6 +2705,28 @@ export default function SuratPage() {
           max-width: 1200px;
           margin: 0 auto;
         }
+        .surat-page-container.is-resident {
+          max-width: 500px;
+          padding: 16px 16px 100px;
+        }
+        @media (max-width: 768px) {
+          .surat-page-container.is-resident {
+            padding: 12px 6px 100px !important;
+          }
+          .surat-page-container.is-admin {
+            padding: 16px;
+          }
+          .stats-dashboard {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px;
+          }
+        }
+        @media (max-width: 480px) {
+          .stats-dashboard.resident-stats {
+            grid-template-columns: 1fr !important;
+            gap: 8px;
+          }
+        }
 
         .stats-dashboard {
           display: grid;
@@ -2643,6 +2736,7 @@ export default function SuratPage() {
         }
 
         .stats-dashboard.resident-stats {
+          display: grid;
           grid-template-columns: repeat(3, 1fr);
         }
         

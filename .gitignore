@@ -29,3 +29,8 @@ firebase-debug.log
 .firebaserc
 find_kemal.js
 check_user.js
+
+# Firebase Admin credentials
+*serviceAccountKey.json
+server/.env
+server/dist

@@ -4,6 +4,7 @@ import { User } from '../types';
 import NotificationBell from './NotificationBell';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import GlobalSearchModal from './GlobalSearchModal';
 
 interface NavbarProps {
   title: string;
@@ -17,7 +18,10 @@ interface NavbarProps {
 export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogout, hideToggle }: NavbarProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const navigate = useNavigate();
+  
+  useGlobalSearchShortcut(setShowGlobalSearch);
 
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -109,7 +113,7 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
       <header
         className="navbar"
         style={{
-          zIndex: 90,
+          zIndex: 1200,
           transform: visible ? 'translateY(0)' : 'translateY(-100%)',
           transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
@@ -126,12 +130,19 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
           </div>
         </div>
         <div className="navbar-right">
-          {user?.accountType === 'resident' && (
-            <div className="navbar-search-resident">
-              <Search size={16} />
-              <input type="text" placeholder="Cari..." />
-            </div>
-          )}
+          <div 
+            className="navbar-search-resident" 
+            onClick={() => setShowGlobalSearch(true)}
+            style={{ cursor: 'pointer' }}
+          >
+            <Search size={16} />
+            <input 
+              type="text" 
+              placeholder="Cari warga, iuran..." 
+              readOnly 
+              style={{ cursor: 'pointer' }}
+            />
+          </div>
           <NotificationBell userRole={notifRole} userId={user?.id} />
           
           <div style={{ position: 'relative' }}>
@@ -192,7 +203,17 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
                       </button>
                     )}
                     <button 
-                      onClick={() => { navigate(user?.accountType === 'resident' ? '/warga/setting' : '/admin/dev/setting'); setShowMenu(false); }}
+                      onClick={() => {
+                        let target = '/warga/setting';
+                        if (user?.accountType === 'admin') {
+                          let scope = 'dev';
+                          if (user.adminRole === 'rw') scope = 'rw011';
+                          else if (user.adminRole === 'rt') scope = `rt${user.rt_id || '001'}`;
+                          target = `/admin/${scope}/setting`;
+                        }
+                        navigate(target);
+                        setShowMenu(false);
+                      }}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 14, border: 'none', background: 'transparent', color: '#334155', fontSize: 14, fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -215,6 +236,26 @@ export default function Navbar({ title, subtitle, user, onToggleSidebar, onLogou
           </div>
         </div>
       </header>
+      
+      <GlobalSearchModal 
+        isOpen={showGlobalSearch} 
+        onClose={() => setShowGlobalSearch(false)} 
+        user={user} 
+      />
     </>
   );
+}
+
+// Add Keyboard Shortcut support for opening search
+export function useGlobalSearchShortcut(setShowGlobalSearch: React.Dispatch<React.SetStateAction<boolean>>) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowGlobalSearch(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setShowGlobalSearch]);
 }

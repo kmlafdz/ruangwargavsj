@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, MessageSquare, Megaphone, User } from 'lucide-react';
+import { Home, Users, MessageSquare, Megaphone, User } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function ResidentBottomNav({ onTabClick }: { onTabClick?: () => void }) {
@@ -8,7 +8,7 @@ export default function ResidentBottomNav({ onTabClick }: { onTabClick?: () => v
 
   const navItems = [
     { icon: Home, label: 'Beranda', path: '/warga/dashboard' },
-    { icon: FileText, label: 'Surat', path: '/warga/surat' },
+    { icon: Users, label: 'Keluargaku', path: '/warga/keluarga' },
     { icon: MessageSquare, label: 'Forum', path: '/warga/chat' },
     { icon: Megaphone, label: 'Pengumuman', path: '/warga/pengumuman' },
     { icon: User, label: 'Profil', path: '/warga/profile' },
