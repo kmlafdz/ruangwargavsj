@@ -125,10 +125,10 @@ export default function App() {
     let hideListener: any;
 
     if (Capacitor.isNativePlatform()) {
-      showListener = Keyboard.addListener('keyboardWillShow', () => {
+      showListener = Keyboard.addListener('keyboardDidShow', () => {
         setIsKeyboardVisible(true);
       });
-      hideListener = Keyboard.addListener('keyboardWillHide', () => {
+      hideListener = Keyboard.addListener('keyboardDidHide', () => {
         setIsKeyboardVisible(false);
       });
     } else {

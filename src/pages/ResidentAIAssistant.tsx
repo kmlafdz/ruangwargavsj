@@ -62,10 +62,10 @@ export default function ResidentAIAssistant({ user, onClose }: { user: any; onCl
     let hideListener: any;
 
     if (Capacitor.isNativePlatform()) {
-      showListener = Keyboard.addListener('keyboardWillShow', () => {
+      showListener = Keyboard.addListener('keyboardDidShow', () => {
         setIsKeyboardOpen(true);
       });
-      hideListener = Keyboard.addListener('keyboardWillHide', () => {
+      hideListener = Keyboard.addListener('keyboardDidHide', () => {
         setIsKeyboardOpen(false);
       });
     } else {
