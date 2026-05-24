@@ -93,6 +93,12 @@ export default function ResidentAIAssistant({ user, onClose }: { user: any; onCl
     };
   }, []);
 
+  useEffect(() => {
+    if (isKeyboardOpen) {
+      setTimeout(() => scrollToBottom(), 150);
+    }
+  }, [isKeyboardOpen]);
+
   // Live contextual data states
   const [unpaidBills, setUnpaidBills] = useState<any[]>([]);
   const [activeLetters, setActiveLetters] = useState<any[]>([]);
@@ -824,8 +830,8 @@ ATURAN KEAMANAN & PRIVASI DATA:
   return (
     <div className="vira-page-container" style={{
       background: onClose ? 'transparent' : '#f8fafc',
-      height: onClose ? '100%' : 'calc(100vh - 64px)',
-      minHeight: onClose ? 'auto' : 'calc(100vh - 64px)',
+      height: onClose ? '100%' : 'calc(100dvh - 64px)',
+      minHeight: onClose ? 'auto' : 'calc(100dvh - 64px)',
       paddingBottom: onClose ? '0' : (isMobile ? '160px' : '80px'),
       display: 'flex',
       flexDirection: 'column',

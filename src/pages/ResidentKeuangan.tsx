@@ -755,16 +755,9 @@ export default function ResidentKeuangan({ user }: ResidentKeuanganProps) {
         {/* RuangPay E-Wallet Card */}
         <div className="ruangpay-card">
           <div className="shimmer-effect" />
-          <div className="card-chip">
-            <div className="card-chip-inner" />
-            <div className="card-chip-inner" />
-            <div className="card-chip-inner" />
-            <div className="card-chip-inner" />
-          </div>
           <div className="tagline">
             <Smartphone size={16} style={{ color: '#d4af37' }} />
             <span>RUANGPAY WALLET</span>
-            <span className="gold-badge" style={{ marginLeft: 50 }}>PREMIUM</span>
           </div>
           <div className="balance-label">Saldo Aktif Anda</div>
           <div className="balance-val">

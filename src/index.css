@@ -56,9 +56,9 @@ html, body {
 body { font-family: 'Inter', sans-serif; background: var(--gray-50); color: var(--gray-800); line-height: 1.5; font-size: 14px; -webkit-font-smoothing: antialiased; }
 
 /* Layout */
-.app-layout { display: flex; min-height: 100vh; }
-.main-area { flex: 1; margin-left: var(--sidebar-width); display: flex; flex-direction: column; min-height: 100vh; width: calc(100% - var(--sidebar-width)); }
-.page-content { flex: 1; padding: 28px; margin-top: var(--navbar-height); overflow-y: auto; }
+.app-layout { display: flex; height: 100%; min-height: 100dvh; }
+.main-area { flex: 1; margin-left: var(--sidebar-width); display: flex; flex-direction: column; height: 100%; min-height: 100dvh; width: calc(100% - var(--sidebar-width)); }
+.page-content { flex: 1; padding: 28px; margin-top: var(--navbar-height); overflow-y: auto; position: relative; }
 .app-layout.is-resident .main-area { margin-left: 0; width: 100%; }
 .app-layout.is-resident .navbar { left: 0; }
 .app-layout.is-resident .page-content { padding: 0px; margin-top: 94px; }

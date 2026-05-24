@@ -163,6 +163,12 @@ export default function ChatPage({ user }: { user: User | null }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (isKeyboardOpen) {
+      setTimeout(() => scrollToBottom('smooth'), 150);
+    }
+  }, [isKeyboardOpen]);
+
   const [customHarshWords, setCustomHarshWords] = useState<string[]>([]);
 
   useEffect(() => {
@@ -1288,7 +1294,7 @@ export default function ChatPage({ user }: { user: User | null }) {
         .chat-page-main-area {
           padding: 0 !important;
           margin: 0 !important;
-          height: 100vh !important;
+          height: 100% !important;
           background: #f1f5f9 !important;
           width: 100% !important;
           overflow: hidden !important;
@@ -1304,7 +1310,7 @@ export default function ChatPage({ user }: { user: User | null }) {
           overflow: hidden !important;
         }
         .chat-container-wrapper { 
-          height: 100vh; 
+          height: 100%;
           background: #f1f5f9; 
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
@@ -1338,16 +1344,16 @@ export default function ChatPage({ user }: { user: User | null }) {
             padding: 0 !important;
             margin: 0 !important;
             padding-left: 0 !important;
-            height: 100vh !important;
+            height: 100% !important;
             overflow: hidden !important;
           }
           .chat-page-content {
             margin-top: 0 !important; /* Forces 0 margin-top on mobile chat to avoid white gap */
-            height: 100vh !important;
+            height: 100% !important;
             overflow: hidden !important;
           }
           .chat-container-wrapper { 
-            height: 100vh !important; 
+            height: 100% !important;
             overflow: hidden !important;
           } 
           .chat-container {
