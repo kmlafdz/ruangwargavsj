@@ -163,12 +163,6 @@ export default function ChatPage({ user }: { user: User | null }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (isKeyboardOpen) {
-      setTimeout(() => scrollToBottom('smooth'), 150);
-    }
-  }, [isKeyboardOpen]);
-
   const [customHarshWords, setCustomHarshWords] = useState<string[]>([]);
 
   useEffect(() => {
@@ -1294,7 +1288,7 @@ export default function ChatPage({ user }: { user: User | null }) {
         .chat-page-main-area {
           padding: 0 !important;
           margin: 0 !important;
-          height: 100% !important;
+          height: 100vh !important;
           background: #f1f5f9 !important;
           width: 100% !important;
           overflow: hidden !important;
@@ -1305,12 +1299,15 @@ export default function ChatPage({ user }: { user: User | null }) {
           height: 100% !important;
           overflow: hidden !important;
         }
-        .chat-page-content-wrapper {
+        /* Lock all parent layouts to prevent body-scroll on mobile/APK */
+        html, body, #root, .app-layout, .main-area, .page-content, .chat-page-content-wrapper {
           height: 100% !important;
+          max-height: 100% !important;
           overflow: hidden !important;
         }
         .chat-container-wrapper { 
-          height: 100%;
+          height: 100% !important;
+          max-height: 100% !important;
           background: #f1f5f9; 
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
@@ -1325,7 +1322,8 @@ export default function ChatPage({ user }: { user: User | null }) {
           margin: 0 auto;
           background: #ffffff;
           box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-          height: 100%;
+          height: 100% !important;
+          max-height: 100% !important;
           border-left: 1px solid #e2e8f0;
           border-right: 1px solid #e2e8f0;
         }
@@ -1345,15 +1343,18 @@ export default function ChatPage({ user }: { user: User | null }) {
             margin: 0 !important;
             padding-left: 0 !important;
             height: 100% !important;
+            max-height: 100% !important;
             overflow: hidden !important;
           }
           .chat-page-content {
             margin-top: 0 !important; /* Forces 0 margin-top on mobile chat to avoid white gap */
             height: 100% !important;
+            max-height: 100% !important;
             overflow: hidden !important;
           }
           .chat-container-wrapper { 
             height: 100% !important;
+            max-height: 100% !important;
             overflow: hidden !important;
           } 
           .chat-container {

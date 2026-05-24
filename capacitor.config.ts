@@ -7,9 +7,6 @@ const config: CapacitorConfig = {
   plugins: {
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"]
-    },
-    Keyboard: {
-      resize: "body",
     }
   }
 };

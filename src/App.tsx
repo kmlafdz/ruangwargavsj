@@ -929,7 +929,7 @@ export default function App() {
             width: 380px;
             max-width: calc(100vw - 40px);
             height: 560px;
-            max-height: calc(100dvh - 200px);
+            max-height: calc(100vh - 200px);
             background: rgba(255, 255, 255, 0.72) !important;
             backdrop-filter: blur(24px) saturate(180%);
             -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -949,7 +949,7 @@ export default function App() {
               width: 340px;
               max-width: calc(100vw - 40px);
               height: 480px;
-              max-height: calc(100dvh - 200px);
+              max-height: calc(100vh - 200px);
               border-radius: 24px;
               border: 1px solid rgba(255, 255, 255, 0.45) !important;
             }
@@ -992,7 +992,7 @@ export default function App() {
             className="vira-ai-chat-panel"
             style={{
               bottom: isKeyboardVisible ? '10px' : undefined,
-              maxHeight: isKeyboardVisible ? 'calc(100dvh - 20px)' : undefined
+              maxHeight: isKeyboardVisible ? 'calc(100vh - 30px)' : undefined
             }}
           >
             <ResidentAIAssistant user={user} onClose={() => setIsViraOpen(false)} />
